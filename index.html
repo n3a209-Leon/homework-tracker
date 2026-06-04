@@ -944,23 +944,1261 @@ body{margin:0;padding:0;}
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div style="padding:20px;color:#666">載入中... (前50%)</div></div>
+<script>
+// ── Google Drive ──────────────────────────────────────────────────────────────
+const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
+const DRIVE_FILENAME = 'hw-5renren-ALL.json'; // legacy
+function getDriveFilename(year, cls) {
+  if (!year && !cls) return DRIVE_FILENAME;
+  const safe = (cls||'').replace(/\s/g,'').slice(0,10);
+  return `hw-${year||'unknown'}-${safe||'class'}.json`;
+}
+let accessToken = null, driveFileId = null;
+
+function gSignIn(){
+  return new Promise((res,rej)=>{
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: (resp)=>{
+        if(resp.error){rej(resp.error);return;}
+        accessToken=resp.access_token;
+        localStorage.setItem('hw5ren:tok',accessToken);
+        res(accessToken);
+      }
+    });
+    client.requestAccessToken();
+  });
+}
+
+async function findDriveFile(){
+  if(!accessToken)return null;
+  const activeName = getDriveFilename(localStorage.getItem('hw5ren:year'), localStorage.getItem('hw5ren:className'));
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${activeName}'&fields=files(id)`,{headers:{'Authorization':'Bearer '+accessToken}});
+  const d=await r.json();
+  if(d.files?.length){driveFileId=d.files[0].id;return driveFileId;}
+  return null;
+}
+
+async function saveDrive(snapshot){
+  if(!accessToken)throw new Error('未登入');
+  const blob=new Blob([JSON.stringify(snapshot)],{type:'application/json'});
+  if(!driveFileId)await findDriveFile();
+  const form=new FormData();
+  if(driveFileId){
+    form.append('metadata',new Blob([JSON.stringify({name:getDriveFilename(localStorage.getItem("hw5ren:year"),localStorage.getItem("hw5ren:className"))})],{type:'application/json'}));
+    form.append('file',blob);
+    const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`,{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    return r.ok;
+  }else{
+    form.append('metadata',new Blob([JSON.stringify({name:DRIVE_FILENAME,mimeType:'application/json'})],{type:'application/json'}));
+    form.append('file',blob);
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    if(r.ok){const d=await r.json();driveFileId=d.id;return true;}
+    return false;
+  }
+}
+
+async function loadDrive(){
+  const stored=localStorage.getItem('hw5ren:tok');
+  if(stored)accessToken=stored;
+  if(!accessToken)return null;
+  const fid=await findDriveFile();
+  if(!fid)return null;
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{'Authorization':'Bearer '+accessToken}});
+  if(r.ok)return r.json();
+  // token expired - clear it
+  if(r.status===401){accessToken=null;localStorage.removeItem('hw5ren:tok');}
+  return null;
+}
+</script>
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+const DEFAULT_GROUPS = [
+  { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8],    leader: 7,  secretary: 9  },
+  { id: 2, label: "第二組", members: [25, 17, 21],            leader: 25, secretary: 17 },
+  { id: 3, label: "第三組", members: [10, 14, 2, 3, 11, 12],  leader: 10, secretary: 14 },
+  { id: 4, label: "第四組", members: [15, 27, 13, 18, 22],    leader: 15, secretary: 27 },
+  { id: 5, label: "第五組", members: [23, 19, 16, 24, 1, 20], leader: 23, secretary: 19 },
+];
+function loadGroups() {
+  try {
+    const s = localStorage.getItem("hw5ren:groups");
+    if (s) return JSON.parse(s);
+  } catch {}
+  return DEFAULT_GROUPS;
+}
+const PRESET_HW = ["國習","數習","國乙","國甲","聽寫","小日記","小作文","作文段落","作文","數習題","國卷","數卷","聯絡簿","回條","國習題"];
+const MAX_ROWS = 6;
+const WEEKDAYS = ["日","一","二","三","四","五","六"];
+const COUNSEL_PERIODS = ["早自習","第1節","第2節","第3節","第4節","午休","第5節","第6節","放學後"];
+const COUNSEL_TYPES = ["學習","行為","情緒","人際","家庭","其他"];
+const COUNSEL_FOLLOWUP = ["需追蹤","已處理","轉介"];
+
+const LEAVE_TYPES = [
+  { id:"personal", label:"事假", color:"#f57c00", bg:"#fff3e0" },
+  { id:"sick",     label:"病假", color:"#1565c0", bg:"#e3f2fd" },
+  { id:"public",   label:"公假", color:"#2e7d32", bg:"#e8f5e9" },
+];
+const KANJI_NUM = ["一","二","三","四","五","六","七","八"];
+function nervUnit(id) { return String(id); }
+
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+const LS_PREFIX = "hw5ren:";  // localStorage key prefix
+
+// ── IndexedDB 持久儲存（iPhone 跨版本可靠）────────────────────────────────
+const DB_NAME  = "hw5ren_db";
+const DB_STORE = "dayData";
+let _db = null;
+
+function openDB() {
+  // 若 _db 存在且連線未關閉，直接回傳
+  if (_db) {
+    try {
+      // 嘗試用它，若已關閉會拋出錯誤
+      _db.transaction(DB_STORE, "readonly").abort();
+      return Promise.resolve(_db);
+    } catch { _db = null; }
+  }
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => { e.target.result.createObjectStore(DB_STORE); };
+    req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function idbSet(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
+
+async function idbGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(DB_STORE, "readonly");
+    const req = tx.objectStore(DB_STORE).get(key);
+    req.onsuccess = e => resolve(e.target.result ?? null);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function idbKeys() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(DB_STORE, "readonly");
+    const req = tx.objectStore(DB_STORE).getAllKeys();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+// ── Counseling load / save ───────────────────────────────────────────────────
+async function loadCounsel(dateStr) {
+  let raw = null;
+  try { raw = await idbGet(`counsel:${dateStr}`); } catch {}
+  if (!raw) { try { raw = localStorage.getItem(`hw5ren:c:${dateStr}`); } catch {} }
+  if (raw) { try { return JSON.parse(raw); } catch {} }
+  return [];
+}
+async function saveCounsel(dateStr, records) {
+  const json = JSON.stringify(records);
+  try { await idbSet(`counsel:${dateStr}`, json); } catch {}
+  try { localStorage.setItem(`hw5ren:c:${dateStr}`, json); } catch {}
+}
+async function loadCounselMonth(y, m) {
+  const entries = {};
+  for (let d = 1; d <= new Date(y,m+1,0).getDate(); d++) {
+    const ds = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const recs = await loadCounsel(ds);
+    if (recs.length > 0) entries[ds] = recs;
+  }
+  return entries;
+}
+
+// ── Day load / save ──────────────────────────────────────────────────────────
+async function loadDay(dateStr) {
+  let raw = null;
+  // 1. IndexedDB（主要，跨版本）
+  try { raw = await idbGet(`day:${dateStr}`); } catch {}
+  // 2. localStorage 備援
+  if (!raw) { try { raw = localStorage.getItem(`hw5ren:${dateStr}`); } catch {} }
+  if (raw) {
+    try { const d = deser(JSON.parse(raw)); return { ok:true, rows:d.rows, attendance:d.attendance, exempt:d.exempt }; } catch {}
+  }
+  return { ok:true, rows:[], attendance:{ personal:new Set(), sick:new Set(), public:new Set() }, exempt:{} };
+}
+
+async function saveDay(dateStr, rows, attendance, exempt) {
+  const json = JSON.stringify(ser(rows, attendance, exempt));
+  // 1. IndexedDB（主要）
+  let idbOk = false;
+  try { idbOk = await idbSet(`day:${dateStr}`, json); } catch {}
+  // 2. localStorage（備援）
+  try { localStorage.setItem(`hw5ren:${dateStr}`, json); } catch {}
+    return { ok: true, source: idbOk ? "idb" : "local" };
+}
+
+async function loadMonth(y, m) {
+  const days = daysInMonth(y, m);
+  const entries = {};
+  for (let d = 1; d <= days; d++) {
+    const ds = toDateStr(y, m, d);
+    const res = await loadDay(ds);
+    entries[ds] = { rows: res.rows, attendance: res.attendance, exempt: res.exempt };
+  }
+  return entries;
+}
+
+// ── serialise / deserialise ──────────────────────────────────────────────────
+function ser(rows, attendance, exempt) {
+  return {
+    rows: rows.map(r => ({
+      hwName: r.hwName,
+      groupData: Object.fromEntries(
+        Object.entries(r.groupData).map(([k,v]) => [k, [...v]])
+      ),
+    })),
+    attendance: {
+      personal: [...(attendance?.personal ?? [])],
+      sick:     [...(attendance?.sick     ?? [])],
+      public:   [...(attendance?.public   ?? [])],
+    },
+    exempt: Object.fromEntries(
+      Object.entries(exempt ?? {}).map(([hw, nums]) => [hw, [...nums]])
+    ),
+  };
+}
+function deser(data) {
+  try {
+    const raw = Array.isArray(data) ? { rows: data, attendance: {}, exempt: {} } : (data || { rows: [], attendance: {}, exempt: {} });
+    return {
+      rows: (raw.rows||[]).map(r => ({
+        hwName: r.hwName || "",
+        groupData: Object.fromEntries(
+          Object.entries(r.groupData||{}).map(([k,v]) => [k, new Set(Array.isArray(v)?v:[])])
+        ),
+      })),
+      attendance: {
+        personal: new Set(Array.isArray(raw.attendance?.personal)?raw.attendance.personal:[]),
+        sick:     new Set(Array.isArray(raw.attendance?.sick)?raw.attendance.sick:[]),
+        public:   new Set(Array.isArray(raw.attendance?.public)?raw.attendance.public:[]),
+      },
+      exempt: Object.fromEntries(
+        Object.entries(raw.exempt ?? {}).map(([hw, nums]) => [hw, new Set(Array.isArray(nums)?nums:[])])
+      ),
+    };
+  } catch(e) {
+    console.error('deser error:', e);
+    return { rows:[], attendance:{personal:new Set(),sick:new Set(),public:new Set()}, exempt:{} };
+  }
+}
+
+// ── Date helpers ─────────────────────────────────────────────────────────────
+function toDateStr(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+function today() {
+  const d = new Date();
+  return toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function firstWeekday(y, m) { return new Date(y, m, 1).getDay(); }
+
+// ── Mini summary ──────────────────────────────────────────────────────────────
+function daySummary(rows, grps) {
+  try {
+    const filled = rows.filter(r => r.hwName).length;
+    const allDone = rows.filter(r => {
+      if (!r.hwName) return false;
+      return (grps||[]).every(g => {
+        const done = r.groupData?.[g.id] ?? new Set();
+        return done.size === g.members.length;
+      });
+    }).length;
+    return { filled, allDone };
+  } catch { return { filled:0, allDone:0 }; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+</script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
 <script type="text/babel">
-const {useState} = React;
-function App() {
-  const [theme, setTheme] = useState('default');
-  const isNerv = theme === 'nerv';
+const {useState,useEffect,useCallback,useRef,useMemo}=React;
+
+const {useState,useEffect,useCallback,useRef,useMemo}=React;
+
+// ── Counsel View Component ────────────────────────────────────────────────────
+function CounselView({ date, records, onSave, onClose, isNerv, allMembers, groups, fmtDate }) {
+  const [recs, setRecs] = useState(() => records.length > 0 ? JSON.parse(JSON.stringify(records)) : [newRec(date)]);
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  function newRec(ds) {
+    return { id: Date.now(), date: ds, period:"", type:"", students:[], summary:"", followup:"" };
+  }
+
+  function addRec() {
+    const r = newRec(date);
+    setRecs(p => [...p, r]);
+    setActiveIdx(recs.length);
+  }
+
+  function delRec(idx) {
+    if (recs.length === 1) { setRecs([newRec(date)]); return; }
+    setRecs(p => p.filter((_,i)=>i!==idx));
+    setActiveIdx(Math.max(0, idx-1));
+  }
+
+  function upd(idx, field, val) {
+    setRecs(p => { const n=[...p]; n[idx]={...n[idx],[field]:val}; return n; });
+  }
+
+  function toggleStudent(idx, n) {
+    setRecs(p => {
+      const next=[...p]; const s=new Set(next[idx].students||[]);
+      s.has(n)?s.delete(n):s.add(n);
+      next[idx]={...next[idx],students:[...s].sort((a,b)=>a-b)};
+      return next;
+    });
+  }
+
+  function doSave() {
+    // 過濾掉完全空白的記錄（students、summary、type、period 全空）
+    const filtered = recs.filter(r=>r.students.length||r.summary||r.type||r.period);
+    onSave(filtered);
+    onClose();
+  }
+
+  const nerv = isNerv;
+  const panel = nerv
+    ? {background:"#080200",border:"1px solid #ff6600",borderRadius:4,padding:16,marginBottom:12}
+    : {background:"#fff",borderRadius:16,padding:16,marginBottom:12,boxShadow:"0 4px 20px rgba(0,0,0,.08)"};
+  const lbl = nerv
+    ? {color:"#ff6600",fontFamily:"Share Tech Mono,monospace",fontSize:11,letterSpacing:2,marginBottom:6,display:"block"}
+    : {fontSize:12,fontWeight:700,color:"#6a8aaa",letterSpacing:1,marginBottom:6,display:"block"};
+  const inp = nerv
+    ? {width:"100%",padding:"8px 10px",background:"rgba(255,102,0,.06)",border:"1px solid rgba(255,102,0,.4)",color:"#ff8844",borderRadius:2,fontSize:14,fontFamily:"Share Tech Mono,monospace",boxSizing:"border-box"}
+    : {width:"100%",padding:"8px 12px",border:"2px solid #dde5ee",borderRadius:10,fontSize:14,fontFamily:"inherit",boxSizing:"border-box",outline:"none"};
+
+  const rec = recs[activeIdx] || recs[0];
+
   return (
-    <div className="app" data-theme={theme} style={{minHeight:'100vh',padding:20}}>
-      <h1>作業繳交記錄</h1>
-      <button onClick={()=>setTheme(t=>t==='default'?'nerv':'default')}>
-        切換主題: {theme}
+    <main style={{padding:12,overflowY:"auto",flex:1}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+        <button onClick={onClose} style={{background:nerv?"rgba(255,102,0,.1)":"rgba(30,58,95,.1)",border:"none",color:nerv?"#ff6600":"#1e3a5f",padding:"6px 14px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:700}}>
+          {nerv?"◀ RETURN":"← 返回"}
+        </button>
+        <span style={{fontSize:16,fontWeight:900,color:nerv?"#ff6600":"#1e3a5f",flex:1}}>
+          {nerv?"◈ GUIDANCE LOG":"💬 輔導紀錄"}
+        </span>
+        <span style={{fontSize:12,color:nerv?"rgba(255,102,0,.6)":"#8a9db5",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"}}>
+          {fmtDate(date)}
+        </span>
+      </div>
+
+      {/* 多筆切換 tabs */}
+      {recs.length > 0 && (
+        <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+          {recs.map((r,i)=>
+            <button key={i} onClick={()=>setActiveIdx(i)} style={{ padding:"5px 12px",borderRadius:nerv?2:20,border:nerv?"1px solid":"2px solid", borderColor:activeIdx===i?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"), background:activeIdx===i?(nerv?"rgba(255,102,0,.2)":"#1e3a5f"):"transparent", color:activeIdx===i?(nerv?"#ff6600":"#fff"):(nerv?"rgba(255,102,0,.6)":"#8a9db5"), fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit" }}>
+              {nerv?`LOG-${String(i+1).padStart(2,"0")}`:` 紀錄 ${i+1}`}
+            </button>
+          )}
+          <button onClick={addRec} style={{padding:"5px 12px",borderRadius:nerv?2:20,border:nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff",background:"transparent",color:nerv?"rgba(255,102,0,.5)":"#8a9db5",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+            {nerv?"+ LOG":"+"}
+          </button>
+        </div>
+      )}
+
+      {/* 表單 */}
+      <div style={panel}>
+        {/* 節次 */}
+        <label style={lbl}>{nerv?"// PERIOD //":"節次"}</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+          {COUNSEL_PERIODS.map(p=>
+            <button key={p} onClick={()=>upd(activeIdx,"period",rec.period===p?"":p)}
+              style={{padding:"5px 10px",borderRadius:nerv?2:8,border:nerv?"1px solid":"2px solid", borderColor:rec.period===p?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"), background:rec.period===p?(nerv?"rgba(255,102,0,.2)":"#e8f0fe"):"transparent", color:rec.period===p?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"), fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit" }}>{p}</button>
+          )}
+        </div>
+
+        {/* 類別 */}
+        <label style={lbl}>{nerv?"// CATEGORY //":"輔導類別"}</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+          {COUNSEL_TYPES.map(t=>
+            <button key={t} onClick={()=>upd(activeIdx,"type",rec.type===t?"":t)}
+              style={{padding:"5px 10px",borderRadius:nerv?2:8,border:nerv?"1px solid":"2px solid", borderColor:rec.type===t?(nerv?"#ff6600":"#7c3aed"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"), background:rec.type===t?(nerv?"rgba(255,102,0,.2)":"#f3e8ff"):"transparent", color:rec.type===t?(nerv?"#ff6600":"#7c3aed"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"), fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit" }}>{t}</button>
+          )}
+        </div>
+
+        {/* 學生點選 */}
+        <label style={lbl}>{nerv?"// STUDENTS //":"學生座號（可多選）"}</label>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:4,marginBottom:14}}>
+          {allMembers.map(n=>{
+            const sel=(rec.students||[]).includes(n);
+            const grp=groups.find(g=>g.members.includes(n));
+            return (
+              <button key={n} onClick={()=>toggleStudent(activeIdx,n)}
+                style={{padding:"5px 0",fontSize:11,fontWeight:sel?800:400, border:nerv?"1px solid":"1.5px solid", borderColor:sel?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.2)":"#dde5ee"), borderRadius:nerv?2:6, background:sel?(nerv?"rgba(255,102,0,.25)":"#e8f0fe"):"transparent", color:sel?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.4)":"#aaa"), cursor:"pointer",position:"relative", fontFamily:nerv?"Share Tech Mono,monospace":"inherit" }}>
+                {n}
+                {n===grp?.leader&&<span style={{position:"absolute",top:-3,right:-1,fontSize:7,background:"#e53935",color:"#fff",borderRadius:2,padding:"0 1px"}}>長</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 摘要 */}
+        <label style={lbl}>{nerv?"// SUMMARY //":"事件摘要（可空白）"}</label>
+        <textarea value={rec.summary||""} onChange={e=>upd(activeIdx,"summary",e.target.value)}
+          placeholder={nerv?"[ INPUT OPTIONAL ]":"可空白，簡短描述即可"}
+          rows={3}
+          style={{...inp,resize:"vertical",marginBottom:14,lineHeight:1.6}}
+        />
+
+        {/* 後續處理 */}
+        <label style={lbl}>{nerv?"// FOLLOW-UP //":"後續處理"}</label>
+        <div style={{display:"flex",gap:8,marginBottom:6}}>
+          {COUNSEL_FOLLOWUP.map(f=>
+            <button key={f} onClick={()=>upd(activeIdx,"followup",rec.followup===f?"":f)}
+              style={{flex:1,padding:"8px 0",borderRadius:nerv?2:10,border:nerv?"1px solid":"2px solid", borderColor:rec.followup===f?(nerv?"#ffcc00":"#f59e0b"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"), background:rec.followup===f?(nerv?"rgba(255,204,0,.15)":"#fef3c7"):"transparent", color:rec.followup===f?(nerv?"#ffcc00":"#b45309"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"), fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit" }}>{f}</button>
+          )}
+        </div>
+      </div>
+
+      {/* 刪除本筆 */}
+      {recs.length > 0 && (
+        <button onClick={()=>delRec(activeIdx)} style={{display:"block",width:"100%",padding:10,marginBottom:12, background:"transparent",border:nerv?"1px solid rgba(255,0,0,.3)":"1px solid #ffcdd2", color:nerv?"rgba(255,0,0,.6)":"#ef9a9a",borderRadius:nerv?2:10,cursor:"pointer",fontSize:12,fontWeight:700}}>
+          {nerv?"× DELETE LOG":"× 刪除此筆"}
+        </button>
+      )}
+
+      {/* 儲存 */}
+      <button onClick={doSave} style={{display:"block",width:"100%",padding:14, background:nerv?"rgba(255,102,0,.15)":"#1e3a5f", border:nerv?"1px solid #ff6600":"none", color:nerv?"#ff6600":"#fff", borderRadius:nerv?4:16,cursor:"pointer",fontSize:15,fontWeight:900, letterSpacing:nerv?3:1,fontFamily:nerv?"Share Tech Mono,monospace":"inherit", boxShadow:nerv?"0 0 12px rgba(255,102,0,.3)":"0 4px 12px rgba(30,58,95,.25)", marginBottom:32 }}>
+        {nerv?"// SAVE LOG //":"儲存輔導紀錄"}
       </button>
-    </div>
+    </main>
   );
+}
+
+// ── Settings View Component ───────────────────────────────────────────────────
+function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, onSaved, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
+  const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
+  const [draftClass, setDraftClass] = useState(className);
+  const [draftSchool, setDraftSchool] = useState(schoolName);
+  const [draftYear, setDraftYear] = useState(schoolYear);
+  const [saved, setSaved] = useState(false);
+  const [clearModal, setClearModal] = useState(false);
+  const [clearDel, setClearDel] = useState("");
+  const [clearInput, setClearInput] = useState({
+    className: "",
+    yearFrom: parseInt(schoolYear)||new Date().getFullYear(),
+    yearTo: (parseInt(schoolYear)||new Date().getFullYear())+1
+  });
+  const [clearMsg, setClearMsg] = useState("");
+
+  // 每次開啟 clearModal 時同步最新的 draftClass
+  useEffect(()=>{
+    if(clearModal){
+      setClearInput(p=>({...p,
+        className: draftClass||className||"",
+        yearFrom: parseInt(draftYear||schoolYear)||new Date().getFullYear(),
+        yearTo: (parseInt(draftYear||schoolYear)||new Date().getFullYear())+1
+      }));
+      setClearDel("");
+      setClearMsg("");
+    }
+  },[clearModal]);
+  const nerv = isNerv;
+
+  // 全班最大座號（自動偵測或預設40）
+  const maxSeat = 40;
+  const allUsed = draft.flatMap(g => g.members);
+
+  function toggleSeat(idx, n) {
+    setDraft(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      const g = next[idx];
+      if (g.members.includes(n)) {
+        g.members = g.members.filter(m => m !== n);
+        if (g.leader === n) g.leader = g.members[0] || 0;
+        if (g.secretary === n) g.secretary = g.members[1] || g.members[0] || 0;
+      } else {
+        // 確認沒有在其他組
+        const inOther = next.some((og, oi) => oi !== idx && og.members.includes(n));
+        if (inOther) return prev; // 不能加入已在其他組的座號
+        g.members = [...g.members, n].sort((a,b)=>a-b);
+      }
+      return next;
+    });
+  }
+
+  function updateGroup(idx, field, value) {
+    setDraft(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      next[idx][field] = value;
+      return next;
+    });
+  }
+
+  function addGroup() {
+    if (draft.length >= 8) return;
+    const newId = draft.length + 1;
+    setDraft(prev => [...prev, { id: newId, label: `第${KANJI_NUM[prev.length]}組`, members: [], leader: 0, secretary: 0 }]);
+  }
+
+  function removeGroup(idx) {
+    if (draft.length <= 2) return;
+    setDraft(prev => prev.filter((_,i)=>i!==idx).map((g,i)=>({...g, id:i+1})));
+  }
+
+  function doSave() {
+    const valid = draft.every(g => g.members.length > 0);
+    if (!valid) { alert("每組至少需要1個座號"); return; }
+    saveGroups(draft);
+    setClassName(draftClass.trim());
+    setSchoolName(draftSchool.trim());
+    setSchoolYear(draftYear.trim());
+    if (onSaved) onSaved(draftYear.trim(), draftSchool.trim(), draftClass.trim());
+    setSaved(true);
+    setTimeout(()=>{ setSaved(false); onClose(); }, 1200);
+  }
+
+  async function doClear() {
+    if (clearDel !== "DEL") { setClearMsg("請輸入正確的 DEL"); return; }
+    try {
+      const keys = (await idbKeys()).filter(k=>k.startsWith("day:2"));
+      const db = await openDB();
+      await new Promise((res,rej)=>{
+        const tx=db.transaction(DB_STORE,"readwrite"),st=tx.objectStore(DB_STORE);
+        keys.forEach(k=>st.delete(k));
+        tx.oncomplete=()=>res(); tx.onerror=e=>rej(e);
+      });
+      keys.forEach(k=>{ try{ localStorage.removeItem(`hw5ren:${k.replace("day:","")}`) }catch{} });
+      setClearMsg("✅ 已清除！");
+      setTimeout(()=>{ setClearModal(false); setClearDel(""); setClearMsg(""); onClose(); }, 1500);
+    } catch(e) { setClearMsg("❌ 清除失敗："+String(e)); }
+  }
+
+  // Styles
+  const panel = nerv
+    ? { background:"#080200", border:"1px solid #ff6600", borderRadius:4, padding:16, marginBottom:16 }
+    : { background:"#fff", borderRadius:16, padding:16, marginBottom:16, boxShadow:"0 4px 20px rgba(0,0,0,.08)" };
+  const lbl = nerv
+    ? { color:"#ff6600", fontFamily:"Share Tech Mono,monospace", fontSize:11, letterSpacing:2, marginBottom:8, display:"block" }
+    : { fontSize:12, fontWeight:700, color:"#6a8aaa", letterSpacing:1, marginBottom:8, display:"block" };
+  const inp = nerv
+    ? { width:"100%", padding:"8px 10px", background:"rgba(255,102,0,.06)", border:"1px solid rgba(255,102,0,.4)", color:"#ff8844", borderRadius:2, fontSize:14, fontFamily:"Share Tech Mono,monospace", boxSizing:"border-box" }
+    : { width:"100%", padding:"8px 12px", border:"2px solid #dde5ee", borderRadius:10, fontSize:14, fontFamily:"inherit", boxSizing:"border-box", outline:"none" };
+
+  return (
+    <main style={{ padding:12, overflowY:"auto", flex:1 }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+        <button onClick={onClose} style={{ background: nerv?"rgba(255,102,0,.1)":"rgba(30,58,95,.1)", border:"none", color: nerv?"#ff6600":"#1e3a5f", padding:"6px 14px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700 }}>
+          {nerv ? "◀ RETURN" : "← 返回"}
+        </button>
+        <span style={{ fontSize:18, fontWeight:900, color: nerv?"#ff6600":"#1e3a5f", flex:1 }}>
+          {nerv ? "⚙ SYSTEM CONFIG" : "⚙️ 班級設定"}
+        </span>
+      </div>
+
+      {/* 班級資訊 */}
+      <div style={panel}>
+        <div style={{ fontSize:15, fontWeight:800, color:nerv?"#ffaa44":"#1e3a5f", marginBottom:14 }}>
+          {nerv ? "// CLASS INFO //" : "班級資訊"}
+        </div>
+
+        <label style={lbl}>{nerv?"// SCHOOL //":"學校名稱"}</label>
+        <input style={{...inp, marginBottom:12}} value={draftSchool}
+          onChange={e=>setDraftSchool(e.target.value)}
+          placeholder="例：大甲國小" maxLength={20} />
+
+        <label style={lbl}>{nerv?"// CLASS NAME //":"班級名稱"}</label>
+        <input style={{...inp, marginBottom:12}} value={draftClass}
+          onChange={e=>setDraftClass(e.target.value)}
+          placeholder="例：五年壬班、六年2班" maxLength={20} />
+
+        <label style={lbl}>{nerv?"// YEAR //":"學年（西元年）"}</label>
+        <input style={{...inp, marginBottom:4}} value={draftYear}
+          onChange={e=>setDraftYear(e.target.value)}
+          placeholder="例：2026" maxLength={4} type="number" />
+
+        {/* 預覽 */}
+        {(draftYear||draftSchool||draftClass) && (
+          <p style={{ fontSize:12, color:nerv?"rgba(255,102,0,.6)":"#8a9db5", marginTop:10 }}>
+            {nerv?"// 預覽：":"預覽："}
+            <span style={{ fontWeight:700, color:nerv?"#ffaa44":"#1e3a5f" }}>
+              {[draftYear&&`${draftYear}年`, draftSchool, draftClass].filter(Boolean).join(" ")}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* 每組設定 */}
+      {draft.map((g, idx) => (
+        <div key={idx} style={panel}>
+          {/* 組別標題列 */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+            <span style={{ fontSize:15, fontWeight:800, color: nerv?"#ffaa44":"#1e3a5f" }}>
+              {nerv ? `[UNIT-0${g.id}]` : `第 ${g.id} 組`}
+            </span>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ fontSize:12, color: nerv?"rgba(255,102,0,.6)":"#aab8cc" }}>
+                {g.members.length} 人
+              </span>
+              {draft.length > 2 && (
+                <button onClick={()=>removeGroup(idx)} style={{ background:"rgba(229,57,53,.15)", border:"1px solid #e53935", color:"#e53935", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                  {nerv ? "× DEL" : "× 刪組"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 組別名稱 */}
+          <label style={lbl}>{nerv?"// GROUP NAME //":"組別名稱"}</label>
+          <input style={{...inp, marginBottom:14}} value={g.label}
+            onChange={e=>updateGroup(idx,"label",e.target.value)} />
+
+          {/* 座號點選格 */}
+          <label style={lbl}>
+            {nerv?"// SELECT MEMBER SEATS //":"座號點選"}
+            <span style={{ fontSize:10, fontWeight:400, marginLeft:8, color: nerv?"rgba(255,102,0,.5)":"#bbb" }}>
+              {nerv?"// 橙=本組 灰=其他組":"橘色=本組 灰色=其他組已選"}
+            </span>
+          </label>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, marginBottom:14 }}>
+            {Array.from({length:maxSeat},(_,i)=>i+1).map(n => {
+              const inThis = g.members.includes(n);
+              const inOther = !inThis && allUsed.includes(n);
+              const isLeader = g.leader === n;
+              const isSec = g.secretary === n;
+              return (
+                <button key={n} onClick={()=>!inOther && toggleSeat(idx, n)}
+                  style={{ padding:"6px 0", fontSize:12, fontWeight: inThis?800:400, border: isLeader?"2.5px solid #e53935": isSec?"2.5px dashed #ff9800":"1.5px solid", borderColor: inThis?(isLeader?"#e53935":isSec?"#ff9800": nerv?"#ff6600":"#1e3a5f"):"#ddd", borderRadius: nerv?2:8, background: inThis?(nerv?"rgba(255,102,0,.25)":"#e8f0fe"): inOther?"#f0f0f0":"#fff", color: inThis?(nerv?"#ff6600":"#1e3a5f"): inOther?"#bbb":"#aaa", cursor: inOther?"not-allowed":"pointer", position:"relative", transition:"all .1s", fontFamily: nerv?"Share Tech Mono,monospace":"inherit", }}>
+                  {n}
+                  {isLeader && <span style={{ position:"absolute", top:-4, right:-2, fontSize:8, background:"#e53935", color:"#fff", borderRadius:3, padding:"0 2px" }}>長</span>}
+                  {isSec && <span style={{ position:"absolute", top:-4, right:-2, fontSize:8, background:"#ff9800", color:"#fff", borderRadius:3, padding:"0 2px" }}>秘</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 組長/秘書 */}
+          <div style={{ display:"flex", gap:12 }}>
+            <div style={{ flex:1 }}>
+              <label style={lbl}>{nerv?"// LEADER //":"組長"}</label>
+              <select style={inp} value={g.leader}
+                onChange={e=>updateGroup(idx,"leader",parseInt(e.target.value))}>
+                <option value={0}>未指定</option>
+                {g.members.map(n=><option key={n} value={n}>{n} 號</option>)}
+              </select>
+            </div>
+            <div style={{ flex:1 }}>
+              <label style={lbl}>{nerv?"// SECRETARY //":"秘書"}</label>
+              <select style={inp} value={g.secretary}
+                onChange={e=>updateGroup(idx,"secretary",parseInt(e.target.value))}>
+                <option value={0}>未指定</option>
+                {g.members.map(n=><option key={n} value={n}>{n} 號</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* 新增組別 */}
+      {draft.length < 8 && (
+        <button onClick={addGroup} style={{ display:"block", width:"100%", padding:12, marginBottom:16, background: nerv?"rgba(255,102,0,.06)":"#eef4ff", border: nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff", color: nerv?"#ff6600":"#1e3a5f", borderRadius: nerv?4:12, cursor:"pointer", fontSize:14, fontWeight:700 }}>
+          {nerv ? "+ ADD UNIT" : "+ 新增組別"}
+        </button>
+      )}
+
+      {/* 危險區：清除資料 */}
+      <div style={{ ...panel, border: nerv?"1px solid rgba(255,0,0,.5)":"2px solid #ffcdd2", background: nerv?"rgba(255,0,0,.05)":"#fff9f9", marginBottom:16 }}>
+        <div style={{ fontSize:14, fontWeight:800, color:"#e53935", marginBottom:8 }}>
+          {nerv ? "⚠ DANGER ZONE // 清除歷史資料" : "⚠️ 清除歷史紀錄"}
+        </div>
+        <p style={{ fontSize:12, color: nerv?"rgba(255,100,100,.6)":"#aab8cc", marginBottom:14, lineHeight:1.6 }}>
+          {nerv
+            ? "// 清除後無法復原 // 適合學年結束後使用"
+            : "清除後無法復原，請確認已備份。適合學年結束後使用。"}
+        </p>
+        <button onClick={()=>setClearModal(true)} style={{ padding:"10px 20px", background:"#e53935", border:"none", color:"#fff", borderRadius: nerv?2:10, cursor:"pointer", fontSize:13, fontWeight:700 }}>
+          {nerv ? "⚠ PURGE DATA" : "清除所有紀錄"}
+        </button>
+      </div>
+
+      {/* 儲存按鈕 */}
+      <button onClick={doSave} style={{ display:"block", width:"100%", padding:16, background: saved?"#4caf80": nerv?"rgba(255,102,0,.15)":"#1e3a5f", border: nerv?"1px solid #ff6600":"none", color: nerv?"#ff6600":"#fff", borderRadius: nerv?4:16, cursor:"pointer", fontSize:16, fontWeight:900, boxShadow: nerv?"0 0 12px rgba(255,102,0,.3)":"0 4px 12px rgba(30,58,95,.25)", letterSpacing: nerv?4:1, fontFamily: nerv?"Share Tech Mono,monospace":"inherit", transition:"background .3s", marginBottom:32 }}>
+        {saved ? (nerv?"✅ CONFIG SAVED":"✅ 已儲存！") : (nerv?"// SAVE CONFIG //":"儲存設定")}
+      </button>
+
+      {/* 清除確認 Modal */}
+      {clearModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
+          <div style={{ background: nerv?"#0a0100":"#fff", border: nerv?"2px solid #ff0000":"none", borderRadius: nerv?4:20, padding:28, width:320, maxWidth:"92vw", boxShadow:"0 20px 60px rgba(0,0,0,.4)" }}>
+            <div style={{ fontSize:16, fontWeight:900, color:"#e53935", marginBottom:8 }}>
+              {nerv ? "⚠ CONFIRM DATA PURGE" : "⚠️ 確認清除"}
+            </div>
+
+            {/* 班級資訊 */}
+            <div style={{ marginBottom:16 }}>
+              <label style={{ ...lbl, marginBottom:4 }}>班級名稱</label>
+              <input style={{...inp, marginBottom:8}} value={clearInput.className}
+                onChange={e=>setClearInput(p=>({...p,className:e.target.value}))}
+                placeholder="例：五年壬班" />
+              <div style={{ display:"flex", gap:8 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ ...lbl, marginBottom:4 }}>起始學年</label>
+                  <input style={inp} type="number" value={clearInput.yearFrom}
+                    onChange={e=>setClearInput(p=>({...p,yearFrom:parseInt(e.target.value)}))} />
+                </div>
+                <div style={{ display:"flex", alignItems:"flex-end", paddingBottom:10, color: nerv?"#ff6600":"#aaa" }}>—</div>
+                <div style={{ flex:1 }}>
+                  <label style={{ ...lbl, marginBottom:4 }}>結束學年</label>
+                  <input style={inp} type="number" value={clearInput.yearTo}
+                    onChange={e=>setClearInput(p=>({...p,yearTo:parseInt(e.target.value)}))} />
+                </div>
+              </div>
+            </div>
+
+            {/* 確認標示 */}
+            <div style={{ background: nerv?"rgba(255,0,0,.1)":"#fff5f5", border: nerv?"1px solid rgba(255,0,0,.3)":"1px solid #ffcdd2", borderRadius:8, padding:"10px 14px", marginBottom:16 }}>
+              <p style={{ fontSize:13, color: nerv?"#ff4444":"#c62828", fontWeight:700, marginBottom:4 }}>
+                即將清除：
+              </p>
+              <p style={{ fontSize:14, color: nerv?"#ff6666":"#e53935", fontWeight:900 }}>
+                {clearInput.className} {clearInput.yearFrom}－{clearInput.yearTo} 學年度
+              </p>
+            </div>
+
+            <label style={{ ...lbl, color:"#e53935" }}>
+              {nerv ? "// 輸入 DEL 確認 //" : "輸入 DEL 確認刪除"}
+            </label>
+            <input style={{ ...inp, marginBottom:8, border:"2px solid #e53935", letterSpacing:4, fontWeight:900, fontSize:16, textAlign:"center" }}
+              value={clearDel}
+              onChange={e=>setClearDel(e.target.value.toUpperCase())}
+              placeholder="DEL"
+              maxLength={3} />
+
+            {clearMsg && <p style={{ fontSize:12, color: clearMsg.startsWith("✅")?"#4caf80":"#e53935", marginBottom:8, textAlign:"center" }}>{clearMsg}</p>}
+
+            <div style={{ display:"flex", gap:8 }}>
+              <button onClick={()=>{ setClearModal(false); setClearDel(""); setClearMsg(""); }} style={{ flex:1, padding:"10px 0", border:"2px solid #dde5ee", borderRadius: nerv?2:12, background:"#fff", color:"#8a9db5", fontSize:14, fontWeight:700, cursor:"pointer" }}>
+                取消
+              </button>
+              <button onClick={doClear} disabled={clearDel!=="DEL"}
+                style={{ flex:1, padding:"10px 0", border:"none", borderRadius: nerv?2:12, background: clearDel==="DEL"?"#e53935":"#aaa", color:"#fff", fontSize:14, fontWeight:700, cursor: clearDel==="DEL"?"pointer":"not-allowed" }}>
+                {nerv ? "PURGE" : "確認清除"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function App() {
+  const [view, setView] = useState("month");
+  const [groups, setGroups] = useState(() => loadGroups());
+  const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
+  const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
+  const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
+  // ── 歷史學年 ──
+  const [yearRecords, setYearRecords] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("hw5ren:years") || "[]"); } catch { return []; }
+  });
+  const [showHistory, setShowHistory] = useState(false);
+  const ALL_MEMBERS = [...new Set(groups.flatMap(g=>g.members))].sort((a,b)=>a-b);
+  function saveGroups(g) {
+    setGroups(g);
+    localStorage.setItem("hw5ren:groups", JSON.stringify(g));
+  }
+  const [curYear,  setCurYear]  = useState(() => new Date().getFullYear());
+  const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
+  const [selDate,  setSelDate]  = useState(today);
+  const [dayRows,  setDayRows]  = useState([]);
+  const [dayAtt,   setDayAtt]   = useState({ personal: new Set(), sick: new Set(), public: new Set() });
+  const [dayExempt, setDayExempt] = useState({});  // { [hwName]: Set<number> }
+  const [monthDays, setMonthDays] = useState({});
+  const [counselMonth, setCounselMonth] = useState({}); // { "YYYY-MM-DD": [...records] }
+  const [counselView, setCounselView] = useState(false); // 輔導頁面開啟狀態
+  const [counselDate, setCounselDate] = useState(today());
+  const [counselRecords, setCounselRecords] = useState([]); // 當日輔導記錄
+  const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const THEMES = [
+    {id:'default', icon:'☀️', name:'一般模式', label:'☀️ 一般模式', desc:'清爽藍白配色', color:'#1e3a5f'},
+    {id:'nebula',  icon:'🌌', name:'星雲模式', label:'🌌 星雲模式', desc:'天馬座星雲・深邃宇宙', color:'#5030a0'},
+    {id:'nerv',    icon:'⬡',  name:'NERV模式', label:'⬡ NERV模式', desc:'新世紀福音戰士', color:'#cc4400'},
+  ];
+
+  const isNerv   = theme === "nerv";
+  const isNebula = theme === "nebula";
+
+  // ── Drive / Auth ──
+  const [authed, setAuthed] = useState(!!localStorage.getItem('hw5ren:tok'));
+  const [driveStatus, setDriveStatus] = useState('offline');
+
+  // 點擊外部關閉主題選單
+  useEffect(()=>{
+    if(!showThemeMenu) return;
+    const handler = ()=>setShowThemeMenu(false);
+    setTimeout(()=>document.addEventListener('click',handler),10);
+    return ()=>document.removeEventListener('click',handler);
+  },[showThemeMenu]);
+
+  useEffect(()=>{
+    if(!authed) return;
+    (async()=>{
+      setDriveStatus('syncing');
+      setStor(s=>({...s,msg:'☁️ 從 Drive 載入…'}));
+      try{
+        const snap = await loadDrive();
+        if(snap && Object.keys(snap).length>0){
+          let c=0;
+          for(const [k,v] of Object.entries(snap)){
+            if(k.startsWith('day:2')){
+              const ds=k.replace('day:','');
+              await idbSet('day:'+ds,v);
+              try{localStorage.setItem('hw5ren:'+ds,v);}catch{}
+              c++;
+            }
+          }
+          setDriveStatus('ok');
+          setStor({state:'ok',msg:'☁️ Drive 載入 '+c+' 天'});
+          markSynced();
+          
+        } else {
+          setDriveStatus('ok');
+          setStor({state:'ok',msg:'✅ Drive 就緒'});
+        }
+      }catch(e){
+        setDriveStatus('error');
+        setStor({state:'ok',msg:'⚠️ 本機模式'});
+      }
+      // 不重複呼叫 doLoadMonth，由 curYear/curMonth useEffect 負責
+    })();
+  },[authed]);
+
+  async function doSync(){
+    setDriveStatus('syncing');
+    try{
+      const keys=(await idbKeys()).filter(k=>k.startsWith('day:2'));
+      const snap={};
+      for(const k of keys){const v=await idbGet(k);if(v)snap[k]=v;}
+      const ok=await saveDrive(snap);
+      if(ok){
+        markSynced();
+        
+        setDriveStatus('ok');
+        return keys.length;
+      }
+      setDriveStatus('error'); return 0;
+    }catch{setDriveStatus('error'); return 0;}
+  }
+
+  // Header subtitle
+  const headerSub = React.useMemo(()=>(
+    authed ? [schoolYear&&`${schoolYear}年`, schoolName, className].filter(Boolean).join(" ") : ""
+  ), [authed, schoolYear, schoolName, className]);
+
+  // ── 儲存學年紀錄（每次設定儲存時自動記錄）──
+  function saveYearRecord(year, school, cls) {
+    if (!year && !cls) return;
+    const key = `${year}-${school}-${cls}`;
+    setYearRecords(prev => {
+      const filtered = prev.filter(r => `${r.year}-${r.school}-${r.className}` !== key);
+      const newRec = {
+        year, school, className: cls,
+        driveFile: getDriveFilename(year, cls),
+        savedAt: new Date().toLocaleDateString('zh-TW')
+      };
+      const updated = [newRec, ...filtered].slice(0, 20);
+      localStorage.setItem("hw5ren:years", JSON.stringify(updated));
+      return updated;
+    });
+  }
+
+  // ── 備份狀態 ──
+  const todayStr = today();
+  const [lastSyncTime, setLastSyncTime] = useState(
+    () => localStorage.getItem("hw5ren:lastSync") || ""
+  );
+  function markSynced() {
+    const now = new Date();
+    const ts = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+    localStorage.setItem("hw5ren:lastSync", ts);
+    setLastSyncTime(ts);
+  }
+
+  // state: "init"|"checking"|"ok"|"error"|"saving"|"saved"
+  const [stor, setStor] = useState({ state:"init", msg:"初始化中…", detail:"" });
+
+  // ── Check storage on mount ──
+  useEffect(() => {
+    (async () => {
+      setStor({ state:"checking", msg:"🔍 初始化儲存…", detail:"" });
+
+      // 測試 IDB 是否可用
+      let idbOk = false;
+      try {
+        await idbSet("__test__", "ping");
+        const v = await idbGet("__test__");
+        idbOk = (v === "ping");
+      } catch(e) {
+        setStor({ state:"error", msg:"❌ IndexedDB 無法使用", detail: String(e) });
+        return;
+      }
+
+      if (!idbOk) {
+        setStor({ state:"error", msg:"❌ IndexedDB 讀寫測試失敗", detail:"" });
+        return;
+      }
+
+      // 列出 IDB 裡所有資料天數
+      let idbDays = [];
+      try { idbDays = (await idbKeys()).filter(k => k.startsWith("day:2")); } catch {}
+
+      // 列出 localStorage 資料天數
+      const lsDays = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(`${LS_PREFIX}2`)) lsDays.push(k);
+      }
+
+      // 若 IDB 空但 localStorage 有 → 自動搶救
+      if (idbDays.length === 0 && lsDays.length > 0) {
+        let rescued = 0;
+        for (const k of lsDays) {
+          const ds = k.replace(LS_PREFIX, "");
+          const v  = localStorage.getItem(k);
+          if (v) { try { await idbSet(`day:${ds}`, v); rescued++; } catch {} }
+        }
+        idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+        setStor({ state:"ok", msg:`✅ 已搶救 ${rescued} 天資料到 IDB`, detail:`IDB: ${idbDays.length} 天` });
+        return;
+      }
+
+      setStor({
+        state: "ok",
+        msg: `📦 IDB 正常 — ${idbDays.length} 天資料`,
+        detail: idbDays.length > 0
+          ? `最近: ${idbDays.map(k=>k.replace("day:","")).sort().slice(-3).join(", ")}`
+          : "尚無資料，請開始登記"
+      });
+    })();
+  }, []);
+
+  // ── Load month ──
+  useEffect(() => { doLoadMonth(curYear, curMonth); }, [curYear, curMonth]);
+
+  async function doLoadMonth(y, m) {
+    setLoading(true);
+    const [entries, counselEntries] = await Promise.all([
+      loadMonth(y, m),
+      loadCounselMonth(y, m)
+    ]);
+    setMonthDays(entries);
+    setCounselMonth(counselEntries);
+    setLoading(false);
+  }
+
+  async function openCounsel(ds) {
+    const recs = await loadCounsel(ds);
+    setCounselRecords(recs);
+    setCounselDate(ds);
+    setCounselView(true);
+  }
+
+  async function saveCounselRecord(records) {
+    await saveCounsel(counselDate, records);
+    setCounselRecords(records);
+    setCounselMonth(prev => {
+      const next = { ...prev };
+      if (records.length > 0) next[counselDate] = records;
+      else delete next[counselDate];
+      return next;
+    });
+    scheduleAutoSync();
+  }
+
+  async function openDay(ds) {
+    setLoading(true);
+    const res = await loadDay(ds);
+    const initRows = res.rows.length ? res.rows : [{ hwName:"", groupData:{} }];
+    setDayRows(initRows);
+    setDayAtt(res.attendance);
+    setDayExempt(res.exempt || {});
+    setSelDate(ds);
+    setView("day");
+    setLoading(false);
+    setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+    setHistoryIdx(0);
+  }
+
+  // ── Undo / Redo history ──
+  const [history, setHistory] = useState([]);      // [{ rows, att }, ...]
+  const [historyIdx, setHistoryIdx] = useState(0); // current position
+  const MAX_HISTORY = 30;
+
+  function pushHistory(rows, att, exempt) {
+    setHistory(prev => {
+      const base = prev.slice(0, historyIdx + 1);
+      const next = [...base, { rows, att, exempt }].slice(-MAX_HISTORY);
+      return next;
+    });
+    setHistoryIdx(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+  }
+
+  function undo() {
+    if (historyIdx <= 0) return;
+    const idx = historyIdx - 1;
+    const snap = history[idx]; if (!snap) return;
+    setDayRows(snap.rows); setDayAtt(snap.att); setDayExempt(snap.exempt || {});
+    setHistoryIdx(idx);
+    saveCurrent(snap.rows, snap.att, snap.exempt || {});
+  }
+
+  function redo() {
+    if (historyIdx >= history.length - 1) return;
+    const idx = historyIdx + 1;
+    const snap = history[idx]; if (!snap) return;
+    setDayRows(snap.rows); setDayAtt(snap.att); setDayExempt(snap.exempt || {});
+    setHistoryIdx(idx);
+    saveCurrent(snap.rows, snap.att, snap.exempt || {});
+  }
+
+  const canUndo = historyIdx > 0;
+  const canRedo = historyIdx < history.length - 1;
+
+  const selDateRef   = useRef(today());
+  const dayExemptRef = useRef({});
+  const dayAttRef    = useRef({ personal:new Set(), sick:new Set(), public:new Set() });
+  const dayRowsRef   = useRef([]);
+  // 同步 refs（合併為單一 useEffect，減少 render 開銷）
+  useEffect(() => {
+    selDateRef.current   = selDate;
+    dayExemptRef.current = dayExempt;
+    dayAttRef.current    = dayAtt;
+    dayRowsRef.current   = dayRows;
+  });
+
+  // ── 自動同步 Timer（debounce 3秒）──
+  const autoSyncTimer = useRef(null);
+  function scheduleAutoSync() {
+    if (!authed) return;
+    if (autoSyncTimer.current) clearTimeout(autoSyncTimer.current);
+    autoSyncTimer.current = setTimeout(async () => {
+      try {
+        const allIdbKeys = await idbKeys();
+        const keys = allIdbKeys.filter(k=>k.startsWith("day:2")||k.startsWith("counsel:"));
+        const snap = {};
+        for (const k of keys) { const v=await idbGet(k); if(v) snap[k]=v; }
+        const ok = await saveDrive(snap);
+        if (ok) {
+          setDriveStatus("ok");
+          markSynced();
+          
+        } else {
+          setDriveStatus("error");
+        }
+      } catch { setDriveStatus("error"); }
+    }, 3000);
+  }
+
+  const saveCurrent = useCallback(async (newRows, newAtt, newExempt) => {
+    const rows   = newRows   ?? dayRowsRef.current;
+    const att    = newAtt    ?? dayAttRef.current;
+    const exempt = newExempt ?? dayExemptRef.current;
+    setStor(s => ({ ...s, state:"saving", msg:"💾 儲存中…" }));
+    const date   = selDateRef.current;
+    const res = await saveDay(date, rows, att, exempt);
+    setMonthDays(prev => ({ ...prev, [date]: { rows, attendance: att, exempt } }));
+    setStor({ state:"saved",
+      msg: res.source==="idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
+      detail: date });
+    setTimeout(() => setStor(s => s.state==="saved"
+      ? { state:"ok", msg: res.source==="idb" ? "📦 IDB 正常" : "💾 本機儲存", detail:"" }
+      : s), 2000);
+    // 3秒後自動同步到 Drive（背景執行，不影響操作）
+    scheduleAutoSync();
+  }, [authed]);
+
+  function updRows(fn) {
+    setDayRows(prev => {
+      const next = fn(prev);
+      pushHistory(next, dayAtt, dayExempt);
+      saveCurrent(next, dayAtt, dayExempt);
+      return next;
+    });
+  }
+  function updAtt(fn) {
+    setDayAtt(prev => {
+      const next = fn(prev);
+      pushHistory(dayRows, next, dayExempt);
+      saveCurrent(dayRows, next, dayExempt);
+      return next;
+    });
+  }
+  function updExempt(fn) {
+    setDayExempt(prev => {
+      const next = fn(prev);
+      pushHistory(dayRows, dayAtt, next);
+      saveCurrent(dayRows, dayAtt, next);
+      return next;
+    });
+  }
+
+  // ── Custom HW memory ──
+  const [customHW, setCustomHW] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("hw5ren:customHW") || "[]"); } catch { return []; }
+  });
+
+  function saveCustomHW(list) {
+    setCustomHW(list);
+    localStorage.setItem("hw5ren:customHW", JSON.stringify(list));
+  }
+
+  function addToCustomHW(name) {
+    // 不加入已存在於預設或自訂的
+    if (PRESET_HW.includes(name)) return;
+    if (customHW.includes(name)) return;
+    saveCustomHW([name, ...customHW].slice(0, 20)); // 最多記20個
+  }
+
+  function handleConfirmInput() {
+    const name = inputText.trim();
+    if (!name) { closeModal(); return; }
+    // 記憶自訂輸入
+    addToCustomHW(name);
+    if (modal.gid !== null) {
+      confirmInput(name);
+    } else {
+      updRows(p => { const n=[...p]; n[modal.ri]={...n[modal.ri],hwName:name}; return n; });
+      closeModal();
+    }
+  }
+
+  // ── Modal state ──
+  const [modal, setModal] = useState(null);
+  const [inputText, setInputText] = useState("");
+  const [pendingHw, setPendingHw] = useState("");
+  const [marked, setMarked] = useState(new Set());
+  // ── Attendance modal ──
+  const [attModal, setAttModal] = useState(null);
+  // ── Exempt modal ──
+  const [exemptModal, setExemptModal] = useState(null); // { hwName } | null — used for inline expand
+
+  function openExemptModal(hwName) { setExemptModal({ hwName }); }
+  function closeExemptModal() { setExemptModal(null); } // { leaveType: "personal"|"sick" } | null
+
+  function openAttModal(leaveType) {
+    setAttModal({ leaveType });
+  }
+  function closeAttModal() { setAttModal(null); }
+  function toggleAttMember(leaveType, num) {
+    updAtt(prev => {
+      const personal = new Set(prev.personal);
+      const sick     = new Set(prev.sick);
+      const pub      = new Set(prev.public);
+      const alreadyThis =
+        (leaveType==="personal" && personal.has(num)) ||
+        (leaveType==="sick"     && sick.has(num))     ||
+        (leaveType==="public"   && pub.has(num));
+      // clear from all
+      personal.delete(num); sick.delete(num); pub.delete(num);
+      // if not already this type, set it
+      if (!alreadyThis) {
+        if (leaveType==="personal") personal.add(num);
+        else if (leaveType==="sick") sick.add(num);
+        else if (leaveType==="public") pub.add(num);
+      }
+      return { personal, sick, public: pub };
+    });
+  }
+
+  function openCell(ri, gid) {
+    const hw = dayRows[ri]?.hwName;
+    if (!hw) { setModal({ ri, gid, phase:"input" }); setInputText(""); setPendingHw(""); }
+    else openMark(ri, gid, hw);
+  }
+  function openMark(ri, gid, hw) {
+    setMarked(new Set(dayRows[ri]?.groupData?.[gid] ?? []));
+    setModal({ ri, gid, phase:"mark", hw });
+  }
+  function confirmInput(text) {
+    const name = text.trim(); if (!name) return;
+    updRows(prev => {
+      const n=[...prev];
+      n[modal.ri] = { hwName:name, groupData: n[modal.ri]?.groupData||{} };
+      return n;
+    });
+    openMark(modal.ri, modal.gid, name);
+  }
+  function confirmMark() {
+    updRows(prev => {
+      const n=[...prev], r={...n[modal.ri]};
+      r.groupData={...r.groupData,[modal.gid]:new Set(marked)};
+      n[modal.ri]=r; return n;
+    });
+    setModal(m=>({...m, phase:"result"}));
+  }
+  function closeModal() { setModal(null); setMarked(new Set()); }
+  function addRow() {
+    if(dayRows.length>=MAX_ROWS) return;
+    updRows(p=>[...p,{hwName:"",groupData:{}}]);
+  }
+  function delRow(i) { updRows(p=>p.filter((_,j)=>j!==i)); }
+
+  function rowStatus(ri, gid) {
+    const row=dayRows[ri]; if(!row||!row.hwName) return "empty";
+    const g=groups.find(g=>g.id===gid);
+    const recorded = Object.prototype.hasOwnProperty.call(row.groupData||{}, gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    if(!recorded) return "untouched";
+    if(done.size===0 && exemptSet.size===0) return "allabsent";
+    // count members not done and not exempt
+    const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
+    if(realMissing.length===0) return "complete";
+    return "partial";
+  }
+  function getMissing(ri, gid) {
+    const row=dayRows[ri]; if(!row)return[];
+    const g=groups.find(g=>g.id===gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    return g.members.filter(m=>!done.has(m) && !exemptSet.has(m));
+  }
+  function getExemptInGroup(ri, gid) {
+    const row=dayRows[ri]; if(!row||!row.hwName)return[];
+    const g=groups.find(g=>g.id===gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    return g.members.filter(m=>!done.has(m) && exemptSet.has(m));
+  }
+
+  const resMissing = modal?.phase==="result" ? getMissing(modal.ri, modal.gid) : [];
+  const resGroup = groups.find(g=>g.id===modal?.gid);
+
+  const [importMsg, setImportMsg] = useState("");
+  const [backupJson, setBackupJson] = useState("");
+  const [showBackup, setShowBackup] = useState(false);
+
+function App() {
+  return <div style={{padding:20,background:'#1e3a5f',color:'#fff',minHeight:'100vh'}}><h2>作業繳交記錄</h2><p>前半段載入成功 ✅</p></div>;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
