@@ -1009,23 +1009,28 @@ function ser(rows, attendance, exempt) {
   };
 }
 function deser(data) {
-  const raw = Array.isArray(data) ? { rows: data, attendance: {}, exempt: {} } : (data || { rows: [], attendance: {}, exempt: {} });
-  return {
-    rows: (raw.rows||[]).map(r => ({
-      hwName: r.hwName || "",
-      groupData: Object.fromEntries(
-        Object.entries(r.groupData||{}).map(([k,v]) => [k, new Set(v)])
+  try {
+    const raw = Array.isArray(data) ? { rows: data, attendance: {}, exempt: {} } : (data || { rows: [], attendance: {}, exempt: {} });
+    return {
+      rows: (raw.rows||[]).map(r => ({
+        hwName: r.hwName || "",
+        groupData: Object.fromEntries(
+          Object.entries(r.groupData||{}).map(([k,v]) => [k, new Set(Array.isArray(v)?v:[])])
+        ),
+      })),
+      attendance: {
+        personal: new Set(Array.isArray(raw.attendance?.personal)?raw.attendance.personal:[]),
+        sick:     new Set(Array.isArray(raw.attendance?.sick)?raw.attendance.sick:[]),
+        public:   new Set(Array.isArray(raw.attendance?.public)?raw.attendance.public:[]),
+      },
+      exempt: Object.fromEntries(
+        Object.entries(raw.exempt ?? {}).map(([hw, nums]) => [hw, new Set(Array.isArray(nums)?nums:[])])
       ),
-    })),
-    attendance: {
-      personal: new Set(raw.attendance?.personal ?? []),
-      sick:     new Set(raw.attendance?.sick     ?? []),
-      public:   new Set(raw.attendance?.public   ?? []),
-    },
-    exempt: Object.fromEntries(
-      Object.entries(raw.exempt ?? {}).map(([hw, nums]) => [hw, new Set(nums)])
-    ),
-  };
+    };
+  } catch(e) {
+    console.error('deser error:', e);
+    return { rows:[], attendance:{personal:new Set(),sick:new Set(),public:new Set()}, exempt:{} };
+  }
 }
 
 // ── Date helpers ─────────────────────────────────────────────────────────────
@@ -1039,17 +1044,19 @@ function today() {
 function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
 function firstWeekday(y, m) { return new Date(y, m, 1).getDay(); }
 
-// ── Mini summary: how many rows have data in a day ───────────────────────────
-function daySummary(rows) {
-  const filled = rows.filter(r => r.hwName).length;
-  const allDone = rows.filter(r => {
-    if (!r.hwName) return false;
-    return groups.every(g => {
-      const done = r.groupData?.[g.id] ?? new Set();
-      return done.size === g.members.length;
-    });
-  }).length;
-  return { filled, allDone };
+// ── Mini summary ──────────────────────────────────────────────────────────────
+function daySummary(rows, grps) {
+  try {
+    const filled = rows.filter(r => r.hwName).length;
+    const allDone = rows.filter(r => {
+      if (!r.hwName) return false;
+      return (grps||[]).every(g => {
+        const done = r.groupData?.[g.id] ?? new Set();
+        return done.size === g.members.length;
+      });
+    }).length;
+    return { filled, allDone };
+  } catch { return { filled:0, allDone:0 }; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2055,7 +2062,7 @@ function App() {
     const entry = monthDays[dateStr] || { rows:[], attendance:{ personal:new Set(), sick:new Set(), public:new Set() } };
     const rows = entry.rows || [];
     const att  = entry.attendance || { personal:new Set(), sick:new Set(), public:new Set() };
-    const { filled, allDone } = daySummary(rows);
+    const { filled, allDone } = daySummary(rows, groups);
     const isToday = dateStr === today();
     const hasSome = filled > 0;
     const allComplete = hasSome && allDone === filled;
