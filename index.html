@@ -403,6 +403,16 @@
         .nb.att-sel{font-weight:900}
         .nb.att-other{opacity:.75}
 
+        /* ── NEBULA 星雲主題 ── */
+        [data-theme="nebula"]{background:#060818;color:#c8d8ff}
+        [data-theme="nebula"] header{background:rgba(10,5,30,.98);border-bottom:1px solid rgba(150,100,255,.3)}
+        [data-theme="nebula"] h1{color:#d4b8ff}
+        [data-theme="nebula"] .theme-btn{background:rgba(150,100,255,.15);border:1px solid rgba(150,100,255,.4);color:#c8b0ff}
+        [data-theme="nebula"] .back-btn{background:rgba(150,100,255,.1);border:1px solid rgba(150,100,255,.35);color:#c8b0ff;border-radius:6px}
+        [data-theme="nebula"] .calendar{background:#0a0520;border:1px solid rgba(150,100,255,.3)}
+        [data-theme="nebula"] .cal-day{color:#a080ff}
+        [data-theme="nebula"] .mo{background:#0a0c20;border:1px solid rgba(150,100,255,.4);border-radius:16px}
+        [data-theme="nebula"] .bk{background:linear-gradient(135deg,#5030a0,#4060c0);color:#fff}
         /* ── NERV UNIT NUMBER DISPLAY ── */
         @keyframes unit-flicker{
           0%,90%,100%{opacity:1;text-shadow:0 0 10px rgba(255,102,0,.8),0 0 30px rgba(255,102,0,.3)}
@@ -829,7 +839,7 @@ async function saveDrive(snapshot) {
     form.append('metadata', new Blob([JSON.stringify({name:name,mimeType:'application/json'})], {type:'application/json'}));
     form.append('file', blob);
     var r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    if (r.ok) { var d = await r.json(); driveFileId = d.id; return true; }
+    if (r.ok) { var d2 = await r.json(); driveFileId = d2.id; return true; }
     return false;
   }
 }
@@ -2113,27 +2123,7 @@ function App() {
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle }, isNerv ? "🔵 一般模式" : "🟠 NERV模式"),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")), /* ── NEBULA 星雲主題 ── */
-            [data - theme] = "nebula",
-            "]",
-            background,
-            ":#060818;color:#c8d8ff} [data-theme=\"nebula\"] header",
-            background,
-            ":rgba(10,5,30,.98);border-bottom:1px solid rgba(150,100,255,.3)} [data-theme=\"nebula\"] h1",
-            color,
-            ":#d4b8ff} [data-theme=\"nebula\"] .theme-btn",
-            background,
-            ":rgba(150,100,255,.15);border:1px solid rgba(150,100,255,.4);color:#c8b0ff} [data-theme=\"nebula\"] .back-btn,.cal-cell,[data-theme=\"nebula\"] .undo-btn",
-            color,
-            ":#c8b0ff} [data-theme=\"nebula\"] .calendar",
-            background,
-            ":#0a0520;border:1px solid rgba(150,100,255,.3)} [data-theme=\"nebula\"] .cal-day",
-            color,
-            ":#a080ff} [data-theme=\"nebula\"] .mo",
-            background,
-            ":#0a0c20;border:1px solid rgba(150,100,255,.4);border-radius:16px} [data-theme=\"nebula\"] .bk",
-            background,
-            ":linear-gradient(135deg,#5030a0,#4060c0);color:#fff} /* \u2500\u2500 NERV INTRO OVERLAY \u2500\u2500 */}",
+                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
                     React.createElement("div", { className: "nerv-hex-ring" },
@@ -2643,7 +2633,7 @@ function App() {
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
   } catch(e) {
-    document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+( e.stack||'').slice(0,400)+'</div>';
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+(e.stack||'').slice(0,400)+'</div>';
   }
 });
 </script>
