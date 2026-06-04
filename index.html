@@ -1245,6 +1245,8 @@ const {useState,useEffect,useCallback,useRef,useMemo}=React;
 
 const {useState,useEffect,useCallback,useRef,useMemo}=React;
 
+const {useState,useEffect,useCallback,useRef,useMemo}=React;
+
 // ── Counsel View Component ────────────────────────────────────────────────────
 function CounselView({ date, records, onSave, onClose, isNerv, allMembers, groups, fmtDate }) {
   const [recs, setRecs] = useState(() => records.length > 0 ? JSON.parse(JSON.stringify(records)) : [newRec(date)]);
@@ -1716,8 +1718,10 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
   );
 }
 
+
 </script>
 <script type="text/babel">
+
 function App() {
   const [view, setView] = useState("month");
   const [groups, setGroups] = useState(() => loadGroups());
@@ -2218,6 +2222,8 @@ function App() {
     if(curMonth===11){setCurYear(y=>y+1);setCurMonth(0);}
     else setCurMonth(m=>m+1);
   }
+</script>
+<script type="text/babel">
 
   // ── Month calendar grid ──
   const CalendarCell = React.memo(function CalendarCell({ dateStr, d }) {
@@ -2739,6 +2745,8 @@ function App() {
               <p className="att-empty">{isNerv ? "▸ ALL PILOTS PRESENT ◂" : "今日全員到齊"}</p>
             )}
           </div>
+</script>
+<script type="text/babel">
 
           {/* ── 備份今日按鈕（日視圖底部）── */}
           <button className="day-backup-btn" onClick={async()=>{
@@ -3167,6 +3175,7 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
 
 
 </script>
