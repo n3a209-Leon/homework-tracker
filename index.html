@@ -2,390 +2,2920 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="作業記錄">
 <meta name="theme-color" content="#1e3a5f">
 <title>作業繳交記錄</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans TC',sans-serif;background:#f0f4f8;min-height:100vh}
-.auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;background:linear-gradient(160deg,#1e3a5f,#2d5a8e)}
-.auth-logo{font-size:64px;margin-bottom:16px}
-.auth-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:2px;margin-bottom:8px}
-.auth-sub{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:48px;text-align:center}
-.auth-btn{display:flex;align-items:center;gap:12px;background:#fff;color:#1e3a5f;border:none;border-radius:50px;padding:16px 32px;font-size:16px;font-weight:700;cursor:pointer}
-.auth-note{margin-top:24px;font-size:12px;color:rgba(255,255,255,.5);text-align:center;line-height:1.8}
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
+
+        /* ── THEME TOGGLE BUTTON ── */
+        .theme-btn{margin-left:auto;padding:5px 12px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:rgba(255,255,255,.15);color:#fff;transition:all .15s;white-space:nowrap}
+        .theme-btn:hover{background:rgba(255,255,255,.28)}
+
+        /* ── HEADER ── */
+        header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
+        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;padding-bottom:10px}
+        .ti{font-size:22px} h1{color:#fff;font-size:19px;font-weight:900;letter-spacing:2px}
+        .sub{color:#a8cdf0;font-size:12px;letter-spacing:1px}
+        .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
+        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
+
+        /* ── STORAGE STATUS BAR ── */
+        .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
+        .stor-init  { background:rgba(255,255,255,.08); color:#90a4ae }
+        .stor-checking { background:rgba(255,220,80,.15); color:#ffe082 }
+        .stor-ok    { background:rgba(76,175,128,.18); color:#a5d6a7 }
+        .stor-saved { background:rgba(76,175,128,.3);  color:#c8f5e0 }
+        .stor-saving{ background:rgba(100,160,255,.18);color:#90caf9 }
+        .stor-error { background:rgba(244,67,54,.2);   color:#ef9a9a }
+        .stor-msg   { white-space:nowrap }
+        .stor-detail{ opacity:.75; font-weight:400; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px }
+        .back-btn{background:rgba(255,255,255,.15);border:none;color:#c8dff5;padding:5px 9px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;transition:background .15s;white-space:nowrap;flex-shrink:0}
+        .back-btn:hover{background:rgba(255,255,255,.25)}
+        .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+        .nav-btn:hover{background:rgba(255,255,255,.25)}
+        .month-label{color:#fff;font-size:14px;font-weight:800;letter-spacing:1px;min-width:80px;text-align:center;flex-shrink:0}
+        .date-label{color:#a8cdf0;font-size:11px;font-weight:600;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .undo-btns{display:flex;gap:3px;flex-shrink:0}
+        .undo-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+        .undo-btn:hover:not(:disabled){background:rgba(255,255,255,.28)}
+        .undo-btn:disabled{opacity:.3;cursor:default}
+
+        main{max-width:960px;margin:20px auto;padding:0 14px}
+        .loading{text-align:center;color:#6a8aaa;padding:30px;font-size:14px}
+
+        /* ── 雲端同步列 ── */
+        .excel-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 0 12px;flex-wrap:wrap}
+        .excel-btn{display:inline-flex;align-items:center;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;border:none;transition:opacity .15s;white-space:nowrap}
+
+        .diag-btn{background:rgba(255,255,255,.15);color:#fff}
+        .diag-btn:hover{background:rgba(255,255,255,.25)}
+
+
+        .backup-btn{background:rgba(76,175,128,.55);color:#fff;font-size:12px}
+        .backup-btn:hover{background:rgba(76,175,128,.8)}
+        .day-backup-btn{display:block;width:calc(100% - 0px);margin:16px 0 0;padding:14px;background:#4caf80;color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(76,175,128,.3);transition:opacity .15s}
+        .day-backup-btn:hover{opacity:.88}
+        [data-theme="nerv"] .day-backup-btn{background:transparent;border:1px solid #ffcc00;color:#ffcc00;border-radius:4px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;box-shadow:0 0 10px rgba(255,204,0,.2)}
+        .import-btn2{background:rgba(255,152,0,.55);color:#fff;font-size:12px}
+        .import-btn2:hover{background:rgba(255,152,0,.8)}
+
+
+        /* ══════════════════════════════════════════
+           NERV THEME — MAGI SYSTEM HUD
+        ══════════════════════════════════════════ */
+        @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+        @keyframes flicker{0%,95%,100%{opacity:1}96%,98%{opacity:.85}}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(255,102,0,.4)}50%{box-shadow:0 0 18px rgba(255,102,0,.8)}}
+
+        [data-theme="nerv"]{background:#050200;color:#ff6600;font-family:"Share Tech Mono","Noto Sans TC",monospace;animation:flicker 8s infinite}
+        [data-theme="nerv"]::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:9999}
+        [data-theme="nerv"] .app{background-image:radial-gradient(circle at 20% 30%,rgba(255,102,0,.04) 0%,transparent 50%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 0 L56 16 L56 50 L28 66 L0 50 L0 16 Z' fill='none' stroke='rgba(255,102,0,0.06)' stroke-width='1'/%3E%3C/svg%3E");background-size:auto,56px 100px}
+
+        [data-theme="nerv"] header{background:linear-gradient(180deg,#120400,#080200);border-bottom:1px solid #ff6600;box-shadow:0 0 30px rgba(255,102,0,.25);position:relative;overflow:hidden}
+        [data-theme="nerv"] header::after{content:"NERV MAGI SYSTEM // AUTHORIZED ACCESS ONLY // CLASS-05REN";position:absolute;bottom:2px;left:0;font-size:9px;color:rgba(255,102,0,.3);letter-spacing:2px;white-space:nowrap;padding:0 20px;font-family:"Share Tech Mono",monospace}
+        [data-theme="nerv"] h1{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.9),0 0 30px rgba(255,102,0,.4);letter-spacing:5px;font-family:"Share Tech Mono",monospace;font-size:17px}
+        [data-theme="nerv"] .sub{color:#ff4400;letter-spacing:4px;font-size:10px;opacity:.8}
+        [data-theme="nerv"] .ti{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.8)}
+        [data-theme="nerv"] .theme-btn{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.5);border-radius:2px;letter-spacing:1px;font-size:11px;box-shadow:0 0 8px rgba(255,102,0,.2)}
+        [data-theme="nerv"] .stor-bar{border-left:3px solid #ff6600;background:rgba(255,102,0,.05)!important;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .nav-bar{border-top:1px solid rgba(255,102,0,.2)}
+        [data-theme="nerv"] .back-btn,[data-theme="nerv"] .nav-btn,[data-theme="nerv"] .undo-btn{background:rgba(255,102,0,.08);color:#ff6600;border:1px solid rgba(255,102,0,.35);border-radius:2px;font-family:"Share Tech Mono",monospace}
+        [data-theme="nerv"] .back-btn:hover,[data-theme="nerv"] .nav-btn:hover,[data-theme="nerv"] .undo-btn:hover:not(:disabled){background:rgba(255,102,0,.2);box-shadow:0 0 8px rgba(255,102,0,.4)}
+        [data-theme="nerv"] .month-label{color:#ff6600;text-shadow:0 0 8px rgba(255,102,0,.6);letter-spacing:3px}
+        [data-theme="nerv"] .date-label{color:#ff4400;letter-spacing:2px}
+        [data-theme="nerv"] .excel-bar{border-top:1px solid rgba(255,102,0,.15)}
+        [data-theme="nerv"]
+        [data-theme="nerv"]
+
+        [data-theme="nerv"] .calendar{background:#060100;border:1px solid #ff6600;border-radius:4px;box-shadow:0 0 25px rgba(255,102,0,.2);position:relative;overflow:hidden}
+        [data-theme="nerv"] .calendar::before{content:"TACTICAL DATA // OPERATION SCHEDULE";display:block;font-size:9px;color:rgba(255,102,0,.4);letter-spacing:3px;text-align:center;padding:4px;border-bottom:1px solid rgba(255,102,0,.2);font-family:"Share Tech Mono",monospace;background:#060100}
+        [data-theme="nerv"] .wd-row{background:#0f0200}
+        [data-theme="nerv"] .wd{color:#ff6600;letter-spacing:2px;text-shadow:0 0 6px rgba(255,102,0,.5)}
+        [data-theme="nerv"] .cal-grid{background:#060100}
+        [data-theme="nerv"] .cal-cell{border-color:rgba(255,102,0,.15);background:#060100}
+        [data-theme="nerv"] .cal-cell:hover{background:#180500;border-color:rgba(255,102,0,.5);box-shadow:inset 0 0 15px rgba(255,102,0,.1)}
+        [data-theme="nerv"] .cal-empty{background:#060100;border-color:rgba(255,102,0,.08);pointer-events:none}
+        [data-theme="nerv"] .cal-day{color:#ff6600;font-family:"Share Tech Mono",monospace;text-shadow:0 0 4px rgba(255,102,0,.4)}
+        [data-theme="nerv"] .cal-cell.is-today .cal-day{background:#ff6600;color:#000;border-radius:2px;box-shadow:0 0 12px rgba(255,102,0,.8);animation:pulse-glow 2s infinite;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px}
+        [data-theme="nerv"] .cal-cell.is-complete{background:linear-gradient(135deg,#001200,#001a00);border-color:rgba(0,255,100,.2)}
+        [data-theme="nerv"] .cal-cell.is-partial{background:linear-gradient(135deg,#120200,#1a0500);border-color:rgba(255,102,0,.3)}
+        [data-theme="nerv"] .cal-ok{color:#00ff66;text-shadow:0 0 8px rgba(0,255,100,.7)}
+        [data-theme="nerv"] .cal-dot{border-radius:0;transform:rotate(45deg)}
+        [data-theme="nerv"] .cal-absent{background:rgba(255,80,0,.25);color:#ff6600;border-radius:2px;font-family:"Share Tech Mono",monospace}
+
+        [data-theme="nerv"] .month-summary{background:#080200;border:1px solid rgba(255,102,0,.4);border-radius:4px}
+        [data-theme="nerv"] .summary-row{border-color:rgba(255,102,0,.15)}
+        [data-theme="nerv"] .summary-row:hover{background:#140400}
+        [data-theme="nerv"] .sum-date{color:#ff9944;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .tag-ok{background:#002200;color:#00ff66;border:1px solid rgba(0,255,100,.3);border-radius:2px}
+        [data-theme="nerv"] .tag-partial{background:#1a0500;color:#ff6600;border:1px solid rgba(255,102,0,.3);border-radius:2px}
+        [data-theme="nerv"] .tag-absent{background:#1a0800;color:#ff4400;border:1px solid rgba(255,68,0,.3);border-radius:2px}
+        [data-theme="nerv"] .no-data{color:rgba(255,102,0,.3);letter-spacing:2px;font-family:"Share Tech Mono",monospace}
+
+        [data-theme="nerv"] .table-wrapper{background:#080200;border:1px solid #ff6600;border-radius:4px;box-shadow:0 0 25px rgba(255,102,0,.15);overflow:hidden}
+        [data-theme="nerv"] table{min-width:unset}
+        [data-theme="nerv"] th{padding:8px 2px;font-size:11px}
+        [data-theme="nerv"] .th-hw{width:72px;padding-left:8px}
+        [data-theme="nerv"] .gc{min-width:44px;padding:6px 2px}
+        [data-theme="nerv"] .hwc{padding:10px 4px 10px 8px;font-size:13px}
+        [data-theme="nerv"] .nerv-unit-kanji{font-size:20px;letter-spacing:1px;min-width:24px;padding:2px 4px}
+        [data-theme="nerv"] thead{background:#150500}
+        [data-theme="nerv"] th{color:#ff6600;border-bottom:1px solid rgba(255,102,0,.5);letter-spacing:2px;font-family:"Share Tech Mono",monospace;text-shadow:0 0 6px rgba(255,102,0,.4)}
+        [data-theme="nerv"] .gl{background:rgba(255,102,0,.1);border:1px solid rgba(255,102,0,.3);border-radius:2px;padding:2px 6px}
+        [data-theme="nerv"] tbody tr{border-color:rgba(255,102,0,.12)}
+        [data-theme="nerv"] tbody tr:hover{background:#130400}
+        [data-theme="nerv"] .hwc{color:#ffaa55;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .hwe{color:rgba(255,102,0,.3)!important}
+        [data-theme="nerv"] .ph{color:rgba(255,102,0,.25)}
+        [data-theme="nerv"] .s-complete{background:rgba(0,255,100,.04)}
+        [data-theme="nerv"] .s-partial{background:rgba(255,102,0,.06)}
+        [data-theme="nerv"] .s-allabsent{background:rgba(255,0,0,.06)}
+        [data-theme="nerv"] .badge{clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border-radius:0;width:34px;height:34px;font-size:14px}
+        [data-theme="nerv"] .cb{background:#00cc55;color:#000;box-shadow:0 0 12px rgba(0,204,85,.6)}
+        [data-theme="nerv"] .pb{background:#ff3300;color:#fff;box-shadow:0 0 12px rgba(255,51,0,.6)}
+        [data-theme="nerv"] .ab{background:#cc0000;color:#ff8800;box-shadow:0 0 16px rgba(204,0,0,.7);font-size:18px;font-weight:900}
+        [data-theme="nerv"] .ub{background:#1a0800;color:rgba(255,102,0,.4)}
+        [data-theme="nerv"] .mn{background:#cc1100;color:#ff8800;border-radius:2px;transform:rotate(45deg);width:20px;height:20px;font-size:9px}
+        [data-theme="nerv"] .ar td{color:rgba(255,102,0,.5);border-color:rgba(255,102,0,.15);font-family:"Share Tech Mono",monospace;letter-spacing:2px}
+        [data-theme="nerv"] .ar:hover td{background:#130400;color:#ff6600}
+        [data-theme="nerv"] .db{color:rgba(255,102,0,.3)}
+        [data-theme="nerv"] .db:hover{color:#ff3300;background:rgba(255,0,0,.1)}
+
+        [data-theme="nerv"] .att-panel{background:#080200;border:1px solid rgba(255,102,0,.4);border-radius:4px}
+        [data-theme="nerv"] .att-title{color:#ff6600;letter-spacing:3px;text-shadow:0 0 8px rgba(255,102,0,.5);font-family:"Share Tech Mono",monospace}
+        [data-theme="nerv"] .att-empty{color:rgba(255,102,0,.3);font-family:"Share Tech Mono",monospace;letter-spacing:2px}
+        [data-theme="nerv"] .att-type-btn{border-radius:2px;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .att-num{border-radius:2px;font-family:"Share Tech Mono",monospace}
+
+        [data-theme="nerv"] .ov{background:rgba(0,0,0,.9)}
+        [data-theme="nerv"] .mo{background:#080200;border:1px solid #ff6600;border-radius:4px;box-shadow:0 0 0 1px rgba(255,102,0,.2),0 0 40px rgba(255,102,0,.3);position:relative;overflow:hidden}
+        [data-theme="nerv"] .mo::before { display: none; }
+        [data-theme="nerv"] .mt{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.6);letter-spacing:4px;font-family:"Share Tech Mono",monospace;border-bottom:1px solid rgba(255,102,0,.2);padding-bottom:10px}
+        [data-theme="nerv"] .mh{color:#ffbb66}
+        [data-theme="nerv"] .mg{color:#ff4400}
+        [data-theme="nerv"] .mhint{color:rgba(255,102,0,.4);letter-spacing:1px;font-size:11px}
+        [data-theme="nerv"] .pg{gap:8px}
+        [data-theme="nerv"] .pb2{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:#ff8844;border-radius:2px;font-family:"Share Tech Mono",monospace;clip-path:polygon(8px 0%,calc(100% - 8px) 0%,100% 50%,calc(100% - 8px) 100%,8px 100%,0% 50%);letter-spacing:1px}
+        [data-theme="nerv"] .pb2:hover{background:rgba(255,102,0,.15);border-color:#ff6600}
+        [data-theme="nerv"] .pb2.act{background:rgba(255,102,0,.2);border-color:#ff6600;color:#ffcc88;box-shadow:0 0 10px rgba(255,102,0,.4)}
+        [data-theme="nerv"] .hi2{background:rgba(255,102,0,.05);border:1px solid rgba(255,102,0,.4);color:#ff8844;border-radius:2px;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .hi2:focus{border-color:#ff6600;box-shadow:0 0 10px rgba(255,102,0,.3)}
+        [data-theme="nerv"] .nb{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:#ff8844;border-radius:0;font-family:"Share Tech Mono",monospace;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+        [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
+        [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
+        [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
+        [data-theme="nerv"] .nb.sec{background:rgba(255,200,0,.1);box-shadow:0 0 8px rgba(255,200,0,.3)}
+        [data-theme="nerv"] .lt{background:rgba(255,0,0,.15);color:#ff5555;border-radius:2px}
+        [data-theme="nerv"] .st{background:rgba(255,200,0,.15);color:#ffcc44;border-radius:2px}
+        [data-theme="nerv"] .mark-toolbar .all-btn{border-radius:2px;letter-spacing:2px;font-family:"Share Tech Mono",monospace;clip-path:polygon(8px 0%,calc(100% - 8px) 0%,100% 50%,calc(100% - 8px) 100%,8px 100%,0% 50%)}
+        [data-theme="nerv"] .mark-count{color:#ff4400;font-family:"Share Tech Mono",monospace;letter-spacing:2px}
+        [data-theme="nerv"] .bc{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:rgba(255,102,0,.6);border-radius:2px;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
+        [data-theme="nerv"] .bk{background:transparent;border:1px solid #ff6600;color:#ff6600;border-radius:2px;letter-spacing:3px;font-family:"Share Tech Mono",monospace;box-shadow:0 0 12px rgba(255,102,0,.25)}
+        [data-theme="nerv"] .bk:hover{background:rgba(255,102,0,.15);box-shadow:0 0 20px rgba(255,102,0,.5)}
+        [data-theme="nerv"] .ra p{color:#00ff66;text-shadow:0 0 10px rgba(0,255,100,.5);font-family:"Share Tech Mono",monospace;letter-spacing:2px}
+        [data-theme="nerv"] .bc2{color:#ff6600;text-shadow:0 0 25px rgba(255,102,0,.9);font-size:60px}
+        [data-theme="nerv"] .mt2{background:#aa0000;color:#ff8800;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border-radius:0}
+        .import-msg{font-size:12px;font-weight:600;color:#c8f5e0;padding:4px 10px;background:rgba(255,255,255,.1);border-radius:8px}
+        .backup-textarea{width:100%;padding:10px;border:1px solid #dde5ee;border-radius:10px;font-size:11px;font-family:monospace;resize:none;color:#1e3a5f;background:#f6f9fc;margin:12px 0;line-height:1.5;box-sizing:border-box}
+        .backup-input{width:100%;padding:12px;border:2px solid #f9a825;border-radius:10px;font-size:11px;font-family:monospace;color:#1e3a5f;background:#fffde7;margin:12px 0;box-sizing:border-box;cursor:text}
+        .backup-input:focus{outline:none;border-color:#f57f17;background:#fff8e1}
+        [data-theme="nerv"] .backup-input{background:#1a1200;border-color:#ffcc00;color:#ffcc00;font-family:'Share Tech Mono',monospace}
+        [data-theme="nerv"] .backup-textarea{background:#0a0200;border-color:rgba(255,102,0,.3);color:#ff8844;font-family:'Share Tech Mono',monospace}
+
+        /* ── BACKUP WARNING BAR ── */
+        @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+        @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+        @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+        .backup-warn{padding:6px 0;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
+        .backup-warn-text{display:inline-block;animation:marquee 12s linear infinite;padding-left:100%}
+        .backup-warn-nerv{
+          background:#1a0000;
+          border:none;
+          border-top:1px solid #ff0000;
+          border-bottom:1px solid #ff0000;
+          overflow:hidden;
+          position:relative;
+          padding:6px 0;
+        }
+        .backup-warn-nerv::before{
+          content:'';
+          position:absolute;inset:0;
+          background:repeating-linear-gradient(90deg,rgba(255,0,0,.08) 0px,rgba(255,0,0,.08) 2px,transparent 2px,transparent 20px);
+          animation:alert-pulse 1s ease-in-out infinite;
+        }
+        .nerv-alert-text{
+          display:inline-block;
+          white-space:nowrap;
+          font-family:'Share Tech Mono',monospace;
+          font-size:12px;
+          font-weight:900;
+          color:#ff0000;
+          letter-spacing:3px;
+          text-shadow:0 0 8px rgba(255,0,0,.8),0 0 20px rgba(255,0,0,.4);
+          animation:marquee 14s linear infinite, alert-pulse .8s ease-in-out infinite;
+          padding-left:100%;
+        }
+        .nerv-alert-icon{
+          display:inline-block;
+          margin:0 12px;
+        }
+        .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:16px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .loading-spinner{width:36px;height:36px;border:3px solid #dde5ee;border-top-color:#1e3a5f;border-radius:50%;animation:spin .8s linear infinite}
+        .loading-text{color:#6a8aaa;font-size:14px;font-weight:600;letter-spacing:1px}
+        [data-theme="nerv"] .loading-spinner{border-color:rgba(255,102,0,.2);border-top-color:#ff6600}
+        [data-theme="nerv"] .loading-text{color:#ff6600;font-family:'Share Tech Mono',monospace;letter-spacing:3px}
+
+        /* ── CALENDAR ── */
+        .calendar{background:#f0f4f8;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px}
+        .wd-row{display:grid;grid-template-columns:repeat(7,1fr);background:#1e3a5f}
+        .wd{color:#a8cdf0;font-size:12px;font-weight:700;text-align:center;padding:10px 0;letter-spacing:1px}
+        .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;background:#f0f4f8}
+        .cal-cell{border:1px solid #eef2f7;padding:6px 5px 5px;min-height:72px;cursor:pointer;transition:background .15s;position:relative;display:flex;flex-direction:column;align-items:flex-start;box-sizing:border-box}
+        .cal-cell:hover{background:#f0f7ff}
+        .cal-empty{cursor:default;background:#f0f4f8;border-color:#e8eef5;pointer-events:none}
+        .cal-day{font-size:14px;font-weight:700;color:#2d4a6a;line-height:1;margin-bottom:4px}
+        .cal-cell.is-today .cal-day{background:#1e3a5f;color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+        .cal-cell.is-complete{background:#f0faf4}
+        .cal-cell.is-partial{background:#fff9f0}
+        .cal-ok{position:absolute;top:5px;right:6px;color:#4caf80;font-size:13px;font-weight:900}
+        .cal-dots{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+        .cal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+        /* ── MONTH SUMMARY ── */
+        .month-summary{background:#f0f4f8;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden}
+        .summary-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #eef2f7;cursor:pointer;transition:background .15s;flex-wrap:wrap}
+        .summary-row:hover{background:#f7fafd}
+        .sum-date{font-size:13px;font-weight:700;color:#1e3a5f;min-width:110px;flex-shrink:0}
+        .sum-tags{display:flex;flex-wrap:wrap;gap:6px}
+        .sum-tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:12px}
+        .tag-ok{background:#e8f5e9;color:#2e7d32}
+        .tag-partial{background:#fff3e0;color:#e65100}
+        .no-data{text-align:center;color:#aab8cc;padding:30px;font-size:14px}
+
+        /* ── DAY TABLE ── */
+        .table-wrapper{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden}
+        table{width:100%;border-collapse:collapse}
+        thead{background:#1e3a5f}
+        th{color:#c8dff5;font-size:12px;font-weight:700;letter-spacing:1px;padding:10px 4px;text-align:center}
+        .th-hw{text-align:left;padding-left:12px;width:80px} .th-d{width:28px}
+        .gl{display:inline-block;padding:2px 4px;border-radius:20px;background:rgba(255,255,255,.1);font-size:11px}
+        tbody tr{border-bottom:1px solid #e8eef5;transition:background .15s}
+        tbody tr:hover{background:#f7fafd}
+        .hwc{padding:10px 4px 10px 12px;font-weight:700;font-size:14px;cursor:pointer;color:#1e3a5f;white-space:nowrap;transition:color .15s}
+        .hwc:hover{color:#2d7dd2} .hwe{color:#aab8cc!important} .ph{font-weight:400;font-size:12px}
+        .gc{text-align:center;padding:8px 3px;cursor:pointer;vertical-align:middle;transition:background .15s;min-width:56px}
+        .gc:hover{background:#eef4fc} .s-empty{cursor:default}
+        .s-complete{background:#f0faf4} .s-partial{background:#fff5f5}
+        .badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:17px;font-weight:900}
+        .cb{background:#87ceeb;color:#fff;box-shadow:0 2px 6px rgba(135,206,235,.5);font-size:18px}
+        .pb{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.35)}
+        .ab{background:#b71c1c;color:#fff;box-shadow:0 2px 8px rgba(183,28,28,.4);font-size:22px;font-weight:900}
+        .ub{background:#dde5ee;color:#7a90a8}
+        .s-allabsent{background:#fff0f0}
+        .ml{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;justify-items:center;margin-top:5px;width:100%}
+        .mn{background:#e53935;color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+        .dc{text-align:center}
+        .db{background:none;border:none;color:#c0ccd8;font-size:20px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s,background .15s}
+        .db:hover{color:#e53935;background:#fff0f0}
+        .ar td{padding:14px;text-align:center;color:#7a90a8;font-size:14px;cursor:pointer;transition:background .15s,color .15s;border-top:2px dashed #dde5ee}
+        .ar:hover td{background:#f0f7ff;color:#2d7dd2} .ai{font-size:18px;margin-right:6px}
+
+        /* ── MODAL ── */
+        .ov{position:fixed;inset:0;background:rgba(10,20,40,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:100;animation:fi .18s ease}
+        @keyframes fi{from{opacity:0}to{opacity:1}}
+        .mo{background:#fff;border-radius:20px;padding:26px 26px 20px;width:360px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:su .2s cubic-bezier(.22,.61,.36,1)}
+        [data-theme="nerv"] .mo{width:340px;max-width:98vw}
+        @keyframes su{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        .mt{font-size:17px;font-weight:800;color:#1e3a5f;margin-bottom:18px;letter-spacing:1px}
+        .mh{color:#1e3a5f} .mg{color:#6a8aaa;font-weight:500;font-size:15px}
+        .mhint{font-size:13px;color:#8a9db5;margin-bottom:14px}
+        .pg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+        .pb2{padding:7px 4px;border:2px solid #dde5ee;border-radius:10px;background:#f6f9fc;color:#2d4a6a;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+        .pb2:hover{border-color:#87ceeb;background:#eef7fd}
+        .pb2.act{border-color:#2d7dd2;background:#e8f2fd;color:#1a5fa8}
+        .custom-hw-section{margin-bottom:10px}
+        .custom-hw-label{font-size:10px;color:#aab8cc;letter-spacing:2px;font-weight:700;margin-bottom:6px}
+        [data-theme="nerv"] .custom-hw-label{color:rgba(255,102,0,.45);font-family:'Share Tech Mono',monospace;font-size:9px}
+        .preset-wrap{position:relative;display:inline-flex;flex-direction:column;align-items:stretch}
+        .preset-del{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;border:none;background:#e53935;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:1;padding:0}
+        [data-theme="nerv"] .preset-del{background:#cc0000;color:#ff8800}
+        .hi2{width:100%;padding:10px 14px;border:2px solid #dde5ee;border-radius:10px;font-size:15px;font-family:inherit;color:#1e3a5f;outline:none;transition:border-color .15s}
+        .hi2:focus{border-color:#2d7dd2}
+        .ng{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px}
+        .mark-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px}
+        .toolbar-btns{display:flex;gap:6px}
+        .all-btn{padding:8px 14px;border:none;border-radius:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;background:#4caf80;color:#fff;transition:all .15s;box-shadow:0 2px 6px rgba(76,175,128,.3)}
+        .all-btn:hover{opacity:.88}
+        .all-btn.all-undo{background:#e0e0e0;color:#555;box-shadow:none}
+        .all-btn.all-none{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.3)}
+        .mark-count{font-size:13px;color:#8a9db5;font-weight:600}
+        .nw{display:flex;flex-direction:column;align-items:center;gap:3px}
+        .nb{width:46px;height:46px;border-radius:50%;border:2.5px solid #c0ccd8;background:#fff;color:#1e3a5f;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+        .nb:hover{border-color:#2d7dd2;background:#eef4fc}
+        .nb.sub{background:#4caf80;border-color:#4caf80;color:#fff;box-shadow:0 2px 8px rgba(76,175,128,.35)}
+        .nb.ldr{border-color:#e53935;border-width:3px}
+        .nb.sec{border-color:#2e7d32;border-width:3px;border-style:dashed}
+        .nb.ldr.sub{border-color:#b71c1c} .nb.sec.sub{border-color:#1b5e20}
+        .rt{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;letter-spacing:.5px}
+        .lt{background:#ffebee;color:#c62828} .st{background:#e8f5e9;color:#2e7d32}
+        .ra{text-align:center;padding:20px 0 26px}
+        .bc2{display:block;font-size:64px;color:#87ceeb;line-height:1;margin-bottom:12px}
+        .ra p{color:#3a7d5e;font-weight:700;font-size:16px}
+        .rm{margin-bottom:20px} .rl{font-size:13px;color:#8a9db5;margin-bottom:10px;font-weight:600;letter-spacing:1px}
+        .mg2{display:flex;flex-wrap:wrap;gap:8px}
+        .mt2{background:#e53935;color:#fff;border-radius:50%;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+        .ma{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+        .bc{padding:9px 20px;border:2px solid #dde5ee;background:#f6f9fc;color:#6a8aaa;border-radius:10px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
+        .bc:hover{border-color:#aab8cc;background:#eee}
+        .bk{padding:9px 22px;border:none;background:linear-gradient(135deg,#1e3a5f,#2d7dd2);color:#fff;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 3px 10px rgba(29,80,165,.3);transition:opacity .15s}
+        .bk:hover{opacity:.88}
+
+        /* ── EXEMPT PANEL ── */
+        .exempt-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;margin-top:16px}
+        .exempt-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px;flex-wrap:wrap;gap:6px;border-bottom:1px solid #eef2f7}
+        .exempt-title{font-size:15px;font-weight:800;color:#b8860b;letter-spacing:1px}
+        .exempt-hint{font-size:11px;color:#aab8cc;letter-spacing:1px}
+        .exempt-row-wrap{border-bottom:1px solid #eef2f7}
+        .exempt-hw-row{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;flex-wrap:wrap}
+        .exempt-hw-row:hover{background:#fef9e7}
+        .exempt-open .exempt-hw-row{background:#fef9e7;border-bottom:1px solid #f9a825}
+        .exempt-hw-name{font-weight:700;font-size:14px;color:#1e3a5f;min-width:60px;flex-shrink:0}
+        .exempt-preview{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+        .exempt-empty-inline{font-size:12px;color:#ccc}
+        .exempt-toggle{font-size:11px;color:#aab8cc;flex-shrink:0;margin-left:auto}
+        .exempt-seat-grid{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;background:#fffde7;justify-content:center}
+        [data-theme="nerv"] .exempt-panel{background:#080200;border:1px solid #ffcc00;border-radius:4px}
+        [data-theme="nerv"] .exempt-header{border-color:rgba(255,204,0,.2)}
+        [data-theme="nerv"] .exempt-title{color:#ffcc00;text-shadow:0 0 8px rgba(255,204,0,.5);font-family:'Share Tech Mono',monospace}
+        [data-theme="nerv"] .exempt-hint{color:rgba(255,204,0,.35);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px}
+        [data-theme="nerv"] .exempt-row-wrap{border-color:rgba(255,204,0,.1)}
+        [data-theme="nerv"] .exempt-hw-row:hover{background:rgba(255,204,0,.05)}
+        [data-theme="nerv"] .exempt-open .exempt-hw-row{background:rgba(255,204,0,.08);border-color:rgba(255,204,0,.3)}
+        [data-theme="nerv"] .exempt-hw-name{color:#ffaa44;font-family:'Share Tech Mono',monospace}
+        [data-theme="nerv"] .exempt-empty-inline{color:rgba(255,204,0,.2)}
+        [data-theme="nerv"] .exempt-toggle{color:rgba(255,204,0,.4)}
+        [data-theme="nerv"] .exempt-seat-grid{background:rgba(255,204,0,.04)}
+
+        /* Yellow exempt number circles */
+        .mn-exempt{background:#f9a825!important;color:#000!important;border-radius:50%;font-weight:800}
+        [data-theme="nerv"] .mn-exempt{background:#ffcc00!important;color:#000!important}
+
+        /* Exempt modal button */
+        .nb-exempt{background:#f9a825!important;border-color:#f9a825!important;color:#000!important;box-shadow:0 2px 8px rgba(249,168,37,.5)!important}
+        [data-theme="nerv"] .nb-exempt{background:#ffcc00!important;border-color:#ffcc00!important;color:#000!important;box-shadow:0 0 12px rgba(255,204,0,.6)!important}
+        .exempt-tag{background:#fff8e1;color:#b8860b}
+        [data-theme="nerv"] .exempt-tag{background:rgba(255,204,0,.15);color:#ffcc00}
+
+        /* NERV exempt panel */
+        [data-theme="nerv"] .exempt-panel{background:#080200;border:1px solid #ffcc00;border-radius:4px;box-shadow:0 0 15px rgba(255,204,0,.1)}
+        [data-theme="nerv"] .exempt-title{color:#ffcc00;text-shadow:0 0 8px rgba(255,204,0,.5);font-family:'Share Tech Mono',monospace}
+        [data-theme="nerv"] .exempt-hint{color:rgba(255,204,0,.35);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px}
+        [data-theme="nerv"] .exempt-row:hover{background:rgba(255,204,0,.05)}
+        [data-theme="nerv"] .exempt-empty{color:rgba(255,204,0,.2)}
+        .att-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);padding:16px 18px;margin-top:16px}
+        .att-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+        .att-title{font-size:15px;font-weight:800;color:#1e3a5f;letter-spacing:1px}
+        .att-type-btns{display:flex;gap:8px;flex-wrap:wrap}
+        .att-type-btn{padding:7px 16px;border-radius:10px;border:2px solid;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .15s}
+        .att-type-btn:hover{opacity:.8}
+        .att-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+        .att-type-label{font-size:13px;font-weight:800;min-width:36px}
+        .att-nums{display:flex;flex-wrap:wrap;gap:6px}
+        .att-num{border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid}
+        .att-empty{font-size:13px;color:#aab8cc;text-align:center;padding:8px 0}
+        /* calendar absent badge */
+        .cal-absent{position:absolute;bottom:4px;right:5px;font-size:10px;font-weight:700;color:#f57c00;background:#fff3e0;border-radius:4px;padding:1px 4px}
+        .cal-counsel{position:absolute;bottom:4px;left:4px;font-size:11px;opacity:.85;cursor:pointer;transition:opacity .15s;line-height:1}
+        .cal-counsel:hover{opacity:1}
+        [data-theme="nerv"] .cal-counsel{color:#cc88ff;text-shadow:0 0 6px rgba(204,136,255,.6)}
+        /* summary absent tag */
+        .tag-absent{background:#fff3e0;color:#e65100}
+        /* att modal num states */
+        .nb.att-sel{font-weight:900}
+        .nb.att-other{opacity:.75}
+
+        /* ── NERV UNIT NUMBER DISPLAY ── */
+        @keyframes unit-flicker{
+          0%,90%,100%{opacity:1;text-shadow:0 0 10px rgba(255,102,0,.8),0 0 30px rgba(255,102,0,.3)}
+          92%,96%{opacity:.6;text-shadow:none}
+        }
+        .nerv-unit-label {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          line-height: 1;
+        }
+        .nerv-unit-kanji {
+          display: inline-block;
+          font-family: 'Share Tech Mono',monospace;
+          font-size: 18px;
+          font-weight: 900;
+          font-style: italic;
+          letter-spacing: 4px;
+          color: #ff6600;
+          text-shadow:
+            0 0 8px rgba(255,102,0,.9),
+            0 0 20px rgba(255,102,0,.4),
+            2px 2px 0 rgba(0,0,0,.6);
+          animation: unit-flicker 6s ease infinite;
+          position: relative;
+          padding: 2px 8px;
+          background:
+            linear-gradient(180deg,
+              rgba(255,102,0,.12) 0%,
+              rgba(255,102,0,.04) 50%,
+              rgba(255,102,0,.12) 100%);
+          border-top: 1px solid rgba(255,102,0,.4);
+          border-bottom: 1px solid rgba(255,102,0,.4);
+          min-width: 36px;
+          text-align: center;
+        }
+        /* vertical split line — disabled for single digit */
+        .nerv-unit-kanji::before { display: none; }
+        /* bottom index line */
+        .nerv-unit-label::after {
+          content: attr(data-id);
+          font-size: 8px;
+          letter-spacing: 2px;
+          color: rgba(255,102,0,.4);
+          font-family: 'Share Tech Mono',monospace;
+        }
+
+        /* th cell — NERV countdown panel feel */
+        [data-theme="nerv"] th .gl {
+          display: block;
+          padding: 4px 2px;
+          background:
+            repeating-linear-gradient(
+              180deg,
+              rgba(255,102,0,.03) 0px,
+              rgba(255,102,0,.03) 1px,
+              transparent 1px,
+              transparent 4px
+            );
+          border: none;
+          position: relative;
+        }
+        [data-theme="nerv"] th .gl::before {
+          content:'';
+          position:absolute;
+          top:0;left:0;right:0;
+          height:1px;
+          background:linear-gradient(90deg,transparent,rgba(255,102,0,.6),transparent);
+        }
+        [data-theme="nerv"] th .gl::after {
+          content:'';
+          position:absolute;
+          bottom:0;left:0;right:0;
+          height:1px;
+          background:linear-gradient(90deg,transparent,rgba(255,102,0,.6),transparent);
+        }
+
+        /* month number — big countdown style */
+        [data-theme="nerv"] .nerv-mo {
+          display: inline-block;
+          font-size: 28px;
+          font-weight: 900;
+          font-style: italic;
+          letter-spacing: 2px;
+          color: #ffaa44;
+          text-shadow:
+            0 0 12px rgba(255,170,68,.8),
+            0 0 30px rgba(255,102,0,.3),
+            3px 3px 0 rgba(0,0,0,.5);
+          position: relative;
+          padding: 0 4px;
+          border-left: 2px solid rgba(255,102,0,.4);
+          border-right: 2px solid rgba(255,102,0,.4);
+        }
+        [data-theme="nerv"] h1 em {
+          font-style: italic;
+          font-weight: 900;
+          letter-spacing: 6px;
+        }
+        [data-theme="nerv"] .nerv-slash {
+          color: rgba(255,102,0,.4);
+          margin: 0 4px;
+          font-style: normal;
+        }
+        [data-theme="nerv"] .nerv-yr {
+          font-size: 18px;
+          font-weight: 900;
+          letter-spacing: 3px;
+          color: #ff6600;
+        }
+        [data-theme="nerv"] .nerv-dot {
+          color: rgba(255,102,0,.4);
+          margin: 0 4px;
+          font-size: 20px;
+        }
+        [data-theme="nerv"] .nerv-mo {
+          font-size: 26px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          color: #ffaa44;
+          text-shadow: 0 0 10px rgba(255,170,68,.6);
+        }
+        [data-theme="nerv"] .nerv-warn {
+          color: #ffcc00;
+          margin-right: 4px;
+          text-shadow: 0 0 6px rgba(255,204,0,.6);
+          font-size: 11px;
+        }
+        [data-theme="nerv"] .nerv-row-idx {
+          color: rgba(255,102,0,.45);
+          font-size: 10px;
+          letter-spacing: 1px;
+          margin-right: 4px;
+          font-style: italic;
+        }
+        /* table number cells — padded style */
+        [data-theme="nerv"] .mn {
+          font-family: 'Share Tech Mono',monospace;
+          font-size: 10px;
+          letter-spacing: 0;
+        }
+        /* group label [U-0X] */
+        [data-theme="nerv"] .gl {
+          font-family: 'Share Tech Mono',monospace;
+          font-size: 11px;
+          letter-spacing: 1px;
+          font-style: italic;
+        }
+        /* badge numbers */
+        [data-theme="nerv"] .badge {
+          font-family: 'Share Tech Mono',monospace;
+          letter-spacing: -1px;
+        }
+        /* cal day numbers — stencil feel */
+        [data-theme="nerv"] .cal-day {
+          font-style: italic;
+          font-size: 15px;
+          letter-spacing: 1px;
+        }
+        /* sum-date stencil */
+        [data-theme="nerv"] .sum-date {
+          font-style: italic;
+          letter-spacing: 2px;
+        }
+        /* mt2 — padded result numbers */
+        [data-theme="nerv"] .mt2 {
+          font-family: 'Share Tech Mono',monospace;
+          font-size: 12px;
+          letter-spacing: 1px;
+          font-style: italic;
+        }
+        /* hwc row text */
+        [data-theme="nerv"] .hwc {
+          font-style: italic;
+          letter-spacing: 2px;
+        }
+        /* modal title */
+        [data-theme="nerv"] .mt {
+          font-style: italic;
+        }
+        /* preset btn text */
+        [data-theme="nerv"] .pb2 {
+          font-style: italic;
+          font-size: 12px;
+        }
+        /* RL label */
+        [data-theme="nerv"] .rl {
+          font-style: italic;
+          letter-spacing: 3px;
+          font-size: 11px;
+          text-transform: uppercase;
+        }
+        /* all-btn stencil */
+        [data-theme="nerv"] .all-btn {
+          font-style: italic;
+          letter-spacing: 2px;
+          font-size: 12px;
+        }
+        /* nb seat number stencil */
+        [data-theme="nerv"] .nb {
+          font-style: italic;
+          letter-spacing: 1px;
+        }
+        @keyframes hex-appear{
+          from{opacity:0;transform:scale(.4) rotate(30deg)}
+          to  {opacity:1;transform:scale(1)  rotate(0deg)}
+        }
+        @keyframes hex-glow-pulse{
+          0%,100%{filter:drop-shadow(0 0 4px rgba(255,102,0,.4))}
+          50%    {filter:drop-shadow(0 0 12px rgba(255,102,0,.9))}
+        }
+        @keyframes hex-selected{
+          0%  {transform:scale(1)}
+          40% {transform:scale(1.15)}
+          100%{transform:scale(1)}
+        }
+        .ng-hex { overflow:visible; }
+        [data-theme="nerv"] .ng-hex .nw {
+          animation: hex-appear .3s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        [data-theme="nerv"] .ng-hex .nw:nth-child(1){animation-delay:.02s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(2){animation-delay:.04s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(3){animation-delay:.06s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(4){animation-delay:.08s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(5){animation-delay:.10s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(6){animation-delay:.12s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(7){animation-delay:.14s}
+        [data-theme="nerv"] .ng-hex .nw:nth-child(8){animation-delay:.16s}
+
+        /* mirror sheen on hex button */
+        [data-theme="nerv"] .ng-hex .nb {
+          position: relative;
+          overflow: hidden;
+          font-size: 14px;
+          font-weight: 900;
+        }
+        [data-theme="nerv"] .ng-hex .nb::before {
+          content:'';
+          position:absolute;top:-50%;left:-60%;
+          width:40%;height:200%;
+          background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);
+          transform:skewX(-15deg);
+          pointer-events:none;
+        }
+        [data-theme="nerv"] .ng-hex .nb::after {
+          content:'';
+          position:absolute;inset:0;
+          background:linear-gradient(160deg,rgba(255,255,255,.07) 0%,transparent 50%,rgba(0,0,0,.2) 100%);
+          pointer-events:none;
+          clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+        }
+        [data-theme="nerv"] .ng-hex .nb.sub {
+          animation: hex-selected .25s ease, hex-glow-pulse 1.5s ease infinite;
+        }
+        [data-theme="nerv"] .ng-hex .nb.sub::before {
+          background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);
+        }
+        [data-theme="nerv"] .ng-hex .nb.ldr {
+          filter: drop-shadow(0 0 6px rgba(255,0,0,.6));
+        }
+        [data-theme="nerv"] .ng-hex .nb.sec {
+          filter: drop-shadow(0 0 6px rgba(255,200,0,.5));
+        }
+        @keyframes intro-fade-in{from{opacity:0}to{opacity:1}}
+        @keyframes intro-fade-out{from{opacity:1}to{opacity:0}}
+        @keyframes hex-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes hex-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.8}}
+        @keyframes launch-flash{0%,100%{opacity:1}50%{opacity:.3}}
+        @keyframes line-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+        .nerv-intro{
+          position:fixed;inset:0;z-index:99999;
+          background:#000;
+          display:flex;align-items:center;justify-content:center;
+          animation:intro-fade-in .3s ease;
+          font-family:'Share Tech Mono',monospace;
+        }
+        .nerv-intro::before{
+          content:'';position:absolute;inset:0;
+          background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,102,0,.04) 2px,rgba(255,102,0,.04) 4px);
+          pointer-events:none;
+        }
+        /* corner brackets */
+        .nerv-intro::after{
+          content:'';position:absolute;
+          top:20px;left:20px;right:20px;bottom:20px;
+          border:1px solid rgba(255,102,0,.25);
+          pointer-events:none;
+        }
+        .nerv-intro-inner{
+          display:flex;flex-direction:column;align-items:center;gap:16px;
+          padding:40px 30px;width:100%;max-width:500px;
+          position:relative;
+        }
+        /* corner decorations */
+        .nerv-intro-inner::before,.nerv-intro-inner::after{
+          content:'';position:absolute;width:20px;height:20px;
+          border-color:#ff6600;border-style:solid;
+        }
+        .nerv-intro-inner::before{top:0;left:0;border-width:2px 0 0 2px}
+        .nerv-intro-inner::after{bottom:0;right:0;border-width:0 2px 2px 0}
+
+        .nerv-hex-ring{
+          position:relative;width:90px;height:90px;
+          display:flex;align-items:center;justify-content:center;
+        }
+        .nerv-hex-ring::before{
+          content:'⬡';position:absolute;
+          font-size:90px;color:rgba(255,102,0,.15);
+          animation:hex-rotate 8s linear infinite;
+        }
+        .nerv-hex-ring::after{
+          content:'⬡';position:absolute;
+          font-size:70px;color:rgba(255,102,0,.1);
+          animation:hex-rotate 5s linear infinite reverse;
+        }
+        .nerv-hex-logo{
+          font-size:40px;color:#ff6600;
+          text-shadow:0 0 20px rgba(255,102,0,.9),0 0 40px rgba(255,102,0,.4);
+          z-index:1;
+          animation:hex-pulse 2s ease-in-out infinite;
+        }
+        .nerv-intro-title{
+          font-size:36px;font-weight:900;color:#ff6600;
+          letter-spacing:12px;
+          text-shadow:0 0 20px rgba(255,102,0,.8),0 0 50px rgba(255,102,0,.3);
+        }
+        .nerv-intro-sub{
+          font-size:9px;color:rgba(255,102,0,.5);
+          letter-spacing:2px;text-align:center;
+          border-top:1px solid rgba(255,102,0,.2);
+          border-bottom:1px solid rgba(255,102,0,.2);
+          padding:6px 0;width:100%;
+        }
+        .nerv-intro-lines{
+          width:100%;display:flex;flex-direction:column;gap:4px;
+          background:rgba(255,102,0,.03);
+          border:1px solid rgba(255,102,0,.15);
+          padding:12px 16px;
+          min-height:180px;
+        }
+        .nerv-intro-line{
+          font-size:11px;color:rgba(255,102,0,.0);
+          letter-spacing:1px;
+          transition:color .1s;
+          display:flex;align-items:center;gap:8px;
+        }
+        .nerv-intro-line.visible{color:rgba(255,102,0,.6)}
+        .nerv-intro-line.active{color:#ff9944;animation:line-in .2s ease}
+        .nerv-line-prefix{color:rgba(255,102,0,.3);flex-shrink:0}
+        .nerv-cursor{animation:blink .5s step-end infinite;color:#ff6600;font-size:13px}
+        .nerv-launch-text{
+          font-size:18px;color:#ff6600;
+          letter-spacing:6px;
+          text-shadow:0 0 15px rgba(255,102,0,.8);
+          animation:launch-flash .4s ease infinite;
+          margin-top:8px;
+        }
+          main{padding:0 8px} .mo{padding:20px 16px 16px}
+          .pg{grid-template-columns:repeat(3,1fr)}
+          table{font-size:12px} .gc{min-width:52px}
+          .cal-cell{min-height:58px} .cal-day{font-size:13px}
+          .att-header{flex-direction:column;align-items:flex-start}
+        }
+      
+/* PWA extra */
+body{margin:0;padding:0;}
+.drive-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.drive-dot.ok{background:#4caf80}.drive-dot.syncing{background:#ffaa00;animation:pulse .6s infinite}
+.drive-dot.error{background:#ff5252}.drive-dot.offline{background:#888}
 </style>
 </head>
 <body>
-<div id="root"><div class="auth-screen"><div class="auth-logo">📋</div><h1 class="auth-title">作業繳交記錄</h1><p class="auth-sub">載入中…</p></div></div>
-<script>
-const CLIENT_ID='587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
-</script>
+<div id="root"></div>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-// ── 等所有 script 載入後啟動 ──
-window.addEventListener('load', function() {
+// ── Google Drive ──────────────────────────────────────────────────────────────
+const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
+const DRIVE_FILENAME = 'hw-5renren-ALL.json';
+let accessToken = null, driveFileId = null;
 
-const GROUPS=[{id:1,label:'第一組',members:[7,9,4,5,26,8],leader:7,secretary:9},{id:2,label:'第二組',members:[25,17,21],leader:25,secretary:17},{id:3,label:'第三組',members:[10,14,2,3,11,12],leader:10,secretary:14},{id:4,label:'第四組',members:[15,27,13,18,22],leader:15,secretary:27},{id:5,label:'第五組',members:[23,19,16,24,1,20],leader:23,secretary:19}];
-const PRESET_HW=['國習','數習','國乙','國甲','聽寫','小日記','小作文','作文段落','作文','數習題','國卷','數卷','聯絡簿','回條','國習題'];
-const WEEKDAYS=['日','一','二','三','四','五','六'];
-const ALL_MEMBERS=[...new Set(GROUPS.flatMap(g=>g.members))].sort((a,b)=>a-b);
-const LEAVE_TYPES=[{id:'personal',label:'事假',color:'#f57c00',bg:'#fff3e0'},{id:'sick',label:'病假',color:'#1565c0',bg:'#e3f2fd'},{id:'public',label:'公假',color:'#2e7d32',bg:'#e8f5e9'}];
-const MAX_ROWS=6;
-const LS='hw5ren:';
+function gSignIn(){
+  return new Promise((res,rej)=>{
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: (resp)=>{
+        if(resp.error){rej(resp.error);return;}
+        accessToken=resp.access_token;
+        localStorage.setItem('hw5ren:tok',accessToken);
+        res(accessToken);
+      }
+    });
+    client.requestAccessToken();
+  });
+}
 
-// IndexedDB
-const DB='hw5ren_db',ST='dayData';let _db=null;
-function openDB(){if(_db){try{_db.transaction(ST,'readonly').abort();return Promise.resolve(_db);}catch{_db=null;}}return new Promise((r,j)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=e=>e.target.result.createObjectStore(ST);q.onsuccess=e=>{_db=e.target.result;r(_db);};q.onerror=e=>j(e.target.error);});}
-async function idbSet(k,v){const db=await openDB();return new Promise((r,j)=>{const tx=db.transaction(ST,'readwrite');tx.objectStore(ST).put(v,k);tx.oncomplete=()=>r(true);tx.onerror=e=>j(e);});}
-async function idbGet(k){const db=await openDB();return new Promise((r,j)=>{const tx=db.transaction(ST,'readonly');const q=tx.objectStore(ST).get(k);q.onsuccess=e=>r(e.target.result??null);q.onerror=e=>j(e);});}
-async function idbKeys(){const db=await openDB();return new Promise((r,j)=>{const tx=db.transaction(ST,'readonly');const q=tx.objectStore(ST).getAllKeys();q.onsuccess=e=>r(e.target.result);q.onerror=e=>j(e);});}
+async function findDriveFile(){
+  if(!accessToken)return null;
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILENAME}'&fields=files(id)`,{headers:{'Authorization':'Bearer '+accessToken}});
+  const d=await r.json();
+  if(d.files?.length){driveFileId=d.files[0].id;return driveFileId;}
+  return null;
+}
 
-// Drive
-let token=null,fileId=null;
-function signIn(){return new Promise((r,j)=>{const c=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.file',callback:resp=>{if(resp.error){j(resp.error);return;}token=resp.access_token;localStorage.setItem('hw5ren:tok',token);r(token);}});c.requestAccessToken();});}
-async function ensureToken(){if(token)return;const s=localStorage.getItem('hw5ren:tok');if(s)token=s;}
-async function findFile(){await ensureToken();if(!token)return null;const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='hw-5renren-ALL.json'&fields=files(id)`,{headers:{'Authorization':'Bearer '+token}});const d=await r.json();if(d.files?.length){fileId=d.files[0].id;return fileId;}return null;}
-async function saveDrive(snap){await ensureToken();if(!token)throw new Error('未登入');const b=new Blob([JSON.stringify(snap)],{type:'application/json'});if(!fileId)await findFile();const form=new FormData();if(fileId){form.append('metadata',new Blob([JSON.stringify({name:'hw-5renren-ALL.json'})],{type:'application/json'}));form.append('file',b);const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`,{method:'PATCH',headers:{'Authorization':'Bearer '+token},body:form});return r.ok;}else{form.append('metadata',new Blob([JSON.stringify({name:'hw-5renren-ALL.json',mimeType:'application/json'})],{type:'application/json'}));form.append('file',b);const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+token},body:form});if(r.ok){const d=await r.json();fileId=d.id;return true;}return false;}}
-async function loadDrive(){await ensureToken();if(!token)return null;const fid=await findFile();if(!fid)return null;const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{'Authorization':'Bearer '+token}});if(r.ok)return r.json();return null;}
+async function saveDrive(snapshot){
+  if(!accessToken)throw new Error('未登入');
+  const blob=new Blob([JSON.stringify(snapshot)],{type:'application/json'});
+  if(!driveFileId)await findDriveFile();
+  const form=new FormData();
+  if(driveFileId){
+    form.append('metadata',new Blob([JSON.stringify({name:DRIVE_FILENAME})],{type:'application/json'}));
+    form.append('file',blob);
+    const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`,{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    return r.ok;
+  }else{
+    form.append('metadata',new Blob([JSON.stringify({name:DRIVE_FILENAME,mimeType:'application/json'})],{type:'application/json'}));
+    form.append('file',blob);
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    if(r.ok){const d=await r.json();driveFileId=d.id;return true;}
+    return false;
+  }
+}
 
-// Ser/Deser
-function ser(rows,att,ex){return{rows:rows.map(r=>({hwName:r.hwName,groupData:Object.fromEntries(Object.entries(r.groupData).map(([k,v])=>[k,[...v]]))})),attendance:{personal:[...(att?.personal??[])],sick:[...(att?.sick??[])],public:[...(att?.public??[])]},exempt:Object.fromEntries(Object.entries(ex??{}).map(([h,s])=>[h,[...s]]))};}
-function deser(data){const raw=Array.isArray(data)?{rows:data,attendance:{},exempt:{}}:(data||{rows:[],attendance:{},exempt:{}});return{rows:(raw.rows||[]).map(r=>({hwName:r.hwName||'',groupData:Object.fromEntries(Object.entries(r.groupData||{}).map(([k,v])=>[k,new Set(v)]))})),attendance:{personal:new Set(raw.attendance?.personal??[]),sick:new Set(raw.attendance?.sick??[]),public:new Set(raw.attendance?.public??[])},exempt:Object.fromEntries(Object.entries(raw.exempt??{}).map(([h,s])=>[h,new Set(s)]))};}
-function toDS(y,m,d){return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
-function today(){const n=new Date();return toDS(n.getFullYear(),n.getMonth(),n.getDate());}
-function dim(y,m){return new Date(y,m+1,0).getDate();}
-function fw(y,m){return new Date(y,m,1).getDay();}
-async function loadDay(ds){let raw=null;try{raw=await idbGet('day:'+ds);}catch{}if(!raw)try{raw=localStorage.getItem(LS+ds);}catch{}if(raw)try{const d=deser(JSON.parse(raw));return{rows:d.rows,att:d.attendance,ex:d.exempt};}catch{}return{rows:[],att:{personal:new Set(),sick:new Set(),public:new Set()},ex:{}};}
-async function saveDay(ds,rows,att,ex){const json=JSON.stringify(ser(rows,att,ex));try{await idbSet('day:'+ds,json);}catch{}try{localStorage.setItem(LS+ds,json);}catch{}}
-async function loadMonth(y,m){const e={};for(let d=1;d<=dim(y,m);d++){const ds=toDS(y,m,d);const r=await loadDay(ds);e[ds]={rows:r.rows,att:r.att,ex:r.ex};}return e;}
-// React App
-const {useState,useEffect,useCallback,useRef,createElement:h}=React;
+async function loadDrive(){
+  const stored=localStorage.getItem('hw5ren:tok');
+  if(stored)accessToken=stored;
+  if(!accessToken)return null;
+  const fid=await findDriveFile();
+  if(!fid)return null;
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{'Authorization':'Bearer '+accessToken}});
+  if(r.ok)return r.json();
+  // token expired - clear it
+  if(r.status===401){accessToken=null;localStorage.removeItem('hw5ren:tok');}
+  return null;
+}
+</script>
+<script>
+window.addEventListener('load',function(){
+  const {useState,useEffect,useCallback,useRef,useMemo}=React;
 
-function App(){
-const [authed,setAuthed]=useState(!!localStorage.getItem('hw5ren:tok'));
-const [driveOk,setDriveOk]=useState(false);
-const [view,setView]=useState('month');
-const [cy,setCy]=useState(()=>new Date().getFullYear());
-const [cm,setCm]=useState(()=>new Date().getMonth());
-const [sel,setSel]=useState(today());
-const [md,setMd]=useState({});
-const [loading,setLoading]=useState(false);
-const [theme,setTheme]=useState(()=>localStorage.getItem('hw5ren:theme')||'default');
-const nerv=theme==='nerv';
-const [rows,setRows]=useState([]);
-const [att,setAtt]=useState({personal:new Set(),sick:new Set(),public:new Set()});
-const [ex,setEx]=useState({});
-const [msg,setMsg]=useState('');
-const [modal,setModal]=useState(null);
-const [marked,setMarked]=useState(new Set());
-const [inp,setInp]=useState('');
-const [phw,setPhw]=useState('');
-const [attMod,setAttMod]=useState(null);
-const [exMod,setExMod]=useState(null);
-const [hist,setHist]=useState([]);
-const [hi,setHi]=useState(-1);
-const [cwHW,setCwHW]=useState(()=>{try{return JSON.parse(localStorage.getItem('hw5ren:customHW')||'[]');}catch{return[];}});
-const [showImp,setShowImp]=useState(false);
-const [impTxt,setImpTxt]=useState('');
-const todayS=today();
-const [lastSync,setLastSync]=useState(()=>localStorage.getItem('hw5ren:lastSync')||'');
-const selR=useRef(today()),rowsR=useRef([]),attR=useRef({personal:new Set(),sick:new Set(),public:new Set()}),exR=useRef({});
-useEffect(()=>{selR.current=sel;},[sel]);
-useEffect(()=>{rowsR.current=rows;},[rows]);
-useEffect(()=>{attR.current=att;},[att]);
-useEffect(()=>{exR.current=ex;},[ex]);
+// ── Constants ────────────────────────────────────────────────────────────────
+const DEFAULT_GROUPS = [
+  { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8],    leader: 7,  secretary: 9  },
+  { id: 2, label: "第二組", members: [25, 17, 21],            leader: 25, secretary: 17 },
+  { id: 3, label: "第三組", members: [10, 14, 2, 3, 11, 12],  leader: 10, secretary: 14 },
+  { id: 4, label: "第四組", members: [15, 27, 13, 18, 22],    leader: 15, secretary: 27 },
+  { id: 5, label: "第五組", members: [23, 19, 16, 24, 1, 20], leader: 23, secretary: 19 },
+];
+function loadGroups() {
+  try {
+    const s = localStorage.getItem("hw5ren:groups");
+    if (s) return JSON.parse(s);
+  } catch {}
+  return DEFAULT_GROUPS;
+}
+const PRESET_HW = ["國習","數習","國乙","國甲","聽寫","小日記","小作文","作文段落","作文","數習題","國卷","數卷","聯絡簿","回條","國習題"];
+const MAX_ROWS = 6;
+const WEEKDAYS = ["日","一","二","三","四","五","六"];
+const COUNSEL_PERIODS = ["早自習","第1節","第2節","第3節","第4節","午休","第5節","第6節","放學後"];
+const COUNSEL_TYPES = ["學習","行為","情緒","人際","家庭","其他"];
+const COUNSEL_FOLLOWUP = ["需追蹤","已處理","轉介"];
 
-const save=useCallback(async(r,a,e)=>{
-const ds=selR.current,rr=r??rowsR.current,aa=a??attR.current,ee=e??exR.current;
-await saveDay(ds,rr,aa,ee);
-setMd(p=>({...p,[ds]:{rows:rr,att:aa,ex:ee}}));
-if(token){try{const keys=(await idbKeys()).filter(k=>k.startsWith('day:2'));const snap={};for(const k of keys){const v=await idbGet(k);if(v)snap[k]=v;}setTimeout(async()=>{try{await saveDrive(snap);setLastSync(todayS);localStorage.setItem('hw5ren:lastSync',todayS);}catch{}},2000);}catch{}}
-},[]);
+const LEAVE_TYPES = [
+  { id:"personal", label:"事假", color:"#f57c00", bg:"#fff3e0" },
+  { id:"sick",     label:"病假", color:"#1565c0", bg:"#e3f2fd" },
+  { id:"public",   label:"公假", color:"#2e7d32", bg:"#e8f5e9" },
+];
+const KANJI_NUM = ["一","二","三","四","五","六","七","八"];
+function nervUnit(id) { return String(id); }
 
-function ph(r,a,e){setHist(p=>{const b=p.slice(0,hi+1);return[...b,{r,a,e}].slice(-30);});setHi(p=>Math.min(p+1,29));}
-function undo(){if(hi<=0)return;const s=hist[hi-1];if(!s)return;setRows(s.r);setAtt(s.a);setEx(s.e);setHi(hi-1);save(s.r,s.a,s.e);}
-function redo(){if(hi>=hist.length-1)return;const s=hist[hi+1];if(!s)return;setRows(s.r);setAtt(s.a);setEx(s.e);setHi(hi+1);save(s.r,s.a,s.e);}
-function upR(fn){setRows(p=>{const n=fn(p);ph(n,att,ex);save(n,att,ex);return n;});}
-function upA(fn){setAtt(p=>{const n=fn(p);ph(rows,n,ex);save(rows,n,ex);return n;});}
-function upE(fn){setEx(p=>{const n=fn(p);ph(rows,att,n);save(rows,att,n);return n;});}
 
-useEffect(()=>{
-if(!authed)return;
-(async()=>{
-setMsg('☁️ 從 Drive 載入…');
-try{
-const snap=await loadDrive();
-if(snap&&Object.keys(snap).length>0){
-let c=0;
-for(const[k,v]of Object.entries(snap)){if(k.startsWith('day:2')){const ds=k.replace('day:','');await idbSet('day:'+ds,v);try{localStorage.setItem(LS+ds,v);}catch{}c++;}}
-setMsg('✅ Drive 載入 '+c+' 天');setDriveOk(true);
-setLastSync(todayS);localStorage.setItem('hw5ren:lastSync',todayS);
-}else{setMsg('✅ 就緒');setDriveOk(true);}
-}catch{setMsg('⚠️ 本機模式');}
-await doLM(cy,cm);
-})();
-},[authed]);
+// ── Storage ──────────────────────────────────────────────────────────────────
+const LS_PREFIX = "hw5ren:";  // localStorage key prefix
 
-async function doLM(y,m){setLoading(true);const e=await loadMonth(y,m);setMd(e);setLoading(false);}
-useEffect(()=>{if(authed)doLM(cy,cm);},[cy,cm]);
+// ── IndexedDB 持久儲存（iPhone 跨版本可靠）────────────────────────────────
+const DB_NAME  = "hw5ren_db";
+const DB_STORE = "dayData";
+let _db = null;
 
-async function openDay(ds){setLoading(true);const r=await loadDay(ds);const ir=r.rows.length?r.rows:[{hwName:'',groupData:{}}];setRows(ir);setAtt(r.att);setEx(r.ex);setSel(ds);setView('day');setLoading(false);setHist([{r:ir,a:r.att,e:r.ex}]);setHi(0);}
-function rs(ri,gid){const row=rows[ri];if(!row?.hwName)return'empty';const g=GROUPS.find(g=>g.id===gid);const done=row.groupData?.[gid]??new Set();const es=ex[row.hwName]??new Set();if(!Object.prototype.hasOwnProperty.call(row.groupData||{},gid))return'untouched';if(!done.size&&!es.size)return'allabsent';if(!g.members.filter(m=>!done.has(m)&&!es.has(m)).length)return'complete';return'partial';}
-function gm(ri,gid){const row=rows[ri];if(!row)return[];const g=GROUPS.find(g=>g.id===gid);const done=row.groupData?.[gid]??new Set();const es=ex[row.hwName]??new Set();return g.members.filter(m=>!done.has(m)&&!es.has(m));}
-function ge(ri,gid){const row=rows[ri];if(!row?.hwName)return[];const g=GROUPS.find(g=>g.id===gid);const done=row.groupData?.[gid]??new Set();const es=ex[row.hwName]??new Set();return g.members.filter(m=>!done.has(m)&&es.has(m));}
+function openDB() {
+  // 若 _db 存在且連線未關閉，直接回傳
+  if (_db) {
+    try {
+      // 嘗試用它，若已關閉會拋出錯誤
+      _db.transaction(DB_STORE, "readonly").abort();
+      return Promise.resolve(_db);
+    } catch { _db = null; }
+  }
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => { e.target.result.createObjectStore(DB_STORE); };
+    req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
 
-function fmt(ds){if(!ds)return'';const[y,m,d]=ds.split('-');const w=new Date(+y,+m-1,+d).getDay();return`${+m}月${+d}日（${WEEKDAYS[w]}）`;}
-function prev(){if(cm===0){setCy(y=>y-1);setCm(11);}else setCm(m=>m-1);}
-function next(){if(cm===11){setCy(y=>y+1);setCm(0);}else setCm(m=>m+1);}
+async function idbSet(key, value) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, "readwrite");
+    tx.objectStore(DB_STORE).put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror    = e => reject(e.target.error);
+  });
+}
 
-function ci(ds,d){
-const e=md[ds]||{};const r=e.rows||[];const a=e.att||{};const xe=e.ex||{};
-const ar=r.filter(r=>r.hwName);
-const ac=(a.personal?.size||0)+(a.sick?.size||0)+(a.public?.size||0);
-const ok=ar.length>0&&ar.every(r=>GROUPS.every(g=>{const done=r.groupData?.[g.id]??new Set();const es=xe[r.hwName]??new Set();return g.members.every(m=>done.has(m)||es.has(m));}));
-const pt=!ok&&ar.some(r=>GROUPS.some(g=>{const done=r.groupData?.[g.id];return done&&done.size>0;}));
-const it=ds===todayS;
-return h('div',{className:'cc'+(ok?' ok':pt?' pt':'')+(it?' td':''),onClick:()=>openDay(ds),style:{border:'1px solid #e8eef5',padding:'6px 5px',minHeight:68,cursor:'pointer',background:ok?'#f0faf4':pt?'#fff9f0':'#fff',position:'relative',display:'flex',flexDirection:'column'}},
-h('span',{style:{fontSize:14,fontWeight:700,color:it?'#fff':'#2d4a6a',background:it?'#1e3a5f':'none',width:it?22:undefined,height:it?22:undefined,borderRadius:it?'50%':undefined,display:it?'flex':undefined,alignItems:it?'center':undefined,justifyContent:it?'center':undefined,fontSize:it?12:14}},d),
-ok&&h('span',{style:{position:'absolute',top:5,right:6,color:'#4caf80',fontSize:13,fontWeight:900}},'✓'),
-ac>0&&h('span',{style:{fontSize:9,background:'rgba(255,100,0,.15)',color:'#e65100',padding:'1px 4px',borderRadius:4,marginTop:2}},ac+'請')
-);}
+async function idbGet(key) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(DB_STORE, "readonly");
+    const req = tx.objectStore(DB_STORE).get(key);
+    req.onsuccess = e => resolve(e.target.result ?? null);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
 
-if(!authed)return h('div',{className:'auth-screen'},
-h('div',{className:'auth-logo'},'📋'),
-h('h1',{className:'auth-title'},'作業繳交記錄'),
-h('p',{className:'auth-sub'},'五年壬班 // 大甲國小'),
-h('button',{className:'auth-btn',onClick:()=>signIn().then(()=>setAuthed(true)).catch(e=>setMsg('登入失敗'))},
-h('span',{style:{fontWeight:900,fontSize:18}},'G'),'  使用 Google 帳號登入'),
-h('p',{className:'auth-note'},'登入後資料自動存到您的 Google Drive\n不需要手動備份')
-);
+async function idbKeys() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx  = db.transaction(DB_STORE, "readonly");
+    const req = tx.objectStore(DB_STORE).getAllKeys();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
 
-const resMissing=modal?.phase==='result'?gm(modal.ri,modal.gid):[];
-const resGrp=GROUPS.find(g=>g.id===modal?.gid);
+// ── Counseling load / save ───────────────────────────────────────────────────
+async function loadCounsel(dateStr) {
+  let raw = null;
+  try { raw = await idbGet(`counsel:${dateStr}`); } catch {}
+  if (!raw) { try { raw = localStorage.getItem(`hw5ren:c:${dateStr}`); } catch {} }
+  if (raw) { try { return JSON.parse(raw); } catch {} }
+  return [];
+}
+async function saveCounsel(dateStr, records) {
+  const json = JSON.stringify(records);
+  try { await idbSet(`counsel:${dateStr}`, json); } catch {}
+  try { localStorage.setItem(`hw5ren:c:${dateStr}`, json); } catch {}
+}
+async function loadCounselMonth(y, m) {
+  const entries = {};
+  for (let d = 1; d <= new Date(y,m+1,0).getDate(); d++) {
+    const ds = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const recs = await loadCounsel(ds);
+    if (recs.length > 0) entries[ds] = recs;
+  }
+  return entries;
+}
 
-return h('div',{style:{maxWidth:640,margin:'0 auto',minHeight:'100vh',display:'flex',flexDirection:'column',background:nerv?'#050200':'#f0f4f8',color:nerv?'#ff6600':'inherit'}},
+// ── Day load / save ──────────────────────────────────────────────────────────
+async function loadDay(dateStr) {
+  let raw = null;
+  // 1. IndexedDB（主要，跨版本）
+  try { raw = await idbGet(`day:${dateStr}`); } catch {}
+  // 2. localStorage 備援
+  if (!raw) { try { raw = localStorage.getItem(`hw5ren:${dateStr}`); } catch {} }
+  if (raw) {
+    try { const d = deser(JSON.parse(raw)); return { ok:true, rows:d.rows, attendance:d.attendance, exempt:d.exempt }; } catch {}
+  }
+  return { ok:true, rows:[], attendance:{ personal:new Set(), sick:new Set(), public:new Set() }, exempt:{} };
+}
 
-// HEADER
-h('div',{style:{background:nerv?'linear-gradient(180deg,#120400,#080200)':'linear-gradient(135deg,#1e3a5f,#2d5a8e)',color:'#fff',padding:'10px 14px 0',position:'sticky',top:0,zIndex:50}},
-h('div',{style:{display:'flex',alignItems:'center',gap:8,paddingBottom:8}},
-h('span',{style:{fontSize:20}},nerv?'⬡':'📋'),
-h('div',{style:{flex:1}},
-h('div',{style:{fontSize:15,fontWeight:900,letterSpacing:1}},nerv?'NERV // 作業繳交':'作業繳交記錄'),
-h('div',{style:{fontSize:10,opacity:.7}},nerv?'▸ CLASS-05REN ◂':'5年壬班')
-),
-h('button',{onClick:()=>{const n=nerv?'default':'nerv';localStorage.setItem('hw5ren:theme',n);setTheme(n);},style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',padding:'4px 8px',borderRadius:6,fontSize:11,cursor:'pointer',marginRight:4}},nerv?'🔵':'🟠'),
-h('button',{onClick:()=>{token=null;localStorage.removeItem('hw5ren:tok');setAuthed(false);},style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',padding:'4px 8px',borderRadius:6,fontSize:11,cursor:'pointer'}},nerv?'EXIT':'登出')
-),
-// Drive status
-h('div',{style:{fontSize:10,padding:'3px 0 4px',opacity:.8,display:'flex',alignItems:'center',gap:6}},
-h('span',{style:{width:6,height:6,borderRadius:'50%',background:driveOk?'#4caf80':'#aaa',display:'inline-block'}}),
-msg||( driveOk?'☁️ Drive 已連線':'⚙️ 初始化中…')
-),
-// Backup warn
-lastSync!==todayS&&h('div',{style:{overflow:'hidden',padding:'5px 0',background:nerv?'#1a0000':'#fff3cd',borderLeft:nerv?'none':'4px solid #ffc107'}},
-h('span',{style:{display:'inline-block',whiteSpace:'nowrap',animation:'marquee 14s linear infinite',paddingLeft:'100%',fontSize:11,fontWeight:700,color:nerv?'#ff0000':'#856404'}},
-nerv?'⚠ WARNING // 今日尚未同步 Drive // 使徒接近中 ⚠ WARNING // 今日尚未同步 Drive //':'⚠️ 今日尚未同步 Google Drive　請點下方「☁️ 同步」按鈕　⚠️ 今日尚未同步　'
-)
-),
-// Nav
-h('div',{style:{display:'flex',alignItems:'center',gap:5,padding:'7px 0 9px',flexWrap:'nowrap'}},
-view==='day'&&h('button',{onClick:()=>setView('month'),style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',padding:'4px 8px',borderRadius:6,fontSize:11,cursor:'pointer',flexShrink:0}},nerv?'◀':'← 月曆'),
-h('button',{onClick:prev,style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:26,height:26,borderRadius:6,fontSize:15,cursor:'pointer',flexShrink:0}},'‹'),
-h('span',{style:{color:'#fff',fontSize:14,fontWeight:800,minWidth:80,textAlign:'center',flexShrink:0}},`${cy} 年 ${cm+1} 月`),
-h('button',{onClick:next,style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:26,height:26,borderRadius:6,fontSize:15,cursor:'pointer',flexShrink:0}},'›'),
-view==='day'&&h('span',{style:{color:'rgba(255,255,255,.8)',fontSize:11,flex:1,textAlign:'center',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},fmt(sel)),
-view==='day'&&h('div',{style:{display:'flex',gap:3,flexShrink:0}},
-h('button',{onClick:undo,disabled:hi<=0,style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:28,height:28,borderRadius:6,fontSize:14,cursor:'pointer',opacity:hi<=0?.3:1}},'↩'),
-h('button',{onClick:redo,disabled:hi>=hist.length-1,style:{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:28,height:28,borderRadius:6,fontSize:14,cursor:'pointer',opacity:hi>=hist.length-1?.3:1}},'↪')
-)
-),
-// Sync bar
-h('div',{style:{display:'flex',gap:6,padding:'5px 0 6px',flexWrap:'wrap',borderTop:'1px solid rgba(255,255,255,.1)'}},
-h('button',{onClick:async()=>{setMsg('⏳ 同步中…');try{const keys=(await idbKeys()).filter(k=>k.startsWith('day:2'));const snap={};for(const k of keys){const v=await idbGet(k);if(v)snap[k]=v;}const ok=await saveDrive(snap);if(ok){setLastSync(todayS);localStorage.setItem('hw5ren:lastSync',todayS);setMsg('✅ 同步完成 '+keys.length+' 天');}else setMsg('❌ 同步失敗');}catch(e){setMsg('❌ '+e.message.slice(0,40));}setTimeout(()=>setMsg(''),5000);},style:{background:'rgba(76,175,128,.5)',border:'none',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:11,cursor:'pointer'}},'☁️ 立即同步 Drive'),
-h('button',{onClick:()=>setShowImp(true),style:{background:'rgba(255,152,0,.5)',border:'none',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:11,cursor:'pointer'}},'📥 匯入')
-)
-),
+async function saveDay(dateStr, rows, attendance, exempt) {
+  const json = JSON.stringify(ser(rows, attendance, exempt));
+  // 1. IndexedDB（主要）
+  let idbOk = false;
+  try { idbOk = await idbSet(`day:${dateStr}`, json); } catch {}
+  // 2. localStorage（備援）
+  try { localStorage.setItem(`hw5ren:${dateStr}`, json); } catch {}
+    return { ok: true, source: idbOk ? "idb" : "local" };
+}
 
-// MONTH VIEW
-view==='month'&&h('div',{style:{flex:1,padding:12,overflowY:'auto'}},
-loading?h('div',{style:{textAlign:'center',padding:60,color:'#6a8aaa'}},'載入中…'):
-h(React.Fragment,null,
-h('div',{style:{background:'#f0f4f8',borderRadius:12,overflow:'hidden',marginBottom:16,boxShadow:'0 4px 20px rgba(0,0,0,.08)'}},
-h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',background:'#1e3a5f'}},
-WEEKDAYS.map(w=>h('div',{key:w,style:{color:'#a8cdf0',fontSize:12,fontWeight:700,textAlign:'center',padding:'10px 0'}},w))
-),
-h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gridAutoRows:'1fr',background:'#f0f4f8'}},
-Array(fw(cy,cm)).fill(null).map((_,i)=>h('div',{key:'e'+i,style:{background:'transparent',border:'1px solid transparent',minHeight:68}})),
-Array(dim(cy,cm)).fill(null).map((_,i)=>ci(toDS(cy,cm,i+1),i+1))
-)
-),
-h('div',{style:{background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,.08)'}},
-Object.entries(md).filter(([,e])=>(e.rows||[]).some(r=>r?.hwName)).sort(([a],[b])=>a.localeCompare(b)).map(([ds,e])=>{
-const ar=(e.rows||[]).filter(r=>r.hwName);const a=e.att||{};const xe=e.ex||{};
-const ac=(a.personal?.size||0)+(a.sick?.size||0)+(a.public?.size||0);
-return h('div',{key:ds,onClick:()=>openDay(ds),style:{display:'flex',alignItems:'flex-start',gap:8,padding:'12px 16px',borderBottom:'1px solid #eef2f7',cursor:'pointer',flexWrap:'wrap'}},
-h('span',{style:{fontSize:13,fontWeight:700,color:'#1e3a5f',minWidth:90,flexShrink:0}},fmt(ds)),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:4}},
-ar.map((r,i)=>{const tot=GROUPS.reduce((s,g)=>s+g.members.length,0);const done=GROUPS.reduce((s,g)=>s+(r.groupData?.[g.id]?.size||0),0);const exd=GROUPS.reduce((s,g)=>s+g.members.filter(m=>(xe[r.hwName]??new Set()).has(m)&&!(r.groupData?.[g.id]??new Set()).has(m)).length,0);return h('span',{key:i,style:{fontSize:11,padding:'2px 8px',borderRadius:12,fontWeight:600,background:done+exd>=tot?'#e8f5e9':'#fff3e0',color:done+exd>=tot?'#2e7d32':'#e65100'}},r.hwName);}),
-ac>0&&h('span',{style:{fontSize:11,padding:'2px 8px',borderRadius:12,fontWeight:600,background:'#fce4ec',color:'#c62828'}},`請假 ${ac} 人`)
-));
-}),
-Object.values(md).every(e=>!(e.rows||[]).some(r=>r?.hwName))&&h('p',{style:{textAlign:'center',padding:32,color:'#aab8cc',fontSize:14}},'本月尚無紀錄，點選日期開始登記')
-)
-)
-),
+async function loadMonth(y, m) {
+  const days = daysInMonth(y, m);
+  const entries = {};
+  for (let d = 1; d <= days; d++) {
+    const ds = toDateStr(y, m, d);
+    const res = await loadDay(ds);
+    entries[ds] = { rows: res.rows, attendance: res.attendance, exempt: res.exempt };
+  }
+  return entries;
+}
 
-// DAY VIEW
-view==='day'&&h('div',{style:{flex:1,padding:12,overflowY:'auto'}},
-h('div',{style:{background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 4px 20px rgba(0,0,0,.08)'}},
-h('table',{style:{width:'100%',borderCollapse:'collapse'}},
-h('thead',null,h('tr',null,
-h('th',{style:{background:'#1e3a5f',color:'#c8dff5',fontSize:12,fontWeight:700,padding:'10px 4px 10px 12px',textAlign:'left',width:80}},'作業'),
-GROUPS.map(g=>h('th',{key:g.id,style:{background:'#1e3a5f',color:'#c8dff5',fontSize:12,fontWeight:700,padding:'10px 4px',textAlign:'center'}},g.label)),
-h('th',{style:{background:'#1e3a5f',width:28}})
-)),
-h('tbody',null,
-rows.map((row,ri)=>h('tr',{key:ri,style:{borderBottom:'1px solid #e8eef5'}},
-h('td',{onClick:()=>{setModal({ri,gid:null,phase:'input'});setInp(row.hwName||'');setPhw(row.hwName||'');},style:{padding:'10px 4px 10px 12px',fontWeight:700,fontSize:14,cursor:'pointer',color:row.hwName?'#1e3a5f':'#aab8cc',whiteSpace:'nowrap'}},
-row.hwName||h('span',{style:{fontWeight:400,fontSize:12}},'點擊輸入')),
-GROUPS.map(g=>{const s=rs(ri,g.id),ms=gm(ri,g.id),xe=ge(ri,g.id);return h('td',{key:g.id,onClick:()=>row.hwName&&(()=>{setMarked(new Set(row.groupData?.[g.id]??new Set()));setModal({ri,gid:g.id,phase:'mark',hw:row.hwName});})(),style:{textAlign:'center',padding:'8px 3px',cursor:row.hwName?'pointer':'default',background:s==='complete'?'rgba(76,175,80,.05)':s==='partial'?'rgba(255,152,0,.05)':s==='allabsent'?'rgba(255,82,82,.05)':'inherit',minWidth:56,verticalAlign:'middle'}},
-s==='complete'&&h('div',{style:{width:32,height:32,borderRadius:'50%',background:'#4caf80',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,margin:'0 auto'}},'✓'),
-s==='partial'&&h('div',{style:{width:32,height:32,borderRadius:'50%',background:'#ff7043',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,margin:'0 auto'}},'✗'),
-s==='allabsent'&&h('div',{style:{width:32,height:32,borderRadius:'50%',background:'#f44336',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,margin:'0 auto'}},'✗'),
-s==='untouched'&&row.hwName&&h('div',{style:{width:32,height:32,borderRadius:'50%',background:'#e8eef5',color:'#8a9db5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,margin:'0 auto'}},'−'),
-xe.length>0&&h('div',{style:{display:'flex',flexWrap:'wrap',gap:2,justifyContent:'center',marginTop:2}},xe.map(n=>h('span',{key:n,style:{width:18,height:18,borderRadius:'50%',background:'#f9a825',color:'#000',fontSize:9,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center'}},n))),
-s==='partial'&&ms.length>0&&h('div',{style:{display:'flex',flexWrap:'wrap',gap:2,justifyContent:'center',marginTop:2}},ms.map(n=>h('span',{key:n,style:{width:18,height:18,borderRadius:'50%',background:'#ff5252',color:'#fff',fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}},n)))
-);}),
-h('td',null,h('button',{onClick:()=>upR(p=>p.filter((_,i)=>i!==ri)),style:{color:'#e8eef5',background:'none',border:'none',cursor:'pointer',fontSize:16,padding:'0 8px'}},'×'))
-)),
-rows.length<MAX_ROWS&&h('tr',{onClick:()=>upR(p=>[...p,{hwName:'',groupData:{}}]),style:{cursor:'pointer'}},
-h('td',{colSpan:7,style:{padding:'10px 4px 10px 12px',color:'#aab8cc',fontSize:13}},'＋ 新增作業列'))
-))),
+// ── serialise / deserialise ──────────────────────────────────────────────────
+function ser(rows, attendance, exempt) {
+  return {
+    rows: rows.map(r => ({
+      hwName: r.hwName,
+      groupData: Object.fromEntries(
+        Object.entries(r.groupData).map(([k,v]) => [k, [...v]])
+      ),
+    })),
+    attendance: {
+      personal: [...(attendance?.personal ?? [])],
+      sick:     [...(attendance?.sick     ?? [])],
+      public:   [...(attendance?.public   ?? [])],
+    },
+    exempt: Object.fromEntries(
+      Object.entries(exempt ?? {}).map(([hw, nums]) => [hw, [...nums]])
+    ),
+  };
+}
+function deser(data) {
+  const raw = Array.isArray(data) ? { rows: data, attendance: {}, exempt: {} } : (data || { rows: [], attendance: {}, exempt: {} });
+  return {
+    rows: (raw.rows||[]).map(r => ({
+      hwName: r.hwName || "",
+      groupData: Object.fromEntries(
+        Object.entries(r.groupData||{}).map(([k,v]) => [k, new Set(v)])
+      ),
+    })),
+    attendance: {
+      personal: new Set(raw.attendance?.personal ?? []),
+      sick:     new Set(raw.attendance?.sick     ?? []),
+      public:   new Set(raw.attendance?.public   ?? []),
+    },
+    exempt: Object.fromEntries(
+      Object.entries(raw.exempt ?? {}).map(([hw, nums]) => [hw, new Set(nums)])
+    ),
+  };
+}
 
-// Exempt
-rows.some(r=>r.hwName)&&h('div',{style:{background:'#fff',borderRadius:16,overflow:'hidden',marginTop:16,boxShadow:'0 4px 20px rgba(0,0,0,.08)'}},
-h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px 8px',borderBottom:'1px solid #eef2f7'}},
-h('span',{style:{fontSize:15,fontWeight:800,color:'#b8860b'}},'📋 作業抵免'),
-h('span',{style:{fontSize:11,color:'#aab8cc'}},'點作業 → 點座號直接抵免')
-),
-rows.filter(r=>r.hwName).map((row,ri)=>{
-const es=ex[row.hwName]??new Set();const isO=exMod?.hwName===row.hwName;
-return h('div',{key:ri,style:{borderBottom:'1px solid #eef2f7'}},
-h('div',{onClick:()=>isO?setExMod(null):setExMod({hwName:row.hwName}),style:{display:'flex',alignItems:'center',gap:10,padding:'11px 14px',cursor:'pointer',background:isO?'#fef9e7':'',flexWrap:'wrap'}},
-h('span',{style:{fontWeight:700,fontSize:14,color:'#1e3a5f',minWidth:60,flexShrink:0}},row.hwName),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:4,flex:1}},[...es].sort((a,b)=>a-b).map(n=>h('span',{key:n,style:{width:18,height:18,borderRadius:'50%',background:'#f9a825',color:'#000',fontSize:9,fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center'}},n)),es.size===0&&h('span',{style:{fontSize:12,color:'#ccc'}},'尚無抵免')),
-h('span',{style:{fontSize:11,color:'#aab8cc'}},isO?'▲':'▼')
-),
-isO&&h('div',{style:{display:'flex',flexWrap:'wrap',gap:10,padding:'14px 16px',background:'#fffde7',justifyContent:'center'}},
-ALL_MEMBERS.map(n=>{const isE=es.has(n);const grp=GROUPS.find(g=>g.members.includes(n));return h('div',{key:n,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2},onClick:()=>{upE(p=>{const nx={...p};const s=new Set(nx[row.hwName]??[]);isE?s.delete(n):s.add(n);if(!s.size)delete nx[row.hwName];else nx[row.hwName]=s;return nx;})}},
-h('button',{style:{width:46,height:46,borderRadius:'50%',border:`2.5px solid ${isE?'#f9a825':n===grp?.leader?'#e53935':n===grp?.secretary?'#ff9800':'#c0ccd8'}`,background:isE?'#f9a825':'#fff',color:isE?'#000':'#1e3a5f',fontSize:15,fontWeight:700,cursor:'pointer'}},n),
-n===grp?.leader&&h('span',{style:{fontSize:9,background:'rgba(229,57,53,.15)',color:'#e53935',padding:'1px 5px',borderRadius:4,fontWeight:700}},'組長'),
-n===grp?.secretary&&h('span',{style:{fontSize:9,background:'rgba(255,152,0,.15)',color:'#ff9800',padding:'1px 5px',borderRadius:4,fontWeight:700}},'秘書')
-);})
-)
-);})
-),
+// ── Date helpers ─────────────────────────────────────────────────────────────
+function toDateStr(y, m, d) {
+  return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+function today() {
+  const d = new Date();
+  return toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function daysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function firstWeekday(y, m) { return new Date(y, m, 1).getDay(); }
 
-// Attendance
-h('div',{style:{background:'#fff',borderRadius:16,padding:'16px 18px',marginTop:16,boxShadow:'0 4px 20px rgba(0,0,0,.08)'}},
-h('div',{style:{fontSize:15,fontWeight:800,color:'#1e3a5f',marginBottom:12}},'📅 出勤狀況'),
-h('div',{style:{display:'flex',gap:8,marginBottom:12}},
-LEAVE_TYPES.map(lt=>h('button',{key:lt.id,onClick:()=>setAttMod({lt}),style:{flex:1,padding:8,border:'2px solid '+lt.color,borderRadius:10,background:'#fff',color:lt.color,cursor:'pointer',fontSize:13,fontWeight:700}},`${lt.label}（${att[lt.id]?.size||0}人）`))
-),
-(att.personal?.size||0)+(att.sick?.size||0)+(att.public?.size||0)===0
-?h('p',{style:{color:'#aab8cc',fontSize:13,textAlign:'center'}},'今日全員到齊')
-:h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
-LEAVE_TYPES.flatMap(lt=>[...att[lt.id]??[]].sort((a,b)=>a-b).map(n=>h('span',{key:lt.id+n,style:{padding:'4px 10px',borderRadius:20,fontSize:13,fontWeight:700,background:lt.bg,color:lt.color}},`${n} ${lt.label}`)))
-)
-),
+// ── Mini summary: how many rows have data in a day ───────────────────────────
+function daySummary(rows) {
+  const filled = rows.filter(r => r.hwName).length;
+  const allDone = rows.filter(r => {
+    if (!r.hwName) return false;
+    return groups.every(g => {
+      const done = r.groupData?.[g.id] ?? new Set();
+      return done.size === g.members.length;
+    });
+  }).length;
+  return { filled, allDone };
+}
 
-// Sync button
-h('button',{onClick:async()=>{setMsg('⏳ 同步至 Drive…');try{const keys=(await idbKeys()).filter(k=>k.startsWith('day:2'));const snap={};for(const k of keys){const v=await idbGet(k);if(v)snap[k]=v;}const ok=await saveDrive(snap);if(ok){setLastSync(todayS);localStorage.setItem('hw5ren:lastSync',todayS);setMsg('✅ 同步完成');}else setMsg('❌ 同步失敗');}catch(e){setMsg('❌ '+e.message.slice(0,50));}setTimeout(()=>setMsg(''),5000);},style:{display:'block',width:'100%',marginTop:16,padding:14,background:'#4caf80',color:'#fff',border:'none',borderRadius:16,fontSize:15,fontWeight:700,cursor:'pointer',boxShadow:'0 4px 12px rgba(76,175,128,.3)'}},'☁️ 同步資料到 Drive')
-),
+// ─────────────────────────────────────────────────────────────────────────────
+// ── Counsel View Component ────────────────────────────────────────────────────
+function CounselView({ date, records, onSave, onClose, isNerv, allMembers, groups, fmtDate }) {
+  const [recs, setRecs] = useState(() => records.length > 0 ? JSON.parse(JSON.stringify(records)) : [newRec(date)]);
+  const [activeIdx, setActiveIdx] = useState(0);
 
-// MODAL
-modal&&h('div',{onClick:()=>{setModal(null);setMarked(new Set());},style:{position:'fixed',inset:0,background:'rgba(10,20,40,.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}},
-h('div',{onClick:e=>e.stopPropagation(),style:{background:'#fff',borderRadius:20,padding:'26px 26px 20px',width:360,maxWidth:'95vw',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}},
-modal.phase==='input'&&h(React.Fragment,null,
-h('h2',{style:{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}},'輸入作業名稱'),
-cwHW.length>0&&h('div',{style:{marginBottom:10}},
-h('p',{style:{fontSize:10,color:'#aab8cc',letterSpacing:2,fontWeight:700,marginBottom:6}},'記憶'),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},cwHW.map(hw=>h('div',{key:hw,style:{position:'relative',display:'inline-flex'}},h('button',{onClick:()=>{setPhw(hw);setInp(hw);},style:{background:phw===hw?'#1e3a5f':'#eef4ff',border:'2px solid '+(phw===hw?'#1e3a5f':'#c3d8ff'),color:phw===hw?'#fff':'#1e3a5f',borderRadius:10,padding:'6px 12px',cursor:'pointer',fontSize:13,fontWeight:600}},hw),h('button',{onClick:()=>{const l=cwHW.filter(h=>h!==hw);setCwHW(l);localStorage.setItem('hw5ren:customHW',JSON.stringify(l));},style:{position:'absolute',top:-6,right:-6,width:16,height:16,borderRadius:'50%',border:'none',background:'#e53935',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}},'×'))))
-),
-h('p',{style:{fontSize:10,color:'#aab8cc',letterSpacing:2,fontWeight:700,marginBottom:6}},'預設'),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,marginBottom:14}},PRESET_HW.map(hw=>h('button',{key:hw,onClick:()=>{setPhw(hw);setInp(hw);},style:{background:phw===hw?'#1e3a5f':'#eef4ff',border:'2px solid '+(phw===hw?'#1e3a5f':'#c3d8ff'),color:phw===hw?'#fff':'#1e3a5f',borderRadius:10,padding:'6px 12px',cursor:'pointer',fontSize:13,fontWeight:600}},hw))),
-h('input',{value:inp,onChange:e=>{setInp(e.target.value);setPhw(e.target.value);},onKeyDown:e=>{if(e.key==='Enter'){const name=inp.trim();if(!name){setModal(null);return;}if(!PRESET_HW.includes(name)&&!cwHW.includes(name)){const l=[name,...cwHW].slice(0,20);setCwHW(l);localStorage.setItem('hw5ren:customHW',JSON.stringify(l));}if(modal.gid!==null){setMarked(new Set(rows[modal.ri]?.groupData?.[modal.gid]??new Set()));setModal({...modal,phase:'mark',hw:name});}else{upR(p=>{const n=[...p];n[modal.ri]={...n[modal.ri],hwName:name};return n;});setModal(null);}}},placeholder:'手動輸入…',autoFocus:true,style:{width:'100%',padding:'10px 14px',border:'2px solid #dde5ee',borderRadius:12,fontSize:15,fontFamily:'inherit',outline:'none',marginBottom:18,boxSizing:'border-box'}}),
-h('div',{style:{display:'flex',gap:8}},
-h('button',{onClick:()=>setModal(null),style:{padding:'10px 20px',border:'2px solid #dde5ee',borderRadius:12,background:'#fff',color:'#8a9db5',fontSize:15,fontWeight:700,cursor:'pointer'}},'取消'),
-h('button',{onClick:()=>{const name=inp.trim();if(!name){setModal(null);return;}if(!PRESET_HW.includes(name)&&!cwHW.includes(name)){const l=[name,...cwHW].slice(0,20);setCwHW(l);localStorage.setItem('hw5ren:customHW',JSON.stringify(l));}if(modal.gid!==null){setMarked(new Set(rows[modal.ri]?.groupData?.[modal.gid]??new Set()));setModal({...modal,phase:'mark',hw:name});}else{upR(p=>{const n=[...p];n[modal.ri]={...n[modal.ri],hwName:name};return n;});setModal(null);}},style:{padding:'10px 24px',border:'none',borderRadius:12,background:'#1e3a5f',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}},'確認')
-)
-),
-modal.phase==='mark'&&h(React.Fragment,null,
-h('h2',{style:{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}},modal.hw+' — '+GROUPS.find(g=>g.id===modal.gid)?.label),
-h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap',gap:8}},
-h('div',{style:{display:'flex',gap:6}},
-h('button',{onClick:()=>{const g=GROUPS.find(g=>g.id===modal.gid);if(g.members.every(n=>marked.has(n)))setMarked(new Set());else setMarked(new Set(g.members));},style:{padding:'6px 14px',border:'2px solid #dde5ee',borderRadius:10,background:'#fff',cursor:'pointer',fontSize:12,fontWeight:700}},'整組全交 / 取消'),
-h('button',{onClick:()=>setMarked(new Set()),style:{padding:'6px 14px',border:'2px solid #e53935',borderRadius:10,background:'#fff',color:'#e53935',cursor:'pointer',fontSize:12,fontWeight:700}},'整組未交')
-),
-h('span',{style:{fontSize:13,fontWeight:700,color:'#8a9db5'}},marked.size+' / '+(GROUPS.find(g=>g.id===modal.gid)?.members.length)+' 人')
-),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center',marginBottom:18}},
-GROUPS.find(g=>g.id===modal.gid)?.members.map(n=>{const grp=GROUPS.find(g=>g.id===modal.gid);return h('div',{key:n,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2}},
-h('button',{onClick:()=>{const s=new Set(marked);s.has(n)?s.delete(n):s.add(n);setMarked(s);},style:{width:46,height:46,borderRadius:'50%',border:'2.5px solid '+(marked.has(n)?'#1e3a5f':n===grp.leader?'#e53935':n===grp.secretary?'#ff9800':'#c0ccd8'),background:marked.has(n)?'#1e3a5f':'#fff',color:marked.has(n)?'#fff':'#1e3a5f',fontSize:15,fontWeight:700,cursor:'pointer'}},n),
-n===grp.leader&&h('span',{style:{fontSize:9,background:'rgba(229,57,53,.15)',color:'#e53935',padding:'1px 5px',borderRadius:4,fontWeight:700}},'組長'),
-n===grp.secretary&&h('span',{style:{fontSize:9,background:'rgba(255,152,0,.15)',color:'#ff9800',padding:'1px 5px',borderRadius:4,fontWeight:700}},'秘書')
-);})
-),
-h('div',{style:{display:'flex',gap:8}},
-h('button',{onClick:()=>setModal(null),style:{padding:'10px 20px',border:'2px solid #dde5ee',borderRadius:12,background:'#fff',color:'#8a9db5',fontSize:15,fontWeight:700,cursor:'pointer'}},'取消'),
-h('button',{onClick:()=>{upR(p=>{const n=[...p];n[modal.ri]={...n[modal.ri],groupData:{...n[modal.ri].groupData,[modal.gid]:new Set(marked)}};return n;});const ms=gm(modal.ri,modal.gid);setModal(m=>({...m,phase:'result',missing:ms}));},style:{padding:'10px 24px',border:'none',borderRadius:12,background:'#1e3a5f',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}},'完成')
-)
-),
-modal.phase==='result'&&h(React.Fragment,null,
-h('h2',{style:{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}},modal.hw+' — '+resGrp?.label),
-resMissing.length===0?h('div',{style:{textAlign:'center',padding:'16px 0'}},h('span',{style:{fontSize:48,color:'#4caf80'}},'○'),h('p',{style:{fontSize:16,fontWeight:700,color:'#2e7d32',marginTop:8}},'全組繳交完成！')):
-h('div',{style:{textAlign:'center',padding:'8px 0'}},h('p',{style:{fontSize:13,fontWeight:700,color:'#e53935',marginBottom:10}},'未繳交'),h('div',{style:{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}},resMissing.map(n=>h('div',{key:n,style:{width:32,height:32,borderRadius:'50%',background:'#f44336',color:'#fff',fontSize:13,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}},n)))),
-h('div',{style:{display:'flex',gap:8,marginTop:18}},h('button',{onClick:()=>setModal(null),style:{padding:'10px 24px',border:'none',borderRadius:12,background:'#1e3a5f',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}},'確認'))
-)
-)),
+  function newRec(ds) {
+    return { id: Date.now(), date: ds, period:"", type:"", students:[], summary:"", followup:"" };
+  }
 
-// ATTENDANCE MODAL
-attMod&&h('div',{onClick:()=>setAttMod(null),style:{position:'fixed',inset:0,background:'rgba(10,20,40,.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}},
-h('div',{onClick:e=>e.stopPropagation(),style:{background:'#fff',borderRadius:20,padding:'26px 26px 20px',width:360,maxWidth:'95vw',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}},
-h('h2',{style:{fontSize:18,fontWeight:800,color:attMod.lt.color,marginBottom:14}},attMod.lt.label+' 點名'),
-h('div',{style:{display:'flex',flexWrap:'wrap',gap:10,justifyContent:'center',marginBottom:18}},
-ALL_MEMBERS.map(n=>{const it=att[attMod.lt.id]?.has(n);const ot=LEAVE_TYPES.find(l=>l.id!==attMod.lt.id&&(l.id==='personal'||l.id==='sick'||l.id==='public')&&att[l.id]?.has(n));return h('div',{key:n,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:2}},
-h('button',{onClick:()=>upA(p=>{const pe=new Set(p.personal),si=new Set(p.sick),pu=new Set(p.public);const alr=(attMod.lt.id==='personal'&&pe.has(n))||(attMod.lt.id==='sick'&&si.has(n))||(attMod.lt.id==='public'&&pu.has(n));pe.delete(n);si.delete(n);pu.delete(n);if(!alr){if(attMod.lt.id==='personal')pe.add(n);else if(attMod.lt.id==='sick')si.add(n);else pu.add(n);}return{personal:pe,sick:si,public:pu};}),style:{width:46,height:46,borderRadius:'50%',border:'2.5px solid '+(it?attMod.lt.color:ot?ot.color:'#c0ccd8'),background:it?attMod.lt.bg:ot?ot.bg:'#fff',color:it?attMod.lt.color:ot?ot.color:'#1e3a5f',fontSize:15,fontWeight:700,cursor:'pointer'}},n),
-it&&h('span',{style:{fontSize:9,padding:'1px 5px',borderRadius:4,fontWeight:700,background:attMod.lt.bg,color:attMod.lt.color}},attMod.lt.label)
-);})),
-h('button',{onClick:()=>setAttMod(null),style:{padding:'10px 20px',border:'2px solid #dde5ee',borderRadius:12,background:'#fff',color:'#8a9db5',fontSize:15,fontWeight:700,cursor:'pointer',width:'100%'}},'關閉')
-)),
+  function addRec() {
+    const r = newRec(date);
+    setRecs(p => [...p, r]);
+    setActiveIdx(recs.length);
+  }
 
-// IMPORT MODAL
-showImp&&h('div',{onClick:()=>{setShowImp(false);setImpTxt('');},style:{position:'fixed',inset:0,background:'rgba(10,20,40,.55)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:100}},
-h('div',{onClick:e=>e.stopPropagation(),style:{background:'#fff',borderRadius:20,padding:'26px 26px 20px',width:360,maxWidth:'95vw',boxShadow:'0 20px 60px rgba(0,0,0,.25)'}},
-h('h2',{style:{fontSize:15,fontWeight:800,color:'#1e3a5f',marginBottom:14}},'📥 匯入資料'),
-h('p',{style:{fontSize:13,color:'#8a9db5',marginBottom:14}},'貼上備份的 JSON 字串'),
-h('textarea',{value:impTxt,onChange:e=>setImpTxt(e.target.value),placeholder:'在此貼上 JSON…',rows:6,style:{width:'100%',padding:10,border:'1px solid #dde5ee',borderRadius:10,fontSize:11,fontFamily:'monospace',resize:'none',marginBottom:12,boxSizing:'border-box'}}),
-h('div',{style:{display:'flex',gap:8}},
-h('button',{onClick:()=>{setShowImp(false);setImpTxt('');},style:{padding:'10px 20px',border:'2px solid #dde5ee',borderRadius:12,background:'#fff',color:'#8a9db5',fontSize:15,fontWeight:700,cursor:'pointer'}},'取消'),
-h('button',{onClick:async()=>{if(!impTxt.trim())return;setMsg('⏳ 匯入中…');try{const p=JSON.parse(impTxt.trim());let c=0;const dates=[];if(p.date&&p.data){await idbSet('day:'+p.date,p.data);try{localStorage.setItem(LS+p.date,p.data);}catch{}dates.push(p.date);c=1;}else{for(const[k,v]of Object.entries(p)){if(k.startsWith('day:2')){const ds=k.replace('day:','');await idbSet('day:'+ds,v);try{localStorage.setItem(LS+ds,v);}catch{}dates.push(ds);c++;}}}if(dates.length>0){const[y,m]=dates.sort()[0].split('-').map(Number);setCy(y);setCm(m-1);await doLM(y,m-1);}setMsg('✅ 已還原 '+c+' 天');setShowImp(false);setImpTxt('');setView('month');}catch(e){setMsg('❌ '+e.message);}setTimeout(()=>setMsg(''),5000);},style:{padding:'10px 24px',border:'none',borderRadius:12,background:'#1e3a5f',color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer'}},'確認匯入')
-)
-))
-);}
+  function delRec(idx) {
+    if (recs.length === 1) { setRecs([newRec(date)]); return; }
+    setRecs(p => p.filter((_,i)=>i!==idx));
+    setActiveIdx(Math.max(0, idx-1));
+  }
 
-// Marquee style
-const style=document.createElement('style');
-style.textContent='@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}';
-document.head.appendChild(style);
+  function upd(idx, field, val) {
+    setRecs(p => { const n=[...p]; n[idx]={...n[idx],[field]:val}; return n; });
+  }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  function toggleStudent(idx, n) {
+    setRecs(p => {
+      const next=[...p]; const s=new Set(next[idx].students||[]);
+      s.has(n)?s.delete(n):s.add(n);
+      next[idx]={...next[idx],students:[...s].sort((a,b)=>a-b)};
+      return next;
+    });
+  }
+
+  function doSave() {
+    // 過濾掉完全空白的記錄（students、summary、type、period 全空）
+    const filtered = recs.filter(r=>r.students.length||r.summary||r.type||r.period);
+    onSave(filtered);
+    onClose();
+  }
+
+  const nerv = isNerv;
+  const panel = nerv
+    ? {background:"#080200",border:"1px solid #ff6600",borderRadius:4,padding:16,marginBottom:12}
+    : {background:"#fff",borderRadius:16,padding:16,marginBottom:12,boxShadow:"0 4px 20px rgba(0,0,0,.08)"};
+  const lbl = nerv
+    ? {color:"#ff6600",fontFamily:"Share Tech Mono,monospace",fontSize:11,letterSpacing:2,marginBottom:6,display:"block"}
+    : {fontSize:12,fontWeight:700,color:"#6a8aaa",letterSpacing:1,marginBottom:6,display:"block"};
+  const inp = nerv
+    ? {width:"100%",padding:"8px 10px",background:"rgba(255,102,0,.06)",border:"1px solid rgba(255,102,0,.4)",color:"#ff8844",borderRadius:2,fontSize:14,fontFamily:"Share Tech Mono,monospace",boxSizing:"border-box"}
+    : {width:"100%",padding:"8px 12px",border:"2px solid #dde5ee",borderRadius:10,fontSize:14,fontFamily:"inherit",boxSizing:"border-box",outline:"none"};
+
+  const rec = recs[activeIdx] || recs[0];
+
+  return (
+    <main style={{padding:12,overflowY:"auto",flex:1}}>
+      {/* Header */}
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+        <button onClick={onClose} style={{background:nerv?"rgba(255,102,0,.1)":"rgba(30,58,95,.1)",border:"none",color:nerv?"#ff6600":"#1e3a5f",padding:"6px 14px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:700}}>
+          {nerv?"◀ RETURN":"← 返回"}
+        </button>
+        <span style={{fontSize:16,fontWeight:900,color:nerv?"#ff6600":"#1e3a5f",flex:1}}>
+          {nerv?"◈ GUIDANCE LOG":"💬 輔導紀錄"}
+        </span>
+        <span style={{fontSize:12,color:nerv?"rgba(255,102,0,.6)":"#8a9db5",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"}}>
+          {fmtDate(date)}
+        </span>
+      </div>
+
+      {/* 多筆切換 tabs */}
+      {recs.length > 0 && (
+        <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+          {recs.map((r,i)=>
+            <button key={i} onClick={()=>setActiveIdx(i)} style={{
+              padding:"5px 12px",borderRadius:nerv?2:20,border:nerv?"1px solid":"2px solid",
+              borderColor:activeIdx===i?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"),
+              background:activeIdx===i?(nerv?"rgba(255,102,0,.2)":"#1e3a5f"):"transparent",
+              color:activeIdx===i?(nerv?"#ff6600":"#fff"):(nerv?"rgba(255,102,0,.6)":"#8a9db5"),
+              fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"
+            }}>
+              {nerv?`LOG-${String(i+1).padStart(2,"0")}`:` 紀錄 ${i+1}`}
+            </button>
+          )}
+          <button onClick={addRec} style={{padding:"5px 12px",borderRadius:nerv?2:20,border:nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff",background:"transparent",color:nerv?"rgba(255,102,0,.5)":"#8a9db5",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+            {nerv?"+ LOG":"+"}
+          </button>
+        </div>
+      )}
+
+      {/* 表單 */}
+      <div style={panel}>
+        {/* 節次 */}
+        <label style={lbl}>{nerv?"// PERIOD //":"節次"}</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+          {COUNSEL_PERIODS.map(p=>
+            <button key={p} onClick={()=>upd(activeIdx,"period",rec.period===p?"":p)}
+              style={{padding:"5px 10px",borderRadius:nerv?2:8,border:nerv?"1px solid":"2px solid",
+                borderColor:rec.period===p?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"),
+                background:rec.period===p?(nerv?"rgba(255,102,0,.2)":"#e8f0fe"):"transparent",
+                color:rec.period===p?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"),
+                fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"
+              }}>{p}</button>
+          )}
+        </div>
+
+        {/* 類別 */}
+        <label style={lbl}>{nerv?"// CATEGORY //":"輔導類別"}</label>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>
+          {COUNSEL_TYPES.map(t=>
+            <button key={t} onClick={()=>upd(activeIdx,"type",rec.type===t?"":t)}
+              style={{padding:"5px 10px",borderRadius:nerv?2:8,border:nerv?"1px solid":"2px solid",
+                borderColor:rec.type===t?(nerv?"#ff6600":"#7c3aed"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"),
+                background:rec.type===t?(nerv?"rgba(255,102,0,.2)":"#f3e8ff"):"transparent",
+                color:rec.type===t?(nerv?"#ff6600":"#7c3aed"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"),
+                fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"
+              }}>{t}</button>
+          )}
+        </div>
+
+        {/* 學生點選 */}
+        <label style={lbl}>{nerv?"// STUDENTS //":"學生座號（可多選）"}</label>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:4,marginBottom:14}}>
+          {allMembers.map(n=>{
+            const sel=(rec.students||[]).includes(n);
+            const grp=groups.find(g=>g.members.includes(n));
+            return (
+              <button key={n} onClick={()=>toggleStudent(activeIdx,n)}
+                style={{padding:"5px 0",fontSize:11,fontWeight:sel?800:400,
+                  border:nerv?"1px solid":"1.5px solid",
+                  borderColor:sel?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.2)":"#dde5ee"),
+                  borderRadius:nerv?2:6,
+                  background:sel?(nerv?"rgba(255,102,0,.25)":"#e8f0fe"):"transparent",
+                  color:sel?(nerv?"#ff6600":"#1e3a5f"):(nerv?"rgba(255,102,0,.4)":"#aaa"),
+                  cursor:"pointer",position:"relative",
+                  fontFamily:nerv?"Share Tech Mono,monospace":"inherit"
+                }}>
+                {n}
+                {n===grp?.leader&&<span style={{position:"absolute",top:-3,right:-1,fontSize:7,background:"#e53935",color:"#fff",borderRadius:2,padding:"0 1px"}}>長</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 摘要 */}
+        <label style={lbl}>{nerv?"// SUMMARY //":"事件摘要（可空白）"}</label>
+        <textarea value={rec.summary||""} onChange={e=>upd(activeIdx,"summary",e.target.value)}
+          placeholder={nerv?"[ INPUT OPTIONAL ]":"可空白，簡短描述即可"}
+          rows={3}
+          style={{...inp,resize:"vertical",marginBottom:14,lineHeight:1.6}}
+        />
+
+        {/* 後續處理 */}
+        <label style={lbl}>{nerv?"// FOLLOW-UP //":"後續處理"}</label>
+        <div style={{display:"flex",gap:8,marginBottom:6}}>
+          {COUNSEL_FOLLOWUP.map(f=>
+            <button key={f} onClick={()=>upd(activeIdx,"followup",rec.followup===f?"":f)}
+              style={{flex:1,padding:"8px 0",borderRadius:nerv?2:10,border:nerv?"1px solid":"2px solid",
+                borderColor:rec.followup===f?(nerv?"#ffcc00":"#f59e0b"):(nerv?"rgba(255,102,0,.3)":"#dde5ee"),
+                background:rec.followup===f?(nerv?"rgba(255,204,0,.15)":"#fef3c7"):"transparent",
+                color:rec.followup===f?(nerv?"#ffcc00":"#b45309"):(nerv?"rgba(255,102,0,.5)":"#8a9db5"),
+                fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:nerv?"Share Tech Mono,monospace":"inherit"
+              }}>{f}</button>
+          )}
+        </div>
+      </div>
+
+      {/* 刪除本筆 */}
+      {recs.length > 0 && (
+        <button onClick={()=>delRec(activeIdx)} style={{display:"block",width:"100%",padding:10,marginBottom:12,
+          background:"transparent",border:nerv?"1px solid rgba(255,0,0,.3)":"1px solid #ffcdd2",
+          color:nerv?"rgba(255,0,0,.6)":"#ef9a9a",borderRadius:nerv?2:10,cursor:"pointer",fontSize:12,fontWeight:700}}>
+          {nerv?"× DELETE LOG":"× 刪除此筆"}
+        </button>
+      )}
+
+      {/* 儲存 */}
+      <button onClick={doSave} style={{display:"block",width:"100%",padding:14,
+        background:nerv?"rgba(255,102,0,.15)":"#1e3a5f",
+        border:nerv?"1px solid #ff6600":"none",
+        color:nerv?"#ff6600":"#fff",
+        borderRadius:nerv?4:16,cursor:"pointer",fontSize:15,fontWeight:900,
+        letterSpacing:nerv?3:1,fontFamily:nerv?"Share Tech Mono,monospace":"inherit",
+        boxShadow:nerv?"0 0 12px rgba(255,102,0,.3)":"0 4px 12px rgba(30,58,95,.25)",
+        marginBottom:32
+      }}>
+        {nerv?"// SAVE LOG //":"儲存輔導紀錄"}
+      </button>
+    </main>
+  );
+}
+
+// ── Settings View Component ───────────────────────────────────────────────────
+function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
+  const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
+  const [draftClass, setDraftClass] = useState(className);
+  const [draftSchool, setDraftSchool] = useState(schoolName);
+  const [draftYear, setDraftYear] = useState(schoolYear);
+  const [saved, setSaved] = useState(false);
+  const [clearModal, setClearModal] = useState(false);
+  const [clearDel, setClearDel] = useState("");
+  const [clearInput, setClearInput] = useState({
+    className: "",
+    yearFrom: parseInt(schoolYear)||new Date().getFullYear(),
+    yearTo: (parseInt(schoolYear)||new Date().getFullYear())+1
+  });
+  const [clearMsg, setClearMsg] = useState("");
+
+  // 每次開啟 clearModal 時同步最新的 draftClass
+  useEffect(()=>{
+    if(clearModal){
+      setClearInput(p=>({...p,
+        className: draftClass||className||"",
+        yearFrom: parseInt(draftYear||schoolYear)||new Date().getFullYear(),
+        yearTo: (parseInt(draftYear||schoolYear)||new Date().getFullYear())+1
+      }));
+      setClearDel("");
+      setClearMsg("");
+    }
+  },[clearModal]);
+  const nerv = isNerv;
+
+  // 全班最大座號（自動偵測或預設40）
+  const maxSeat = 40;
+  const allUsed = draft.flatMap(g => g.members);
+
+  function toggleSeat(idx, n) {
+    setDraft(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      const g = next[idx];
+      if (g.members.includes(n)) {
+        g.members = g.members.filter(m => m !== n);
+        if (g.leader === n) g.leader = g.members[0] || 0;
+        if (g.secretary === n) g.secretary = g.members[1] || g.members[0] || 0;
+      } else {
+        // 確認沒有在其他組
+        const inOther = next.some((og, oi) => oi !== idx && og.members.includes(n));
+        if (inOther) return prev; // 不能加入已在其他組的座號
+        g.members = [...g.members, n].sort((a,b)=>a-b);
+      }
+      return next;
+    });
+  }
+
+  function updateGroup(idx, field, value) {
+    setDraft(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      next[idx][field] = value;
+      return next;
+    });
+  }
+
+  function addGroup() {
+    if (draft.length >= 8) return;
+    const newId = draft.length + 1;
+    setDraft(prev => [...prev, { id: newId, label: `第${KANJI_NUM[prev.length]}組`, members: [], leader: 0, secretary: 0 }]);
+  }
+
+  function removeGroup(idx) {
+    if (draft.length <= 2) return;
+    setDraft(prev => prev.filter((_,i)=>i!==idx).map((g,i)=>({...g, id:i+1})));
+  }
+
+  function doSave() {
+    const valid = draft.every(g => g.members.length > 0);
+    if (!valid) { alert("每組至少需要1個座號"); return; }
+    saveGroups(draft);
+    setClassName(draftClass.trim());
+    setSchoolName(draftSchool.trim());
+    setSchoolYear(draftYear.trim());
+    setSaved(true);
+    setTimeout(()=>{ setSaved(false); onClose(); }, 1200);
+  }
+
+  async function doClear() {
+    if (clearDel !== "DEL") { setClearMsg("請輸入正確的 DEL"); return; }
+    try {
+      const keys = (await idbKeys()).filter(k=>k.startsWith("day:2"));
+      const db = await openDB();
+      await new Promise((res,rej)=>{
+        const tx=db.transaction(DB_STORE,"readwrite"),st=tx.objectStore(DB_STORE);
+        keys.forEach(k=>st.delete(k));
+        tx.oncomplete=()=>res(); tx.onerror=e=>rej(e);
+      });
+      keys.forEach(k=>{ try{ localStorage.removeItem(`hw5ren:${k.replace("day:","")}`) }catch{} });
+      setClearMsg("✅ 已清除！");
+      setTimeout(()=>{ setClearModal(false); setClearDel(""); setClearMsg(""); onClose(); }, 1500);
+    } catch(e) { setClearMsg("❌ 清除失敗："+String(e)); }
+  }
+
+  // Styles
+  const panel = nerv
+    ? { background:"#080200", border:"1px solid #ff6600", borderRadius:4, padding:16, marginBottom:16 }
+    : { background:"#fff", borderRadius:16, padding:16, marginBottom:16, boxShadow:"0 4px 20px rgba(0,0,0,.08)" };
+  const lbl = nerv
+    ? { color:"#ff6600", fontFamily:"Share Tech Mono,monospace", fontSize:11, letterSpacing:2, marginBottom:8, display:"block" }
+    : { fontSize:12, fontWeight:700, color:"#6a8aaa", letterSpacing:1, marginBottom:8, display:"block" };
+  const inp = nerv
+    ? { width:"100%", padding:"8px 10px", background:"rgba(255,102,0,.06)", border:"1px solid rgba(255,102,0,.4)", color:"#ff8844", borderRadius:2, fontSize:14, fontFamily:"Share Tech Mono,monospace", boxSizing:"border-box" }
+    : { width:"100%", padding:"8px 12px", border:"2px solid #dde5ee", borderRadius:10, fontSize:14, fontFamily:"inherit", boxSizing:"border-box", outline:"none" };
+
+  return (
+    <main style={{ padding:12, overflowY:"auto", flex:1 }}>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+        <button onClick={onClose} style={{ background: nerv?"rgba(255,102,0,.1)":"rgba(30,58,95,.1)", border:"none", color: nerv?"#ff6600":"#1e3a5f", padding:"6px 14px", borderRadius:8, cursor:"pointer", fontSize:13, fontWeight:700 }}>
+          {nerv ? "◀ RETURN" : "← 返回"}
+        </button>
+        <span style={{ fontSize:18, fontWeight:900, color: nerv?"#ff6600":"#1e3a5f", flex:1 }}>
+          {nerv ? "⚙ SYSTEM CONFIG" : "⚙️ 班級設定"}
+        </span>
+      </div>
+
+      {/* 班級資訊 */}
+      <div style={panel}>
+        <div style={{ fontSize:15, fontWeight:800, color:nerv?"#ffaa44":"#1e3a5f", marginBottom:14 }}>
+          {nerv ? "// CLASS INFO //" : "班級資訊"}
+        </div>
+
+        <label style={lbl}>{nerv?"// SCHOOL //":"學校名稱"}</label>
+        <input style={{...inp, marginBottom:12}} value={draftSchool}
+          onChange={e=>setDraftSchool(e.target.value)}
+          placeholder="例：大甲國小" maxLength={20} />
+
+        <label style={lbl}>{nerv?"// CLASS NAME //":"班級名稱"}</label>
+        <input style={{...inp, marginBottom:12}} value={draftClass}
+          onChange={e=>setDraftClass(e.target.value)}
+          placeholder="例：五年壬班、六年2班" maxLength={20} />
+
+        <label style={lbl}>{nerv?"// YEAR //":"學年（西元年）"}</label>
+        <input style={{...inp, marginBottom:4}} value={draftYear}
+          onChange={e=>setDraftYear(e.target.value)}
+          placeholder="例：2026" maxLength={4} type="number" />
+
+        {/* 預覽 */}
+        {(draftYear||draftSchool||draftClass) && (
+          <p style={{ fontSize:12, color:nerv?"rgba(255,102,0,.6)":"#8a9db5", marginTop:10 }}>
+            {nerv?"// 預覽：":"預覽："}
+            <span style={{ fontWeight:700, color:nerv?"#ffaa44":"#1e3a5f" }}>
+              {[draftYear&&`${draftYear}年`, draftSchool, draftClass].filter(Boolean).join(" ")}
+            </span>
+          </p>
+        )}
+      </div>
+
+      {/* 每組設定 */}
+      {draft.map((g, idx) => (
+        <div key={idx} style={panel}>
+          {/* 組別標題列 */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+            <span style={{ fontSize:15, fontWeight:800, color: nerv?"#ffaa44":"#1e3a5f" }}>
+              {nerv ? `[UNIT-0${g.id}]` : `第 ${g.id} 組`}
+            </span>
+            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+              <span style={{ fontSize:12, color: nerv?"rgba(255,102,0,.6)":"#aab8cc" }}>
+                {g.members.length} 人
+              </span>
+              {draft.length > 2 && (
+                <button onClick={()=>removeGroup(idx)} style={{ background:"rgba(229,57,53,.15)", border:"1px solid #e53935", color:"#e53935", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:12, fontWeight:700 }}>
+                  {nerv ? "× DEL" : "× 刪組"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 組別名稱 */}
+          <label style={lbl}>{nerv?"// GROUP NAME //":"組別名稱"}</label>
+          <input style={{...inp, marginBottom:14}} value={g.label}
+            onChange={e=>updateGroup(idx,"label",e.target.value)} />
+
+          {/* 座號點選格 */}
+          <label style={lbl}>
+            {nerv?"// SELECT MEMBER SEATS //":"座號點選"}
+            <span style={{ fontSize:10, fontWeight:400, marginLeft:8, color: nerv?"rgba(255,102,0,.5)":"#bbb" }}>
+              {nerv?"// 橙=本組 灰=其他組":"橘色=本組 灰色=其他組已選"}
+            </span>
+          </label>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(8,1fr)", gap:5, marginBottom:14 }}>
+            {Array.from({length:maxSeat},(_,i)=>i+1).map(n => {
+              const inThis = g.members.includes(n);
+              const inOther = !inThis && allUsed.includes(n);
+              const isLeader = g.leader === n;
+              const isSec = g.secretary === n;
+              return (
+                <button key={n} onClick={()=>!inOther && toggleSeat(idx, n)}
+                  style={{
+                    padding:"6px 0",
+                    fontSize:12,
+                    fontWeight: inThis?800:400,
+                    border: isLeader?"2.5px solid #e53935": isSec?"2.5px dashed #ff9800":"1.5px solid",
+                    borderColor: inThis?(isLeader?"#e53935":isSec?"#ff9800": nerv?"#ff6600":"#1e3a5f"):"#ddd",
+                    borderRadius: nerv?2:8,
+                    background: inThis?(nerv?"rgba(255,102,0,.25)":"#e8f0fe"): inOther?"#f0f0f0":"#fff",
+                    color: inThis?(nerv?"#ff6600":"#1e3a5f"): inOther?"#bbb":"#aaa",
+                    cursor: inOther?"not-allowed":"pointer",
+                    position:"relative",
+                    transition:"all .1s",
+                    fontFamily: nerv?"Share Tech Mono,monospace":"inherit",
+                  }}>
+                  {n}
+                  {isLeader && <span style={{ position:"absolute", top:-4, right:-2, fontSize:8, background:"#e53935", color:"#fff", borderRadius:3, padding:"0 2px" }}>長</span>}
+                  {isSec && <span style={{ position:"absolute", top:-4, right:-2, fontSize:8, background:"#ff9800", color:"#fff", borderRadius:3, padding:"0 2px" }}>秘</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 組長/秘書 */}
+          <div style={{ display:"flex", gap:12 }}>
+            <div style={{ flex:1 }}>
+              <label style={lbl}>{nerv?"// LEADER //":"組長"}</label>
+              <select style={inp} value={g.leader}
+                onChange={e=>updateGroup(idx,"leader",parseInt(e.target.value))}>
+                <option value={0}>未指定</option>
+                {g.members.map(n=><option key={n} value={n}>{n} 號</option>)}
+              </select>
+            </div>
+            <div style={{ flex:1 }}>
+              <label style={lbl}>{nerv?"// SECRETARY //":"秘書"}</label>
+              <select style={inp} value={g.secretary}
+                onChange={e=>updateGroup(idx,"secretary",parseInt(e.target.value))}>
+                <option value={0}>未指定</option>
+                {g.members.map(n=><option key={n} value={n}>{n} 號</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* 新增組別 */}
+      {draft.length < 8 && (
+        <button onClick={addGroup} style={{ display:"block", width:"100%", padding:12, marginBottom:16,
+          background: nerv?"rgba(255,102,0,.06)":"#eef4ff",
+          border: nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff",
+          color: nerv?"#ff6600":"#1e3a5f",
+          borderRadius: nerv?4:12, cursor:"pointer", fontSize:14, fontWeight:700 }}>
+          {nerv ? "+ ADD UNIT" : "+ 新增組別"}
+        </button>
+      )}
+
+      {/* 危險區：清除資料 */}
+      <div style={{ ...panel, border: nerv?"1px solid rgba(255,0,0,.5)":"2px solid #ffcdd2", background: nerv?"rgba(255,0,0,.05)":"#fff9f9", marginBottom:16 }}>
+        <div style={{ fontSize:14, fontWeight:800, color:"#e53935", marginBottom:8 }}>
+          {nerv ? "⚠ DANGER ZONE // 清除歷史資料" : "⚠️ 清除歷史紀錄"}
+        </div>
+        <p style={{ fontSize:12, color: nerv?"rgba(255,100,100,.6)":"#aab8cc", marginBottom:14, lineHeight:1.6 }}>
+          {nerv
+            ? "// 清除後無法復原 // 適合學年結束後使用"
+            : "清除後無法復原，請確認已備份。適合學年結束後使用。"}
+        </p>
+        <button onClick={()=>setClearModal(true)} style={{ padding:"10px 20px", background:"#e53935", border:"none", color:"#fff", borderRadius: nerv?2:10, cursor:"pointer", fontSize:13, fontWeight:700 }}>
+          {nerv ? "⚠ PURGE DATA" : "清除所有紀錄"}
+        </button>
+      </div>
+
+      {/* 儲存按鈕 */}
+      <button onClick={doSave} style={{
+        display:"block", width:"100%", padding:16,
+        background: saved?"#4caf80": nerv?"rgba(255,102,0,.15)":"#1e3a5f",
+        border: nerv?"1px solid #ff6600":"none",
+        color: nerv?"#ff6600":"#fff",
+        borderRadius: nerv?4:16, cursor:"pointer", fontSize:16, fontWeight:900,
+        boxShadow: nerv?"0 0 12px rgba(255,102,0,.3)":"0 4px 12px rgba(30,58,95,.25)",
+        letterSpacing: nerv?4:1,
+        fontFamily: nerv?"Share Tech Mono,monospace":"inherit",
+        transition:"background .3s", marginBottom:32
+      }}>
+        {saved ? (nerv?"✅ CONFIG SAVED":"✅ 已儲存！") : (nerv?"// SAVE CONFIG //":"儲存設定")}
+      </button>
+
+      {/* 清除確認 Modal */}
+      {clearModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.7)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:200 }}>
+          <div style={{ background: nerv?"#0a0100":"#fff", border: nerv?"2px solid #ff0000":"none", borderRadius: nerv?4:20, padding:28, width:320, maxWidth:"92vw", boxShadow:"0 20px 60px rgba(0,0,0,.4)" }}>
+            <div style={{ fontSize:16, fontWeight:900, color:"#e53935", marginBottom:8 }}>
+              {nerv ? "⚠ CONFIRM DATA PURGE" : "⚠️ 確認清除"}
+            </div>
+
+            {/* 班級資訊 */}
+            <div style={{ marginBottom:16 }}>
+              <label style={{ ...lbl, marginBottom:4 }}>班級名稱</label>
+              <input style={{...inp, marginBottom:8}} value={clearInput.className}
+                onChange={e=>setClearInput(p=>({...p,className:e.target.value}))}
+                placeholder="例：五年壬班" />
+              <div style={{ display:"flex", gap:8 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ ...lbl, marginBottom:4 }}>起始學年</label>
+                  <input style={inp} type="number" value={clearInput.yearFrom}
+                    onChange={e=>setClearInput(p=>({...p,yearFrom:parseInt(e.target.value)}))} />
+                </div>
+                <div style={{ display:"flex", alignItems:"flex-end", paddingBottom:10, color: nerv?"#ff6600":"#aaa" }}>—</div>
+                <div style={{ flex:1 }}>
+                  <label style={{ ...lbl, marginBottom:4 }}>結束學年</label>
+                  <input style={inp} type="number" value={clearInput.yearTo}
+                    onChange={e=>setClearInput(p=>({...p,yearTo:parseInt(e.target.value)}))} />
+                </div>
+              </div>
+            </div>
+
+            {/* 確認標示 */}
+            <div style={{ background: nerv?"rgba(255,0,0,.1)":"#fff5f5", border: nerv?"1px solid rgba(255,0,0,.3)":"1px solid #ffcdd2", borderRadius:8, padding:"10px 14px", marginBottom:16 }}>
+              <p style={{ fontSize:13, color: nerv?"#ff4444":"#c62828", fontWeight:700, marginBottom:4 }}>
+                即將清除：
+              </p>
+              <p style={{ fontSize:14, color: nerv?"#ff6666":"#e53935", fontWeight:900 }}>
+                {clearInput.className} {clearInput.yearFrom}－{clearInput.yearTo} 學年度
+              </p>
+            </div>
+
+            <label style={{ ...lbl, color:"#e53935" }}>
+              {nerv ? "// 輸入 DEL 確認 //" : "輸入 DEL 確認刪除"}
+            </label>
+            <input style={{ ...inp, marginBottom:8, border:"2px solid #e53935", letterSpacing:4, fontWeight:900, fontSize:16, textAlign:"center" }}
+              value={clearDel}
+              onChange={e=>setClearDel(e.target.value.toUpperCase())}
+              placeholder="DEL"
+              maxLength={3} />
+
+            {clearMsg && <p style={{ fontSize:12, color: clearMsg.startsWith("✅")?"#4caf80":"#e53935", marginBottom:8, textAlign:"center" }}>{clearMsg}</p>}
+
+            <div style={{ display:"flex", gap:8 }}>
+              <button onClick={()=>{ setClearModal(false); setClearDel(""); setClearMsg(""); }} style={{ flex:1, padding:"10px 0", border:"2px solid #dde5ee", borderRadius: nerv?2:12, background:"#fff", color:"#8a9db5", fontSize:14, fontWeight:700, cursor:"pointer" }}>
+                取消
+              </button>
+              <button onClick={doClear} disabled={clearDel!=="DEL"}
+                style={{ flex:1, padding:"10px 0", border:"none", borderRadius: nerv?2:12, background: clearDel==="DEL"?"#e53935":"#aaa", color:"#fff", fontSize:14, fontWeight:700, cursor: clearDel==="DEL"?"pointer":"not-allowed" }}>
+                {nerv ? "PURGE" : "確認清除"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
+function App() {
+  const [view, setView] = useState("month");
+  const [groups, setGroups] = useState(() => loadGroups());
+  const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
+  const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
+  const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
+  const ALL_MEMBERS = [...new Set(groups.flatMap(g=>g.members))].sort((a,b)=>a-b);
+  function saveGroups(g) {
+    setGroups(g);
+    localStorage.setItem("hw5ren:groups", JSON.stringify(g));
+  }
+  const [curYear,  setCurYear]  = useState(() => new Date().getFullYear());
+  const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
+  const [selDate,  setSelDate]  = useState(today);
+  const [dayRows,  setDayRows]  = useState([]);
+  const [dayAtt,   setDayAtt]   = useState({ personal: new Set(), sick: new Set(), public: new Set() });
+  const [dayExempt, setDayExempt] = useState({});  // { [hwName]: Set<number> }
+  const [monthDays, setMonthDays] = useState({});
+  const [counselMonth, setCounselMonth] = useState({}); // { "YYYY-MM-DD": [...records] }
+  const [counselView, setCounselView] = useState(false); // 輔導頁面開啟狀態
+  const [counselDate, setCounselDate] = useState(today());
+  const [counselRecords, setCounselRecords] = useState([]); // 當日輔導記錄
+  const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
+
+  const isNerv = theme === "nerv";
+
+  // ── Drive / Auth ──
+  const [authed, setAuthed] = useState(!!localStorage.getItem('hw5ren:tok'));
+  const [driveStatus, setDriveStatus] = useState('offline');
+
+  useEffect(()=>{
+    if(!authed) return;
+    (async()=>{
+      setDriveStatus('syncing');
+      setStor(s=>({...s,msg:'☁️ 從 Drive 載入…'}));
+      try{
+        const snap = await loadDrive();
+        if(snap && Object.keys(snap).length>0){
+          let c=0;
+          for(const [k,v] of Object.entries(snap)){
+            if(k.startsWith('day:2')){
+              const ds=k.replace('day:','');
+              await idbSet('day:'+ds,v);
+              try{localStorage.setItem('hw5ren:'+ds,v);}catch{}
+              c++;
+            }
+          }
+          setDriveStatus('ok');
+          setStor({state:'ok',msg:'☁️ Drive 載入 '+c+' 天'});
+          markSynced();
+          
+        } else {
+          setDriveStatus('ok');
+          setStor({state:'ok',msg:'✅ Drive 就緒'});
+        }
+      }catch(e){
+        setDriveStatus('error');
+        setStor({state:'ok',msg:'⚠️ 本機模式'});
+      }
+      // 不重複呼叫 doLoadMonth，由 curYear/curMonth useEffect 負責
+    })();
+  },[authed]);
+
+  async function doSync(){
+    setDriveStatus('syncing');
+    try{
+      const keys=(await idbKeys()).filter(k=>k.startsWith('day:2'));
+      const snap={};
+      for(const k of keys){const v=await idbGet(k);if(v)snap[k]=v;}
+      const ok=await saveDrive(snap);
+      if(ok){
+        markSynced();
+        
+        setDriveStatus('ok');
+        return keys.length;
+      }
+      setDriveStatus('error'); return 0;
+    }catch{setDriveStatus('error'); return 0;}
+  }
+
+  // Header subtitle
+  const headerSub = React.useMemo(()=>(
+    authed ? [schoolYear&&`${schoolYear}年`, schoolName, className].filter(Boolean).join(" ") : ""
+  ), [authed, schoolYear, schoolName, className]);
+
+  // ── 備份狀態 ──
+  const todayStr = today();
+  const [lastSyncTime, setLastSyncTime] = useState(
+    () => localStorage.getItem("hw5ren:lastSync") || ""
+  );
+  function markSynced() {
+    const now = new Date();
+    const ts = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+    localStorage.setItem("hw5ren:lastSync", ts);
+    setLastSyncTime(ts);
+  }
+
+  // state: "init"|"checking"|"ok"|"error"|"saving"|"saved"
+  const [stor, setStor] = useState({ state:"init", msg:"初始化中…", detail:"" });
+
+  // ── Check storage on mount ──
+  useEffect(() => {
+    (async () => {
+      setStor({ state:"checking", msg:"🔍 初始化儲存…", detail:"" });
+
+      // 測試 IDB 是否可用
+      let idbOk = false;
+      try {
+        await idbSet("__test__", "ping");
+        const v = await idbGet("__test__");
+        idbOk = (v === "ping");
+      } catch(e) {
+        setStor({ state:"error", msg:"❌ IndexedDB 無法使用", detail: String(e) });
+        return;
+      }
+
+      if (!idbOk) {
+        setStor({ state:"error", msg:"❌ IndexedDB 讀寫測試失敗", detail:"" });
+        return;
+      }
+
+      // 列出 IDB 裡所有資料天數
+      let idbDays = [];
+      try { idbDays = (await idbKeys()).filter(k => k.startsWith("day:2")); } catch {}
+
+      // 列出 localStorage 資料天數
+      const lsDays = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(`${LS_PREFIX}2`)) lsDays.push(k);
+      }
+
+      // 若 IDB 空但 localStorage 有 → 自動搶救
+      if (idbDays.length === 0 && lsDays.length > 0) {
+        let rescued = 0;
+        for (const k of lsDays) {
+          const ds = k.replace(LS_PREFIX, "");
+          const v  = localStorage.getItem(k);
+          if (v) { try { await idbSet(`day:${ds}`, v); rescued++; } catch {} }
+        }
+        idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+        setStor({ state:"ok", msg:`✅ 已搶救 ${rescued} 天資料到 IDB`, detail:`IDB: ${idbDays.length} 天` });
+        return;
+      }
+
+      setStor({
+        state: "ok",
+        msg: `📦 IDB 正常 — ${idbDays.length} 天資料`,
+        detail: idbDays.length > 0
+          ? `最近: ${idbDays.map(k=>k.replace("day:","")).sort().slice(-3).join(", ")}`
+          : "尚無資料，請開始登記"
+      });
+    })();
+  }, []);
+
+  // ── Load month ──
+  useEffect(() => { doLoadMonth(curYear, curMonth); }, [curYear, curMonth]);
+
+  async function doLoadMonth(y, m) {
+    setLoading(true);
+    const [entries, counselEntries] = await Promise.all([
+      loadMonth(y, m),
+      loadCounselMonth(y, m)
+    ]);
+    setMonthDays(entries);
+    setCounselMonth(counselEntries);
+    setLoading(false);
+  }
+
+  async function openCounsel(ds) {
+    const recs = await loadCounsel(ds);
+    setCounselRecords(recs);
+    setCounselDate(ds);
+    setCounselView(true);
+  }
+
+  async function saveCounselRecord(records) {
+    await saveCounsel(counselDate, records);
+    setCounselRecords(records);
+    setCounselMonth(prev => {
+      const next = { ...prev };
+      if (records.length > 0) next[counselDate] = records;
+      else delete next[counselDate];
+      return next;
+    });
+    scheduleAutoSync();
+  }
+
+  async function openDay(ds) {
+    setLoading(true);
+    const res = await loadDay(ds);
+    const initRows = res.rows.length ? res.rows : [{ hwName:"", groupData:{} }];
+    setDayRows(initRows);
+    setDayAtt(res.attendance);
+    setDayExempt(res.exempt || {});
+    setSelDate(ds);
+    setView("day");
+    setLoading(false);
+    setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+    setHistoryIdx(0);
+  }
+
+  // ── Undo / Redo history ──
+  const [history, setHistory] = useState([]);      // [{ rows, att }, ...]
+  const [historyIdx, setHistoryIdx] = useState(0); // current position
+  const MAX_HISTORY = 30;
+
+  function pushHistory(rows, att, exempt) {
+    setHistory(prev => {
+      const base = prev.slice(0, historyIdx + 1);
+      const next = [...base, { rows, att, exempt }].slice(-MAX_HISTORY);
+      return next;
+    });
+    setHistoryIdx(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+  }
+
+  function undo() {
+    if (historyIdx <= 0) return;
+    const idx = historyIdx - 1;
+    const snap = history[idx]; if (!snap) return;
+    setDayRows(snap.rows); setDayAtt(snap.att); setDayExempt(snap.exempt || {});
+    setHistoryIdx(idx);
+    saveCurrent(snap.rows, snap.att, snap.exempt || {});
+  }
+
+  function redo() {
+    if (historyIdx >= history.length - 1) return;
+    const idx = historyIdx + 1;
+    const snap = history[idx]; if (!snap) return;
+    setDayRows(snap.rows); setDayAtt(snap.att); setDayExempt(snap.exempt || {});
+    setHistoryIdx(idx);
+    saveCurrent(snap.rows, snap.att, snap.exempt || {});
+  }
+
+  const canUndo = historyIdx > 0;
+  const canRedo = historyIdx < history.length - 1;
+
+  const selDateRef  = useRef(today());
+  useEffect(() => { selDateRef.current  = selDate;  }, [selDate]);
+  const dayExemptRef = useRef({});
+  useEffect(() => { dayExemptRef.current = dayExempt; }, [dayExempt]);
+  const dayAttRef   = useRef({ personal:new Set(), sick:new Set(), public:new Set() });
+  useEffect(() => { dayAttRef.current   = dayAtt;   }, [dayAtt]);
+  const dayRowsRef  = useRef([]);
+  useEffect(() => { dayRowsRef.current  = dayRows;  }, [dayRows]);
+
+  // ── 自動同步 Timer（debounce 3秒）──
+  const autoSyncTimer = useRef(null);
+  function scheduleAutoSync() {
+    if (!authed) return;
+    if (autoSyncTimer.current) clearTimeout(autoSyncTimer.current);
+    autoSyncTimer.current = setTimeout(async () => {
+      try {
+        const allIdbKeys = await idbKeys();
+        const keys = allIdbKeys.filter(k=>k.startsWith("day:2")||k.startsWith("counsel:"));
+        const snap = {};
+        for (const k of keys) { const v=await idbGet(k); if(v) snap[k]=v; }
+        const ok = await saveDrive(snap);
+        if (ok) {
+          setDriveStatus("ok");
+          markSynced();
+          
+        } else {
+          setDriveStatus("error");
+        }
+      } catch { setDriveStatus("error"); }
+    }, 3000);
+  }
+
+  const saveCurrent = useCallback(async (newRows, newAtt, newExempt) => {
+    const rows   = newRows   ?? dayRowsRef.current;
+    const att    = newAtt    ?? dayAttRef.current;
+    const exempt = newExempt ?? dayExemptRef.current;
+    setStor(s => ({ ...s, state:"saving", msg:"💾 儲存中…" }));
+    const date   = selDateRef.current;
+    const res = await saveDay(date, rows, att, exempt);
+    setMonthDays(prev => ({ ...prev, [date]: { rows, attendance: att, exempt } }));
+    setStor({ state:"saved",
+      msg: res.source==="idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
+      detail: date });
+    setTimeout(() => setStor(s => s.state==="saved"
+      ? { state:"ok", msg: res.source==="idb" ? "📦 IDB 正常" : "💾 本機儲存", detail:"" }
+      : s), 2000);
+    // 3秒後自動同步到 Drive（背景執行，不影響操作）
+    scheduleAutoSync();
+  }, [authed]);
+
+  function updRows(fn) {
+    setDayRows(prev => {
+      const next = fn(prev);
+      pushHistory(next, dayAtt, dayExempt);
+      saveCurrent(next, dayAtt, dayExempt);
+      return next;
+    });
+  }
+  function updAtt(fn) {
+    setDayAtt(prev => {
+      const next = fn(prev);
+      pushHistory(dayRows, next, dayExempt);
+      saveCurrent(dayRows, next, dayExempt);
+      return next;
+    });
+  }
+  function updExempt(fn) {
+    setDayExempt(prev => {
+      const next = fn(prev);
+      pushHistory(dayRows, dayAtt, next);
+      saveCurrent(dayRows, dayAtt, next);
+      return next;
+    });
+  }
+
+  // ── Custom HW memory ──
+  const [customHW, setCustomHW] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("hw5ren:customHW") || "[]"); } catch { return []; }
+  });
+
+  function saveCustomHW(list) {
+    setCustomHW(list);
+    localStorage.setItem("hw5ren:customHW", JSON.stringify(list));
+  }
+
+  function addToCustomHW(name) {
+    // 不加入已存在於預設或自訂的
+    if (PRESET_HW.includes(name)) return;
+    if (customHW.includes(name)) return;
+    saveCustomHW([name, ...customHW].slice(0, 20)); // 最多記20個
+  }
+
+  function handleConfirmInput() {
+    const name = inputText.trim();
+    if (!name) { closeModal(); return; }
+    // 記憶自訂輸入
+    addToCustomHW(name);
+    if (modal.gid !== null) {
+      confirmInput(name);
+    } else {
+      updRows(p => { const n=[...p]; n[modal.ri]={...n[modal.ri],hwName:name}; return n; });
+      closeModal();
+    }
+  }
+
+  // ── Modal state ──
+  const [modal, setModal] = useState(null);
+  const [inputText, setInputText] = useState("");
+  const [pendingHw, setPendingHw] = useState("");
+  const [marked, setMarked] = useState(new Set());
+  // ── Attendance modal ──
+  const [attModal, setAttModal] = useState(null);
+  // ── Exempt modal ──
+  const [exemptModal, setExemptModal] = useState(null); // { hwName } | null — used for inline expand
+
+  function openExemptModal(hwName) { setExemptModal({ hwName }); }
+  function closeExemptModal() { setExemptModal(null); } // { leaveType: "personal"|"sick" } | null
+
+  function openAttModal(leaveType) {
+    setAttModal({ leaveType });
+  }
+  function closeAttModal() { setAttModal(null); }
+  function toggleAttMember(leaveType, num) {
+    updAtt(prev => {
+      const personal = new Set(prev.personal);
+      const sick     = new Set(prev.sick);
+      const pub      = new Set(prev.public);
+      const alreadyThis =
+        (leaveType==="personal" && personal.has(num)) ||
+        (leaveType==="sick"     && sick.has(num))     ||
+        (leaveType==="public"   && pub.has(num));
+      // clear from all
+      personal.delete(num); sick.delete(num); pub.delete(num);
+      // if not already this type, set it
+      if (!alreadyThis) {
+        if (leaveType==="personal") personal.add(num);
+        else if (leaveType==="sick") sick.add(num);
+        else if (leaveType==="public") pub.add(num);
+      }
+      return { personal, sick, public: pub };
+    });
+  }
+
+  function openCell(ri, gid) {
+    const hw = dayRows[ri]?.hwName;
+    if (!hw) { setModal({ ri, gid, phase:"input" }); setInputText(""); setPendingHw(""); }
+    else openMark(ri, gid, hw);
+  }
+  function openMark(ri, gid, hw) {
+    setMarked(new Set(dayRows[ri]?.groupData?.[gid] ?? []));
+    setModal({ ri, gid, phase:"mark", hw });
+  }
+  function confirmInput(text) {
+    const name = text.trim(); if (!name) return;
+    updRows(prev => {
+      const n=[...prev];
+      n[modal.ri] = { hwName:name, groupData: n[modal.ri]?.groupData||{} };
+      return n;
+    });
+    openMark(modal.ri, modal.gid, name);
+  }
+  function confirmMark() {
+    updRows(prev => {
+      const n=[...prev], r={...n[modal.ri]};
+      r.groupData={...r.groupData,[modal.gid]:new Set(marked)};
+      n[modal.ri]=r; return n;
+    });
+    setModal(m=>({...m, phase:"result"}));
+  }
+  function closeModal() { setModal(null); setMarked(new Set()); }
+  function addRow() {
+    if(dayRows.length>=MAX_ROWS) return;
+    updRows(p=>[...p,{hwName:"",groupData:{}}]);
+  }
+  function delRow(i) { updRows(p=>p.filter((_,j)=>j!==i)); }
+
+  function rowStatus(ri, gid) {
+    const row=dayRows[ri]; if(!row||!row.hwName) return "empty";
+    const g=groups.find(g=>g.id===gid);
+    const recorded = Object.prototype.hasOwnProperty.call(row.groupData||{}, gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    if(!recorded) return "untouched";
+    if(done.size===0 && exemptSet.size===0) return "allabsent";
+    // count members not done and not exempt
+    const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
+    if(realMissing.length===0) return "complete";
+    return "partial";
+  }
+  function getMissing(ri, gid) {
+    const row=dayRows[ri]; if(!row)return[];
+    const g=groups.find(g=>g.id===gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    return g.members.filter(m=>!done.has(m) && !exemptSet.has(m));
+  }
+  function getExemptInGroup(ri, gid) {
+    const row=dayRows[ri]; if(!row||!row.hwName)return[];
+    const g=groups.find(g=>g.id===gid);
+    const done=row.groupData?.[gid]??new Set();
+    const exemptSet = dayExempt[row.hwName] ?? new Set();
+    return g.members.filter(m=>!done.has(m) && exemptSet.has(m));
+  }
+
+  const resMissing = modal?.phase==="result" ? getMissing(modal.ri, modal.gid) : [];
+  const resGroup = groups.find(g=>g.id===modal?.gid);
+
+  const [importMsg, setImportMsg] = useState("");
+  const [backupJson, setBackupJson] = useState("");
+  const [showBackup, setShowBackup] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState("");
+
+  // ── Month navigation ──
+  function prevMonth() {
+    if(curMonth===0){setCurYear(y=>y-1);setCurMonth(11);}
+    else setCurMonth(m=>m-1);
+  }
+  function nextMonth() {
+    if(curMonth===11){setCurYear(y=>y+1);setCurMonth(0);}
+    else setCurMonth(m=>m+1);
+  }
+
+  // ── Month calendar grid ──
+  function CalendarCell({ dateStr, d }) {
+    const entry = monthDays[dateStr] || { rows:[], attendance:{ personal:new Set(), sick:new Set(), public:new Set() } };
+    const rows = entry.rows || [];
+    const att  = entry.attendance || { personal:new Set(), sick:new Set(), public:new Set() };
+    const { filled, allDone } = daySummary(rows);
+    const isToday = dateStr === today();
+    const hasSome = filled > 0;
+    const allComplete = hasSome && allDone === filled;
+    const partial = hasSome && !allComplete;
+    const absentCount = (att.personal?.size||0) + (att.sick?.size||0) + (att.public?.size||0);
+    const hasCounsel = !!(counselMonth[dateStr]?.length);
+
+    return (
+      <div
+        className={`cal-cell ${isToday?"is-today":""} ${allComplete?"is-complete":""} ${partial?"is-partial":""}`}
+        onClick={() => openDay(dateStr)}
+      >
+        <span className="cal-day">{d}</span>
+        {hasSome && (
+          <div className="cal-dots">
+            {rows.filter(r=>r.hwName).map((r,i) => {
+              const gTotal = groups.reduce((s,g)=>s+g.members.length,0);
+              const gDone  = groups.reduce((s,g)=>s+(r.groupData?.[g.id]?.size||0),0);
+              const pct = gTotal ? gDone/gTotal : 0;
+              return <span key={i} className="cal-dot" style={{background: pct===1?"#4caf80":pct>0?"#ffa726":"#dde5ee"}} />;
+            })}
+          </div>
+        )}
+        {allComplete && <span className="cal-ok">✓</span>}
+        {absentCount > 0 && <span className="cal-absent">{absentCount}請</span>}
+        {hasCounsel && (
+          <span className="cal-counsel" title="有輔導紀錄"
+            onClick={e=>{e.stopPropagation(); openCounsel(dateStr);}}>
+            {isNerv?"◈":"💬"}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // ── NERV Intro Animation ──
+  const [intro, setIntro] = useState(() => {
+    // Only show intro once per session in NERV mode
+    return false; // will be triggered by theme switch
+  });
+  const [introPhase, setIntroPhase] = useState(0);
+  const introLines = [
+    "NERV MAGI SYSTEM — INITIALIZING...",
+    "PILOT INTERFACE CONNECTED",
+    "LCL PRESSURE: NOMINAL",
+    "A10 NERVE SYNC: 94.3%",
+    "ENTRY PLUG SEALED",
+    "UMBILICAL CABLE DISCONNECTED",
+    "EVANGELION UNIT-05REN — LAUNCH",
+  ];
+
+  function startIntro() {
+    setIntro(true);
+    setIntroPhase(0);
+    let p = 0;
+    const iv = setInterval(() => {
+      p++;
+      setIntroPhase(p);
+      if (p >= introLines.length + 2) {
+        clearInterval(iv);
+        setTimeout(() => setIntro(false), 600);
+      }
+    }, 420);
+  }
+
+  function handleThemeToggle() {
+    const next = theme === "default" ? "nerv" : "default";
+    localStorage.setItem("hw5ren:theme", next);
+    setTheme(next);
+    if (next === "nerv") startIntro();
+  }
+
+  // ── Format selDate nicely ──
+  function fmtDate(ds) {
+    if(!ds) return "";
+    const [y,m,d] = ds.split("-");
+    const wd = new Date(+y, +m-1, +d).getDay();
+    return `${+m}月${+d}日（${WEEKDAYS[wd]}）`;
+  }
+
+  if(!authed){
+    return (
+      <div className="app" data-theme={theme} style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:isNerv?"#050200":"linear-gradient(160deg,#1e3a5f,#2d5a8e)",padding:"40px 24px"}}>
+        <div style={{fontSize:64,marginBottom:16}}>{isNerv?"⬡":"📋"}</div>
+        <h1 style={{fontSize:24,fontWeight:900,color:isNerv?"#ff6600":"#fff",letterSpacing:2,marginBottom:8,textAlign:"center",fontFamily:isNerv?"Share Tech Mono,monospace":"inherit",textShadow:isNerv?"0 0 20px rgba(255,102,0,.8)":"none"}}>
+          {isNerv?"NERV // 作業繳交":"作業繳交記錄"}
+        </h1>
+        <p style={{fontSize:14,color:isNerv?"rgba(255,102,0,.6)":"rgba(255,255,255,.7)",marginBottom:48,letterSpacing:isNerv?3:0,fontFamily:isNerv?"Share Tech Mono,monospace":"inherit"}}>
+          {isNerv?"▸ MAGI SYSTEM AUTHORIZED ◂":"登入後可設定班級資訊"}
+        </p>
+        <button onClick={()=>{
+          if(typeof google!=="undefined"){
+            gSignIn().then(()=>setAuthed(true)).catch(()=>setStor({state:"error",msg:"登入失敗"}));
+          }
+        }} style={{display:"flex",alignItems:"center",gap:12,background:isNerv?"rgba(255,102,0,.1)":"#fff",color:isNerv?"#ff6600":"#1e3a5f",border:isNerv?"1px solid #ff6600":"none",borderRadius:isNerv?2:50,padding:"16px 32px",fontSize:16,fontWeight:700,cursor:"pointer",boxShadow:isNerv?"0 0 20px rgba(255,102,0,.3)":"0 8px 24px rgba(0,0,0,.2)",fontFamily:isNerv?"Share Tech Mono,monospace":"inherit",letterSpacing:isNerv?2:0}}>
+          <span style={{fontWeight:900,fontSize:18}}>G</span>
+          {isNerv?"  GOOGLE AUTH":"  使用 Google 帳號登入"}
+        </button>
+        <p style={{marginTop:24,fontSize:12,color:isNerv?"rgba(255,102,0,.4)":"rgba(255,255,255,.5)",textAlign:"center",lineHeight:1.8}}>
+          {isNerv?"// 資料自動同步至 MAGI DATABASE //":"登入後資料自動同步到 Google Drive"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app" data-theme={theme}>
+      <header>
+        <div className="hi">
+          <span className="ti">{isNerv ? "⬡" : "📋"}</span>
+          <h1>{isNerv ? <><em>NERV</em> <span className="nerv-slash">//</span> <em>作業繳交システム</em></> : "作業繳交紀錄"}</h1>
+          <span className="sub">{isNerv ? `▸ ${(headerSub||"CLASS-05REN").toUpperCase()} ◂ TACTICAL OPS` : headerSub}</span>
+          <button className="theme-btn" onClick={handleThemeToggle}>
+            {isNerv ? "🔵 一般模式" : "🟠 NERV模式"}
+          </button>
+          <button className="theme-btn" onClick={()=>openCounsel(selDate||today())} title="輔導紀錄"
+            style={{background: Object.keys(counselMonth).length>0?"rgba(156,39,176,.35)":"rgba(255,255,255,.15)"}}>
+            {isNerv ? "◈" : "💬"}
+          </button>
+          <button className="theme-btn" onClick={()=>setView("settings")} title="設定">
+            {isNerv ? "⚙" : "⚙️"}
+          </button>
+        </div>
+
+      {/* ── NERV INTRO OVERLAY ── */}
+      {intro && (
+        <div className="nerv-intro">
+          <div className="nerv-intro-inner">
+            <div className="nerv-hex-ring">
+              <div className="nerv-hex-logo">⬡</div>
+            </div>
+            <div className="nerv-intro-title">NERV</div>
+            <div className="nerv-intro-sub">GOD'S IN HIS HEAVEN — ALL'S RIGHT WITH THE WORLD</div>
+            <div className="nerv-intro-lines">
+              {introLines.map((line, i) => (
+                <div key={i} className={`nerv-intro-line ${i < introPhase ? "visible" : ""} ${i === introPhase - 1 ? "active" : ""}`}>
+                  <span className="nerv-line-prefix">&gt;&gt;</span> {line}
+                  {i === introPhase - 1 && <span className="nerv-cursor">█</span>}
+                </div>
+              ))}
+            </div>
+            {introPhase >= introLines.length && (
+              <div className="nerv-launch-text">// SYSTEM READY //</div>
+            )}
+          </div>
+        </div>
+      )}
+        {/* ── Storage status bar ── */}
+        <div className={`stor-bar stor-${stor.state}`}>
+          <span className="stor-msg">{stor.msg}</span>
+          {stor.detail && <span className="stor-detail">{stor.detail}</span>}
+          <span style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5,fontSize:11,opacity:.8}}>
+            <span style={{width:6,height:6,borderRadius:"50%",display:"inline-block",
+              background:driveStatus==="ok"?"#4caf80":driveStatus==="syncing"?"#ffaa00":"#888",
+              boxShadow:driveStatus==="syncing"?"0 0 4px #ffaa00":driveStatus==="ok"?"0 0 4px #4caf80":"none",
+              animation:driveStatus==="syncing"?"pulse .8s infinite":"none"
+            }}/>
+            <span>{driveStatus==="ok"?"Drive ✓":driveStatus==="syncing"?"同步中…":driveStatus==="error"?"Drive ✗":"Drive"}</span>
+          </span>
+        </div>
+        {/* ── Drive 同步狀態列 ── */}
+        <div className={`backup-warn ${isNerv?"backup-warn-nerv":""}`} style={{
+          background: driveStatus==="ok"
+            ? (isNerv?"#001a00":"#f0faf4")
+            : driveStatus==="syncing"
+            ? (isNerv?"#1a1000":"#fff9f0")
+            : driveStatus==="error"
+            ? (isNerv?"#1a0000":"#fff5f5")
+            : (isNerv?"#0a0a0a":"#f5f5f5"),
+          borderLeft: isNerv?"none":("4px solid "+(
+            driveStatus==="ok"?"#4caf80":
+            driveStatus==="syncing"?"#ffaa00":
+            driveStatus==="error"?"#f44336":"#aaa"
+          )),
+          borderTop: isNerv?("1px solid "+(
+            driveStatus==="ok"?"#00cc55":
+            driveStatus==="syncing"?"#ffaa00":
+            driveStatus==="error"?"#ff0000":"#333"
+          )):undefined,
+          borderBottom: isNerv?("1px solid "+(
+            driveStatus==="ok"?"#00cc55":
+            driveStatus==="syncing"?"#ffaa00":
+            driveStatus==="error"?"#ff0000":"#333"
+          )):undefined,
+        }}>
+          <span className="backup-warn-text" style={{
+            color: isNerv
+              ? (driveStatus==="ok"?"#00ff66":driveStatus==="syncing"?"#ffaa00":driveStatus==="error"?"#ff0000":"#888")
+              : (driveStatus==="ok"?"#2e7d32":driveStatus==="syncing"?"#e65100":driveStatus==="error"?"#c62828":"#888"),
+            textShadow: isNerv
+              ? (driveStatus==="ok"?"0 0 8px rgba(0,255,100,.8)":driveStatus==="syncing"?"0 0 8px rgba(255,170,0,.8)":driveStatus==="error"?"0 0 8px rgba(255,0,0,.8)":"none")
+              : "none",
+            animation: driveStatus==="syncing"
+              ? "marquee 8s linear infinite, alert-pulse .6s ease-in-out infinite"
+              : "marquee 18s linear infinite",
+          }}>
+            {driveStatus==="ok" && (isNerv
+              ? `✦ DRIVE SYNC COMPLETE // 最後同步：${lastSyncTime||"—"} // ALL DATA SECURED // ✦ DRIVE SYNC COMPLETE // 最後同步：${lastSyncTime||"—"} // ALL DATA SECURED //`
+              : `✅ Drive 同步完成　最後同步：${lastSyncTime||"尚未同步"}　資料已安全儲存　✅ Drive 同步完成　最後同步：${lastSyncTime||"尚未同步"}　資料已安全儲存`
+            )}
+            {driveStatus==="syncing" && (isNerv
+              ? "⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 // ⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 //"
+              : "⏳ 正在同步到 Drive…　請稍候　⏳ 正在同步到 Drive…　請稍候"
+            )}
+            {driveStatus==="error" && (isNerv
+              ? "⚠ DRIVE SYNC FAILED // 請檢查網路連線 // 資料已儲存於本機 // ⚠ DRIVE SYNC FAILED // 請檢查網路連線 //"
+              : "⚠️ Drive 同步失敗　請檢查網路連線　資料已儲存於本機　⚠️ Drive 同步失敗　請檢查網路連線"
+            )}
+            {driveStatus==="offline" && (isNerv
+              ? "◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 // ◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 //"
+              : "🔌 Drive 未連線　資料儲存於本機　登入後自動同步　🔌 Drive 未連線　資料儲存於本機"
+            )}
+          </span>
+        </div>
+        <div className="nav-bar">
+          {view==="day" && (
+            <button className="back-btn" onClick={()=>setView("month")}>{isNerv ? "◀ RETURN" : "← 月曆"}</button>
+          )}
+          <button className="nav-btn" onClick={prevMonth}>‹</button>
+          <span className="month-label">
+            {isNerv
+              ? <><span className="nerv-yr">{curYear}</span><span className="nerv-dot">·</span><span className="nerv-mo">{String(curMonth+1).padStart(2,"0")}</span></>
+              : `${curYear} 年 ${curMonth+1} 月`}
+          </span>
+          <button className="nav-btn" onClick={nextMonth}>›</button>
+          {view==="day" && <>
+            <span className="date-label">
+              {isNerv
+                ? <><span className="nerv-warn">⚠</span> {fmtDate(selDate).replace("（","[").replace("）","]")}</>
+                : fmtDate(selDate)}
+            </span>
+            <div className="undo-btns">
+              <button className="undo-btn" onClick={undo} disabled={!canUndo} title="上一步">{isNerv?"◁":"↩"}</button>
+              <button className="undo-btn" onClick={redo} disabled={!canRedo} title="下一步">{isNerv?"▷":"↪"}</button>
+            </div>
+          </>}
+        </div>
+        {/* ── 工具列 ── */}
+        <div className="excel-bar">
+          {importMsg && <span className="import-msg">{importMsg}</span>}
+          <button className="excel-btn diag-btn" onClick={async()=>{
+            setImportMsg("🔍 掃描中…");
+            let idbOk=false, idbKeys_=[], lsKeys=[];
+            try{
+              await idbSet("__diagtest__","1");
+              const v=await idbGet("__diagtest__");
+              idbOk=v==="1";
+              idbKeys_=(await idbKeys()).filter(k=>k.startsWith("day:2"));
+            }catch(e){ idbOk=false; }
+            for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith("hw5ren:2"))lsKeys.push(k);}
+            setImportMsg(`IDB:${idbOk?"✅":"❌"} 資料${idbKeys_.length}天 | LS:${lsKeys.length}天 | 共${idbKeys_.length+lsKeys.length}天`);
+            // 若 IDB 有資料但頁面空白，強制重載月份
+            if(idbKeys_.length>0){ await doLoadMonth(curYear, curMonth); }
+            // 若 IDB 空但 LS 有資料，搶救
+            if(idbOk && idbKeys_.length===0 && lsKeys.length>0){
+              for(const k of lsKeys){
+                const ds=k.replace("hw5ren:","");
+                const v=localStorage.getItem(k);
+                if(v) try{await idbSet(`day:${ds}`,v);}catch{}
+              }
+              await doLoadMonth(curYear, curMonth);
+              setImportMsg(`✅ 已從本機搶救 ${lsKeys.length} 天！`);
+            }
+            setTimeout(()=>setImportMsg(""),8000);
+          }}>🔍 診斷</button>
+          <button className="excel-btn backup-btn" onClick={async()=>{
+            setImportMsg("⏳ 打包所有資料…");
+            try {
+              const allKeys = (await idbKeys()).filter(k=>k.startsWith("day:2"));
+              if (allKeys.length===0) { setImportMsg("⚠️ 尚無資料"); return; }
+              const snapshot = {};
+              for (const k of allKeys) { const v=await idbGet(k); if(v) snapshot[k]=v; }
+              setBackupJson(JSON.stringify(snapshot));
+              setShowBackup(true);
+              markSynced();
+              setImportMsg(`✅ ${allKeys.length} 天已打包`);
+            } catch(e) { setImportMsg("❌ "+String(e).slice(0,50)); }
+          }}>📤 備份</button>
+          <button className="excel-btn import-btn2" onClick={()=>setShowImport(true)}>📥 匯入</button>
+        </div>
+      </header>
+
+      {/* ── MONTH VIEW ── */}
+      {view==="month" && (
+        <main>
+          {loading ? (
+            <div className="loading-wrap">
+              <div className="loading-spinner"/>
+              <p className="loading-text">{isNerv ? "LOADING TACTICAL DATA…" : "載入中…"}</p>
+            </div>
+          ) : (
+            <>
+              <div className="calendar">
+                <div className="wd-row">
+                  {WEEKDAYS.map(w=><div key={w} className="wd">{w}</div>)}
+                </div>
+                <div className="cal-grid">
+                  {Array(firstWeekday(curYear,curMonth)).fill(null).map((_,i)=>(
+                    <div key={`e${i}`} className="cal-cell cal-empty" />
+                  ))}
+                  {Array(daysInMonth(curYear,curMonth)).fill(null).map((_,i)=>{
+                    const d = i+1;
+                    const ds = toDateStr(curYear, curMonth, d);
+                    return <CalendarCell key={ds} dateStr={ds} d={d} />;
+                  })}
+                </div>
+              </div>
+
+              {/* Month summary */}
+              <div className="month-summary">
+                {Object.entries(monthDays)
+                  .filter(([,entry]) => (entry.rows||[]).some(r=>r?.hwName))
+                  .sort(([a],[b])=>a.localeCompare(b))
+                  .map(([ds, entry]) => {
+                    const rows = entry.rows || [];
+                    const att  = entry.attendance || {};
+                    const activeRows = rows.filter(r=>r.hwName);
+                    const absentCount = (att.personal?.size||0)+(att.sick?.size||0)+(att.public?.size||0);
+                    return (
+                      <div key={ds} className="summary-row" onClick={()=>openDay(ds)}>
+                        <span className="sum-date">{fmtDate(ds)}</span>
+                        <div className="sum-tags">
+                          {activeRows.map((r,i) => {
+                            const exemptSet = entry.exempt?.[r.hwName] ?? new Set();
+                            const total = groups.reduce((s,g)=>s+g.members.length,0);
+                            const done  = groups.reduce((s,g)=>s+(r.groupData?.[g.id]?.size||0),0);
+                            const exempted = groups.reduce((s,g)=>s+g.members.filter(m=>exemptSet.has(m)&&!r.groupData?.[g.id]?.has(m)).length,0);
+                            const allOk = (done + exempted) >= total;
+                            return (
+                              <span key={i} className={`sum-tag ${allOk?"tag-ok":"tag-partial"}`}>
+                                {r.hwName}
+                              </span>
+                            );
+                          })}
+                          {absentCount>0 && <span className="sum-tag tag-absent">請假 {absentCount} 人</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                {Object.values(monthDays).every(e=>!(e.rows||[]).some(r=>r?.hwName)) && (
+                  <p className="no-data">{isNerv ? "// NO MISSION DATA THIS MONTH //" : "本月尚無紀錄，點選日期開始登記"}</p>
+                )}
+              </div>
+            </>
+          )}
+        </main>
+      )}
+
+      {/* ── DAY VIEW ── */}
+      {view==="day" && (
+        <main>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th className="th-hw">{isNerv ? "◈ MISSION" : "作業"}</th>
+                  {groups.map(g=><th key={g.id}>
+                    <span className="gl">
+                      {isNerv
+                        ? <span className="nerv-unit-label"><span className="nerv-unit-kanji">{nervUnit(g.id)}</span></span>
+                        : g.label}
+                    </span>
+                  </th>)}
+                  <th className="th-d"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {dayRows.map((row,ri)=>(
+                  <tr key={ri}>
+                    <td className={`hwc ${!row.hwName?"hwe":""}`}
+                      onClick={()=>{ setModal({ri,gid:null,phase:"input"}); setInputText(row.hwName||""); setPendingHw(row.hwName||""); }}>
+                      {row.hwName
+                        ? isNerv ? <><span className="nerv-row-idx">{String(ri+1).padStart(2,"0")} ▸</span> {row.hwName}</> : row.hwName
+                        : <span className="ph">{isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入"}</span>}
+                    </td>
+                    {groups.map(g=>{
+                      const s=rowStatus(ri,g.id), ms=getMissing(ri,g.id), ex=getExemptInGroup(ri,g.id);
+                      return (
+                        <td key={g.id} className={`gc s-${s}`} onClick={()=>row.hwName&&openCell(ri,g.id)}>
+                          {s==="complete"&&<span className="badge cb">✓</span>}
+                          {s==="partial"&&<span className="badge pb">✗</span>}
+                          {s==="allabsent"&&<span className="badge ab">✗</span>}
+                          {s==="untouched"&&row.hwName&&<span className="badge ub">−</span>}
+                          {ex.length>0&&(
+                            <div className="ml">{ex.map(n=><span key={n} className="mn mn-exempt">{n}</span>)}</div>
+                          )}
+                          {s==="partial"&&ms.length>0&&(
+                            <div className="ml">{ms.map(n=><span key={n} className="mn">{n}</span>)}</div>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="dc"><button className="db" onClick={()=>delRow(ri)}>×</button></td>
+                  </tr>
+                ))}
+                {dayRows.length<MAX_ROWS&&(
+                  <tr className="ar" onClick={addRow}>
+                    <td colSpan={7}><span className="ai">＋</span> {isNerv ? "[ ADD MISSION LOG ]" : "新增作業列"}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ── 作業抵免 ── */}
+          {dayRows.some(r=>r.hwName) && (
+            <div className="exempt-panel">
+              <div className="exempt-header">
+                <span className="exempt-title">{isNerv ? "◈ EXEMPTION LOG" : "📋 作業抵免"}</span>
+                <span className="exempt-hint">{isNerv ? "// TAP MISSION THEN SEAT //" : "點作業 → 點座號直接抵免"}</span>
+              </div>
+
+              {dayRows.filter(r=>r.hwName).map((row, ri) => {
+                const exemptSet = dayExempt[row.hwName] ?? new Set();
+                const isOpen = exemptModal?.hwName === row.hwName;
+                return (
+                  <div key={ri} className={`exempt-row-wrap ${isOpen?"exempt-open":""}`}>
+                    {/* 作業名稱列 — 點擊展開/收合 */}
+                    <div className="exempt-hw-row" onClick={()=> isOpen ? closeExemptModal() : openExemptModal(row.hwName)}>
+                      <span className="exempt-hw-name">
+                        {isNerv ? <><span className="nerv-row-idx">{String(ri+1).padStart(2,"0")} ▸</span> {row.hwName}</> : row.hwName}
+                      </span>
+                      {/* 已抵免座號預覽 */}
+                      <div className="exempt-preview">
+                        {[...exemptSet].sort((a,b)=>a-b).map(n=>(
+                          <span key={n} className="mn mn-exempt">{n}</span>
+                        ))}
+                        {exemptSet.size===0 && <span className="exempt-empty-inline">{isNerv?"—":"尚無抵免"}</span>}
+                      </div>
+                      <span className="exempt-toggle">{isOpen ? "▲" : "▼"}</span>
+                    </div>
+
+                    {/* 展開時：直接顯示全班座號 */}
+                    {isOpen && (
+                      <div className="exempt-seat-grid">
+                        {ALL_MEMBERS.map(n => {
+                          const isEx = exemptSet.has(n);
+                          // 找這個座號屬於哪組
+                          const grp = groups.find(g=>g.members.includes(n));
+                          return (
+                            <div key={n} className="nw" onClick={()=>{
+                              updExempt(prev => {
+                                const next = {...prev};
+                                const s = new Set(next[row.hwName] ?? []);
+                                isEx ? s.delete(n) : s.add(n);
+                                if(s.size===0) delete next[row.hwName];
+                                else next[row.hwName] = s;
+                                return next;
+                              });
+                            }}>
+                              <button className={`nb ${isEx?"nb-exempt":""} ${n===grp?.leader?"ldr":""} ${n===grp?.secretary?"sec":""}`}>
+                                {n}
+                              </button>
+                              {n===grp?.leader && <span className="role-tag lt">組長</span>}
+                              {n===grp?.secretary && <span className="role-tag st">秘書</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── 出勤狀況 ── */}
+          <div className="att-panel">
+            <div className="att-header">
+              <span className="att-title">{isNerv ? "⬡ PILOT STATUS // 出勤" : "📅 出勤狀況"}</span>
+              <div className="att-type-btns">
+                {LEAVE_TYPES.map(lt=>(
+                  <button key={lt.id} className="att-type-btn"
+                    style={{background:lt.bg, color:lt.color, borderColor:lt.color}}
+                    onClick={()=>openAttModal(lt.id)}>
+                    {lt.label}（{dayAtt[lt.id]?.size||0}人）
+                  </button>
+                ))}
+              </div>
+            </div>
+            {LEAVE_TYPES.map(lt => {
+              const nums = [...(dayAtt[lt.id]??[])].sort((a,b)=>a-b);
+              if(!nums.length) return null;
+              return (
+                <div key={lt.id} className="att-row">
+                  <span className="att-type-label" style={{color:lt.color}}>{lt.label}</span>
+                  <div className="att-nums">
+                    {nums.map(n=>(
+                      <span key={n} className="att-num" style={{background:lt.bg,color:lt.color,borderColor:lt.color}}>{n}</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {!dayAtt.personal?.size && !dayAtt.sick?.size && !dayAtt.public?.size && (
+              <p className="att-empty">{isNerv ? "▸ ALL PILOTS PRESENT ◂" : "今日全員到齊"}</p>
+            )}
+          </div>
+
+          {/* ── 備份今日按鈕（日視圖底部）── */}
+          <button className="day-backup-btn" onClick={async()=>{
+            try {
+              // 收集所有天數資料
+              const allKeys = (await idbKeys()).filter(k=>k.startsWith("day:2"));
+              // 確保包含今日最新資料
+              let raw = await idbGet(`day:${selDate}`);
+              if (!raw) raw = localStorage.getItem(`hw5ren:${selDate}`);
+              const snapshot = {};
+              for (const k of allKeys) {
+                const v = await idbGet(k);
+                if (v) snapshot[k] = v;
+              }
+              if (raw) snapshot[`day:${selDate}`] = raw;
+              if (Object.keys(snapshot).length === 0) {
+                setImportMsg("⚠️ 尚無資料可備份");
+                setTimeout(()=>setImportMsg(""),3000);
+                return;
+              }
+              const payload = JSON.stringify(snapshot);
+              setBackupJson(payload);
+              setShowBackup(true);
+              markSynced();
+              setImportMsg(`✅ ${Object.keys(snapshot).length} 天資料已打包`);
+            } catch(e) { setImportMsg("❌ "+String(e).slice(0,40)); }
+          }}>
+            📤 備份全部到 Drive
+          </button>
+        </main>
+      )}
+
+      {/* ── MODAL ── */}
+      {modal&&(
+        <div className="ov" onClick={closeModal}>
+          <div className="mo" onClick={e=>e.stopPropagation()}>
+
+            {modal.phase==="input"&&(
+              <>
+                <h2 className="mt">{isNerv ? "◈ INPUT MISSION CODE" : "輸入作業名稱"}</h2>
+
+                {/* 自訂記憶的作業 */}
+                {customHW.length > 0 && (
+                  <div className="custom-hw-section">
+                    <p className="custom-hw-label">{isNerv ? "// MEMORY //" : "記憶"}</p>
+                    <div className="pg">
+                      {customHW.map(hw=>(
+                        <div key={hw} className="preset-wrap">
+                          <button className={`pb2 ${pendingHw===hw?"act":""}`}
+                            onClick={()=>{setPendingHw(hw);setInputText(hw);}}>
+                            {hw}
+                          </button>
+                          <button className="preset-del" onClick={()=>setCustomHW(p=>p.filter(h=>h!==hw))}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 預設作業 */}
+                <p className="custom-hw-label">{isNerv ? "// PRESET //" : "預設"}</p>
+                <div className="pg">
+                  {PRESET_HW.map(hw=>(
+                    <button key={hw} className={`pb2 ${pendingHw===hw?"act":""}`}
+                      onClick={()=>{setPendingHw(hw);setInputText(hw);}}>{hw}</button>
+                  ))}
+                </div>
+
+                <div className="ir">
+                  <input className="hi2" value={inputText} placeholder={isNerv?"[ MANUAL INPUT ]":"手動輸入（自動記憶）"}
+                    onChange={e=>{setInputText(e.target.value);setPendingHw(e.target.value);}}
+                    onKeyDown={e=>e.key==="Enter"&&(modal.gid!==null?handleConfirmInput():null)}
+                    autoFocus />
+                </div>
+                <div className="ma">
+                  <button className="bc" onClick={closeModal}>取消</button>
+                  <button className="bk" onClick={handleConfirmInput}>確認</button>
+                </div>
+              </>
+            )}
+
+            {modal.phase==="mark"&&(
+              <>
+                <h2 className="mt">
+                  <span className="mh">{modal.hw}</span>
+                  <span className="mg">— {isNerv ? <span className="nerv-unit-label"><span className="nerv-unit-kanji">{nervUnit(modal.gid)}</span></span> : groups.find(g=>g.id===modal.gid)?.label}</span>
+                </h2>
+                {(()=>{
+                  const grp = groups.find(g=>g.id===modal.gid);
+                  const allSelected = grp?.members.every(n=>marked.has(n));
+                  const members = grp?.members || [];
+
+                  // 蜂巢排列：每行交錯偏移，奇數行往右偏半格
+                  // 計算每顆六角形的 x/y 位置
+                  const HEX_W = 52;   // 六角形寬
+                  const HEX_H = 58;   // 六角形高
+                  const COLS  = 4;    // 每行幾顆
+                  const COL_GAP = 4;
+                  const ROW_GAP = -10; // 六角形上下重疊
+
+                  const positions = members.map((n, i) => {
+                    const row = Math.floor(i / COLS);
+                    const col = i % COLS;
+                    const offsetX = row % 2 === 1 ? (HEX_W + COL_GAP) / 2 : 0;
+                    const x = col * (HEX_W + COL_GAP) + offsetX;
+                    const y = row * (HEX_H + ROW_GAP);
+                    return { n, x, y, row, col };
+                  });
+
+                  const rows = Math.ceil(members.length / COLS);
+                  const containerW = COLS * (HEX_W + COL_GAP) + (HEX_W + COL_GAP) / 2;
+                  const containerH = rows * (HEX_H + ROW_GAP) + Math.abs(ROW_GAP) + HEX_H;
+
+                  return (
+                    <>
+                      <div className="mark-toolbar">
+                        <div className="toolbar-btns">
+                          <button
+                            className={`all-btn ${allSelected?"all-undo":""}`}
+                            onClick={()=>{
+                              if(allSelected){ setMarked(new Set()); }
+                              else { setMarked(new Set(grp.members)); }
+                            }}>
+                            {allSelected ? "↩ 取消全選" : "✓ 整組全交"}
+                          </button>
+                          <button className="all-btn all-none" onClick={()=>setMarked(new Set())}>
+                            ✗ 整組未交
+                          </button>
+                        </div>
+                        <span className="mark-count">{marked.size} / {grp?.members.length} 人</span>
+                      </div>
+
+                      {/* 蜂巢網格 */}
+                      <div className={`ng ${isNerv?"ng-hex":""}`}
+                        style={isNerv ? { position:"relative", width:containerW, height:containerH, margin:"0 auto 16px" } : {}}>
+                        {isNerv ? positions.map(({n, x, y}) => (
+                          <div key={n} className="nw"
+                            style={{ position:"absolute", left:x, top:y, width:HEX_W, height:HEX_H,
+                              transition:`all .15s ${Math.random()*0.1}s` }}>
+                            <button
+                              className={`nb ${marked.has(n)?"sub":""} ${n===grp.leader?"ldr":""} ${n===grp.secretary?"sec":""}`}
+                              style={{ width:"100%", height:"100%" }}
+                              onClick={()=>{const s=new Set(marked);s.has(n)?s.delete(n):s.add(n);setMarked(s);}}>
+                              {n}
+                            </button>
+                            {n===grp.leader&&<span className="rt lt" style={{position:"absolute",bottom:-14,left:"50%",transform:"translateX(-50%)",fontSize:9}}>組長</span>}
+                            {n===grp.secretary&&<span className="rt st" style={{position:"absolute",bottom:-14,left:"50%",transform:"translateX(-50%)",fontSize:9}}>秘書</span>}
+                          </div>
+                        )) : members.map(n=>(
+                          <div key={n} className="nw">
+                            <button
+                              className={`nb ${marked.has(n)?"sub":""} ${n===grp.leader?"ldr":""} ${n===grp.secretary?"sec":""}`}
+                              onClick={()=>{const s=new Set(marked);s.has(n)?s.delete(n):s.add(n);setMarked(s);}}>
+                              {n}
+                            </button>
+                            {n===grp.leader&&<span className="rt lt">組長</span>}
+                            {n===grp.secretary&&<span className="rt st">秘書</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
+                <div className="ma">
+                  <button className="bc" onClick={closeModal}>取消</button>
+                  <button className="bk" onClick={confirmMark}>完成</button>
+                </div>
+              </>
+            )}
+
+            {modal.phase==="result"&&(
+              <>
+                <h2 className="mt">
+                  <span className="mh">{dayRows[modal.ri]?.hwName}</span>
+                  <span className="mg">— {isNerv ? <span className="nerv-unit-label"><span className="nerv-unit-kanji">{nervUnit(resGroup?.id)}</span></span> : resGroup?.label}</span>
+                </h2>
+                {resMissing.length===0?(
+                  <div className="ra">
+                    <span className="bc2">{isNerv ? "⬡" : "○"}</span>
+                    <p>{isNerv ? "▸ ALL CLEAR — MISSION COMPLETE ◂" : "全組繳交完成！"}</p>
+                  </div>
+                ):(
+                  <div className="rm">
+                    <p className="rl">{isNerv ? "⚠ PILOTS NOT REPORTING" : "未繳交"}</p>
+                    <div className="mg2">{resMissing.map(n=><span key={n} className="mt2">{isNerv ? String(n).padStart(2,"0") : n}</span>)}</div>
+                  </div>
+                )}
+                <div className="ma"><button className="bk" onClick={closeModal}>關閉</button></div>
+              </>
+            )}
+
+          </div>
+        </div>
+      )}
+
+
+      {/* ── ATTENDANCE MODAL ── */}
+      {attModal&&(
+        <div className="ov" onClick={closeAttModal}>
+          <div className="mo" onClick={e=>e.stopPropagation()}>
+            {(()=>{
+              const lt = LEAVE_TYPES.find(l=>l.id===attModal.leaveType);
+              const otherTypes = LEAVE_TYPES.filter(l=>l.id!==attModal.leaveType);
+              return (
+                <>
+                  <h2 className="mt" style={{color:lt.color}}>{lt.label} 點名</h2>
+                  <p className="mhint">點選請{lt.label}的座號（已登記其他假別會自動切換）</p>
+                  <div className="ng">
+                    {ALL_MEMBERS.map(n=>{
+                      const isThis  = dayAtt[lt.id]?.has(n);
+                      const otherMatch = otherTypes.find(o=>dayAtt[o.id]?.has(n));
+                      return (
+                        <div key={n} className="nw">
+                          <button
+                            className={`nb ${isThis?"att-sel":""} ${otherMatch?"att-other":""}`}
+                            style={isThis
+                              ? {background:lt.bg,borderColor:lt.color,color:lt.color}
+                              : otherMatch
+                                ? {background:otherMatch.bg,borderColor:otherMatch.color,color:otherMatch.color}
+                                : {}}
+                            onClick={()=>toggleAttMember(lt.id, n)}>
+                            {n}
+                          </button>
+                          {isThis      && <span className="role-tag" style={{background:lt.bg,color:lt.color}}>{lt.label}</span>}
+                          {otherMatch  && <span className="role-tag" style={{background:otherMatch.bg,color:otherMatch.color}}>{otherMatch.label}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="ma">
+                    <button className="bc" onClick={closeAttModal}>關閉</button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── 備份 Modal ── */}
+      {showBackup && (
+        <div className="ov" onClick={()=>setShowBackup(false)}>
+          <div className="mo" onClick={e=>e.stopPropagation()}>
+            <h2 className="mt" style={{fontSize:15}}>📤 備份資料</h2>
+            <p className="mhint">點欄位 → 已全選 → 直接「拷貝」→ 關閉 → 回對話貼上</p>
+            <input
+              className="backup-input"
+              readOnly
+              value={backupJson}
+              ref={el => { if(el) { el.focus(); el.select(); } }}
+              onClick={e=>e.target.select()}
+            />
+            <p className="mhint" style={{marginTop:6,color:'#f9a825'}}>
+              💡 iOS：點欄位 → 全選 → 拷貝
+            </p>
+            <div className="ma" style={{marginTop:12}}>
+              <button className="bk" onClick={()=>setShowBackup(false)}>關閉</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 匯入 Modal ── */}
+      {showImport && (
+        <div className="ov" onClick={()=>{setShowImport(false);setImportText("");}}>
+          <div className="mo" onClick={e=>e.stopPropagation()}>
+            <h2 className="mt" style={{fontSize:15}}>📥 匯入資料</h2>
+            <p className="mhint">貼上 Claude 給你的 JSON 字串</p>
+            <textarea
+              className="backup-textarea"
+              value={importText}
+              onChange={e=>setImportText(e.target.value)}
+              placeholder="在此貼上 JSON..."
+              rows={6}
+            />
+            <div className="ma" style={{justifyContent:"flex-start",gap:8}}>
+              <button className="bc" onClick={()=>{setShowImport(false);setImportText("");}}>取消</button>
+              <button className="bk" onClick={async()=>{
+                if(!importText.trim()){return;}
+                setImportMsg("⏳ 匯入中…");
+                try {
+                  const parsed = JSON.parse(importText.trim());
+                  let count=0;
+                  const importedDates = [];
+                  if (parsed.date && parsed.data) {
+                    await idbSet(`day:${parsed.date}`, parsed.data);
+                    localStorage.setItem(`hw5ren:${parsed.date}`, parsed.data);
+                    importedDates.push(parsed.date);
+                    count=1;
+                  } else {
+                    for(const [k,v] of Object.entries(parsed)){
+                      if(k.startsWith("day:2")){
+                        const ds = k.replace("day:","");
+                        await idbSet(`day:${ds}`, v);
+                        localStorage.setItem(`hw5ren:${ds}`, v);
+                        importedDates.push(ds);
+                        count++;
+                      }
+                    }
+                  }
+                  if (importedDates.length > 0) {
+                    const firstDate = importedDates.sort()[0];
+                    const [y, m] = firstDate.split("-").map(Number);
+                    setCurYear(y); setCurMonth(m-1);
+                    await doLoadMonth(y, m-1);
+                  } else {
+                    await doLoadMonth(curYear, curMonth);
+                  }
+                  // 關閉 modal、回月曆、顯示成功
+                  setShowImport(false); setImportText("");
+                  setView("month");
+                  setImportMsg(`✅ 已還原 ${count} 天資料`);
+                  setTimeout(()=>setImportMsg(""),5000);
+                } catch(e){
+                  setImportMsg("❌ 匯入失敗："+String(e).slice(0,60));
+                  setTimeout(()=>setImportMsg(""),6000);
+                }
+              }}>確認匯入</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── COUNSEL VIEW ── */}
+      {counselView && (
+        <CounselView
+          date={counselDate}
+          records={counselRecords}
+          onSave={saveCounselRecord}
+          onClose={()=>setCounselView(false)}
+          isNerv={isNerv}
+          allMembers={ALL_MEMBERS}
+          groups={groups}
+          fmtDate={fmtDate}
+        />
+      )}
+
+      {/* ── SETTINGS VIEW ── */}
+      {view==="settings" && (
+        <SettingsView
+          groups={groups}
+          saveGroups={saveGroups}
+          className={className}
+          setClassName={(v)=>{ setClassName(v); localStorage.setItem("hw5ren:className",v); }}
+          schoolName={schoolName}
+          setSchoolName={(v)=>{ setSchoolName(v); localStorage.setItem("hw5ren:school",v); }}
+          schoolYear={schoolYear}
+          setSchoolYear={(v)=>{ setSchoolYear(v); localStorage.setItem("hw5ren:year",v); }}
+          onClose={()=>setView("month")}
+          isNerv={isNerv}
+          idbKeys={idbKeys}
+          idbGet={idbGet}
+          openDB={openDB}
+          DB_STORE={DB_STORE}
+        />
+      )}
+
+    </div>
+  );
+}
+
+  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 });
 </script>
 </body>
