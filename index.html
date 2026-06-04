@@ -86,7 +86,7 @@
         [data-theme="nerv"] .theme-btn{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.5);border-radius:2px;letter-spacing:1px;font-size:11px;box-shadow:0 0 8px rgba(255,102,0,.2)}
         [data-theme="nerv"] .stor-bar{border-left:3px solid #ff6600;background:rgba(255,102,0,.05)!important;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
         [data-theme="nerv"] .nav-bar{border-top:1px solid rgba(255,102,0,.2)}
-        [data-theme="nerv"] .back-btn,[data-theme="nerv"] .nav-btn,[data-theme="nerv"] .undo-btn{background:rgba(255,102,0,.08);color:#ff6600;border:1px solid rgba(255,102,0,.35);border-radius:2px;font-family:"Share Tech Mono",monospace}
+        [data-theme="nerv"] .back-btn,[data-theme="nerv"] .nav-btn,[data-theme="nerv"] .undo-btn{background:rgba(255,102,0,.08);color:#ff6600;border:1px solid rgba(255,102,0,.35);border-radius:2px;font-family:"Share Tech Mono",monospace;display:inline-flex!important;visibility:visible!important}
         [data-theme="nerv"] .back-btn:hover,[data-theme="nerv"] .nav-btn:hover,[data-theme="nerv"] .undo-btn:hover:not(:disabled){background:rgba(255,102,0,.2);box-shadow:0 0 8px rgba(255,102,0,.4)}
         [data-theme="nerv"] .month-label{color:#ff6600;text-shadow:0 0 8px rgba(255,102,0,.6);letter-spacing:3px}
         [data-theme="nerv"] .date-label{color:#ff4400;letter-spacing:2px}
@@ -190,6 +190,181 @@
         [data-theme="nerv"] .backup-textarea{background:#0a0200;border-color:rgba(255,102,0,.3);color:#ff8844;font-family:'Share Tech Mono',monospace}
 
         /* ── BACKUP WARNING BAR ── */
+
+        /* ── NEBULA 星雲主題 ── */
+        [data-theme="nebula"]{
+          background:#060818;
+          color:#c8d8ff;
+          font-family:'Noto Sans TC',sans-serif;
+        }
+        [data-theme="nebula"] .app{
+          background:
+            radial-gradient(ellipse at 20% 20%, rgba(130,80,200,.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(60,120,255,.12) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(200,100,255,.06) 0%, transparent 70%),
+            #060818;
+        }
+        [data-theme="nebula"] header{
+          background:linear-gradient(180deg,rgba(20,10,50,.98),rgba(10,5,30,.95));
+          border-bottom:1px solid rgba(150,100,255,.3);
+          box-shadow:0 2px 20px rgba(100,60,200,.3);
+        }
+        [data-theme="nebula"] h1{color:#d4b8ff;letter-spacing:2px;text-shadow:0 0 15px rgba(180,120,255,.5)}
+        [data-theme="nebula"] .sub{color:rgba(180,150,255,.7);font-size:10px}
+        [data-theme="nebula"] .theme-btn,[data-theme="nebula"] .user-btn{
+          background:rgba(150,100,255,.15);
+          border:1px solid rgba(150,100,255,.4);
+          color:#c8b0ff;
+          border-radius:6px;
+        }
+        [data-theme="nebula"] .stor-bar{background:rgba(100,60,200,.1);font-size:11px}
+        [data-theme="nebula"] .backup-warn{
+          background:linear-gradient(90deg,rgba(100,60,200,.15),rgba(60,100,255,.1));
+          border-left:3px solid rgba(150,100,255,.6);
+          color:#b0a0ff;
+        }
+        [data-theme="nebula"] .nav-bar{border-top:1px solid rgba(150,100,255,.2)}
+        [data-theme="nebula"] .back-btn,[data-theme="nebula"] .nav-btn,[data-theme="nebula"] .undo-btn{
+          background:rgba(150,100,255,.1);
+          border:1px solid rgba(150,100,255,.35);
+          color:#c8b0ff;
+          border-radius:6px;
+        }
+        [data-theme="nebula"] .month-label{color:#e0d0ff;text-shadow:0 0 8px rgba(180,130,255,.4)}
+        [data-theme="nebula"] .date-label{color:rgba(200,180,255,.8)}
+        [data-theme="nebula"] .sync-bar{border-top:1px solid rgba(150,100,255,.15)}
+        [data-theme="nebula"] .excel-btn{
+          background:rgba(150,100,255,.1);
+          border:1px solid rgba(150,100,255,.3);
+          color:#c8b0ff;
+        }
+        [data-theme="nebula"] .backup-btn{background:rgba(100,200,150,.2)!important;border-color:rgba(100,200,150,.4)!important;color:#80ffb0!important}
+        /* 月曆 */
+        [data-theme="nebula"] .calendar{
+          background:#0a0520;
+          border:1px solid rgba(150,100,255,.3);
+          border-radius:12px;
+          box-shadow:0 4px 30px rgba(100,60,200,.2);
+        }
+        [data-theme="nebula"] .wd-row{background:linear-gradient(90deg,#0d0630,#0a0425)}
+        [data-theme="nebula"] .wd{color:#a080ff;letter-spacing:1px}
+        [data-theme="nebula"] .cal-grid{background:#060818}
+        [data-theme="nebula"] .cal-cell{
+          border-color:rgba(100,60,200,.15);
+          background:#07091a;
+        }
+        [data-theme="nebula"] .cal-cell:hover{background:#0d1030;border-color:rgba(150,100,255,.4)}
+        [data-theme="nebula"] .cal-cell.is-today .cal-day{
+          background:linear-gradient(135deg,#6030c0,#4060e0);
+          color:#fff;
+          border-radius:50%;
+          width:22px;height:22px;
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 0 12px rgba(120,80,220,.7);
+          font-size:12px;
+        }
+        [data-theme="nebula"] .cal-day{color:#a080ff}
+        [data-theme="nebula"] .cal-cell.is-complete{background:linear-gradient(135deg,#040d1a,#061220)}
+        [data-theme="nebula"] .cal-cell.is-partial{background:linear-gradient(135deg,#0d0820,#0a0618)}
+        [data-theme="nebula"] .cal-ok{color:#60d0ff;text-shadow:0 0 8px rgba(60,180,255,.6)}
+        [data-theme="nebula"] .cal-absent{background:rgba(255,100,150,.15);color:#ff80a0}
+        [data-theme="nebula"] .cal-counsel{color:#c080ff}
+        /* 表格 */
+        [data-theme="nebula"] .table-wrapper{
+          background:#080a1e;
+          border:1px solid rgba(150,100,255,.3);
+          border-radius:12px;
+        }
+        [data-theme="nebula"] thead{background:linear-gradient(90deg,#0d0630,#0a0428)}
+        [data-theme="nebula"] th{color:#a080ff;border-bottom:1px solid rgba(150,100,255,.3)}
+        [data-theme="nebula"] tbody tr{border-color:rgba(100,80,200,.15)}
+        [data-theme="nebula"] tbody tr:hover{background:rgba(100,60,200,.08)}
+        [data-theme="nebula"] .hwc{color:#c8b0ff}
+        [data-theme="nebula"] .hwe{color:rgba(150,120,200,.3)!important}
+        [data-theme="nebula"] .cb{background:linear-gradient(135deg,#206040,#308060);box-shadow:0 0 8px rgba(60,200,120,.3)}
+        [data-theme="nebula"] .pb{background:linear-gradient(135deg,#602080,#8030a0);box-shadow:0 0 8px rgba(180,60,220,.3)}
+        [data-theme="nebula"] .ab{background:linear-gradient(135deg,#601020,#801830)}
+        [data-theme="nebula"] .ub{background:rgba(100,80,200,.15);color:rgba(150,120,255,.5)}
+        [data-theme="nebula"] .mn{background:#8040c0;color:#e0c8ff;border-radius:4px}
+        [data-theme="nebula"] .mn-exempt{background:#c0a000!important;color:#000!important}
+        /* 面板 */
+        [data-theme="nebula"] .exempt-panel,[data-theme="nebula"] .att-panel{
+          background:#080a1e;
+          border:1px solid rgba(150,100,255,.25);
+          border-radius:12px;
+        }
+        [data-theme="nebula"] .exempt-title{color:#c080ff}
+        [data-theme="nebula"] .exempt-hw-row:hover{background:rgba(100,60,200,.08)}
+        [data-theme="nebula"] .att-title{color:#a080ff}
+        [data-theme="nebula"] .att-type-btn{border-color:rgba(150,100,255,.3);color:#c8b0ff}
+        [data-theme="nebula"] .day-backup-btn{
+          background:linear-gradient(135deg,rgba(100,60,200,.3),rgba(60,100,255,.2));
+          border:1px solid rgba(150,100,255,.4);
+          color:#c8b0ff;
+        }
+        /* Modal */
+        [data-theme="nebula"] .ov{background:rgba(2,2,15,.75)}
+        [data-theme="nebula"] .mo{
+          background:#0a0c20;
+          border:1px solid rgba(150,100,255,.4);
+          border-radius:16px;
+          box-shadow:0 20px 60px rgba(80,40,160,.4);
+        }
+        [data-theme="nebula"] .mt{color:#c8b0ff}
+        [data-theme="nebula"] .pb2{
+          background:rgba(100,60,200,.08);
+          border:1px solid rgba(150,100,255,.3);
+          color:#b0a0ff;
+          border-radius:8px;
+        }
+        [data-theme="nebula"] .pb2:hover{background:rgba(100,60,200,.2)}
+        [data-theme="nebula"] .pb2.act{background:rgba(150,100,255,.3);border-color:#a080ff;color:#e0d0ff}
+        [data-theme="nebula"] .nb{
+          background:rgba(100,60,200,.08);
+          border:1px solid rgba(150,100,255,.3);
+          color:#b0a0ff;
+          border-radius:50%;
+        }
+        [data-theme="nebula"] .nb:hover{background:rgba(100,60,200,.25)}
+        [data-theme="nebula"] .nb.sub{
+          background:linear-gradient(135deg,#5030a0,#4050c0);
+          border-color:#8060d0;
+          color:#fff;
+          box-shadow:0 0 12px rgba(120,80,200,.5);
+        }
+        [data-theme="nebula"] .nb.ldr{border-color:#ff80a0;border-width:2px}
+        [data-theme="nebula"] .nb.sec{border-color:#80c0ff;border-style:dashed}
+        [data-theme="nebula"] .bc{
+          background:rgba(100,60,200,.08);
+          border:1px solid rgba(150,100,255,.3);
+          color:rgba(180,160,255,.6);
+          border-radius:10px;
+        }
+        [data-theme="nebula"] .bk{
+          background:linear-gradient(135deg,#5030a0,#4060c0);
+          border:none;
+          color:#fff;
+          border-radius:10px;
+          box-shadow:0 4px 15px rgba(80,50,180,.4);
+        }
+        [data-theme="nebula"] .month-summary{background:#080a1e;border:1px solid rgba(150,100,255,.2);border-radius:12px}
+        [data-theme="nebula"] .summary-row{border-color:rgba(100,80,200,.15)}
+        [data-theme="nebula"] .sum-date{color:#a080ff}
+        [data-theme="nebula"] .tag-ok{background:#042020;color:#60d0a0;border:1px solid rgba(60,200,120,.2);border-radius:6px}
+        [data-theme="nebula"] .tag-partial{background:#0d0820;color:#c080ff;border:1px solid rgba(150,80,220,.2);border-radius:6px}
+        [data-theme="nebula"] .tag-absent{background:#1a0818;color:#ff80a0;border:1px solid rgba(255,80,120,.2);border-radius:6px}
+        [data-theme="nebula"] .no-data{color:rgba(150,120,255,.3)}
+        /* 星星背景效果 */
+        [data-theme="nebula"] .cal-grid::before{
+          content:'✦ ✧ ⋆ ✦ ✧';
+          position:absolute;
+          font-size:8px;
+          color:rgba(200,180,255,.08);
+          pointer-events:none;
+          top:4px;right:4px;
+          letter-spacing:4px;
+        }
+
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
         @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
@@ -1632,12 +1807,27 @@ function App() {
   const [counselRecords, setCounselRecords] = useState([]); // 當日輔導記錄
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const THEMES = [
+    {id:'default', label:'☀️ 一般模式', color:'#1e3a5f'},
+    {id:'nebula',  label:'🌌 星雲模式', color:'#5030a0'},
+    {id:'nerv',    label:'⬡ NERV模式', color:'#cc4400'},
+  ];
 
-  const isNerv = theme === "nerv";
+  const isNerv   = theme === "nerv";
+  const isNebula = theme === "nebula";
 
   // ── Drive / Auth ──
   const [authed, setAuthed] = useState(!!localStorage.getItem('hw5ren:tok'));
   const [driveStatus, setDriveStatus] = useState('offline');
+
+  // 點擊外部關閉主題選單
+  useEffect(()=>{
+    if(!showThemeMenu) return;
+    const handler = ()=>setShowThemeMenu(false);
+    setTimeout(()=>document.addEventListener('click',handler),10);
+    return ()=>document.removeEventListener('click',handler);
+  },[showThemeMenu]);
 
   useEffect(()=>{
     if(!authed) return;
@@ -2178,7 +2368,7 @@ function App() {
 
   if(!authed){
     return (
-      <div className="app" data-theme={theme} style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:isNerv?"#050200":"linear-gradient(160deg,#1e3a5f,#2d5a8e)",padding:"40px 24px"}}>
+      <div className="app" data-theme={theme} style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:isNerv?"#050200":isNebula?"#060818":"linear-gradient(160deg,#1e3a5f,#2d5a8e)",padding:"40px 24px"}}>
         <div style={{fontSize:64,marginBottom:16}}>{isNerv?"⬡":"📋"}</div>
         <h1 style={{fontSize:24,fontWeight:900,color:isNerv?"#ff6600":"#fff",letterSpacing:2,marginBottom:8,textAlign:"center",fontFamily:isNerv?"Share Tech Mono,monospace":"inherit",textShadow:isNerv?"0 0 20px rgba(255,102,0,.8)":"none"}}>
           {isNerv?"NERV // 作業繳交":"作業繳交記錄"}
@@ -2216,13 +2406,43 @@ function App() {
               </span>
             )}
           </div>
-          <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"center"}}>
-            <button className="theme-btn" onClick={handleThemeToggle} style={{padding:"4px 8px",fontSize:11}}>
-              {isNerv ? "🔵" : "🟠"}
+          <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"center",position:"relative"}}>
+            {/* 主題下拉選單 */}
+            <button className="theme-btn" onClick={()=>setShowThemeMenu(v=>!v)}
+              style={{padding:"4px 8px",fontSize:11,background:
+                theme==='nerv'?"rgba(255,102,0,.2)":
+                theme==='nebula'?"rgba(150,100,255,.2)":
+                "rgba(255,255,255,.15)"
+              }}>
+              {theme==='nerv'?"⬡":theme==='nebula'?"🌌":"☀️"} ▾
             </button>
+            {showThemeMenu && (
+              <div style={{
+                position:"absolute",top:"100%",left:0,zIndex:200,
+                background: theme==='nerv'?"#120400":theme==='nebula'?"#0a0c20":"#1e3a5f",
+                border: theme==='nerv'?"1px solid #ff6600":theme==='nebula'?"1px solid rgba(150,100,255,.5)":"1px solid rgba(255,255,255,.2)",
+                borderRadius:10,overflow:"hidden",minWidth:130,
+                boxShadow:"0 8px 24px rgba(0,0,0,.4)",marginTop:4
+              }}>
+                {THEMES.map(t=>(
+                  <button key={t.id} onClick={()=>setThemeAndSave(t.id)}
+                    style={{
+                      display:"block",width:"100%",padding:"10px 14px",
+                      background:theme===t.id?"rgba(255,255,255,.12)":"transparent",
+                      border:"none",color:"#fff",fontSize:13,fontWeight:600,
+                      cursor:"pointer",textAlign:"left",
+                      borderBottom:"1px solid rgba(255,255,255,.08)",
+                      fontFamily: theme==='nerv'?"Share Tech Mono,monospace":"inherit"
+                    }}>
+                    {t.label}
+                    {theme===t.id && <span style={{float:"right",opacity:.6}}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
             <button className="theme-btn" onClick={()=>openCounsel(selDate||today())} title="輔導紀錄"
               style={{background: Object.keys(counselMonth).length>0?"rgba(156,39,176,.35)":"rgba(255,255,255,.15)",padding:"4px 8px"}}>
-              {isNerv ? "◈" : "💬"}
+              {isNerv ? "◈" : isNebula ? "◉" : "💬"}
             </button>
             <button className="theme-btn" onClick={()=>setShowHistory(true)} title="歷史學年"
               style={{background: yearRecords.length>0?"rgba(255,193,7,.25)":"rgba(255,255,255,.15)",padding:"4px 8px"}}>
@@ -3058,6 +3278,8 @@ function App() {
     </div>
   );
 }
+
+// ── Click outside to close theme menu helper ──────────────────────────────────
 
   ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
