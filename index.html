@@ -2092,6 +2092,9 @@ function App() {
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
+                React.createElement("button", { className: "theme-btn", onClick: () => setShowHistory(true), title: "歷史學年",
+                    style: { background: yearRecords.length > 0 ? "rgba(255,193,7,.25)" : "rgba(255,255,255,.15)", padding: "4px 8px" } },
+                    "📂"),
                 React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
@@ -2606,6 +2609,61 @@ function App() {
                         React.createElement("div", { style: { fontSize: 15, fontWeight: 700 } }, t.name),
                         React.createElement("div", { style: { fontSize: 11, opacity: .6, marginTop: 2 } }, t.desc)),
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
+        
+        showHistory && React.createElement("div", { onClick: () => setShowHistory(false),
+            style: { position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,.5)" } },
+            React.createElement("div", { onClick: e => e.stopPropagation(),
+                style: { position: "absolute", bottom: 0, left: 0, right: 0,
+                    background: theme === "nerv" ? "#120400" : theme === "nebula" ? "#0a0c20" : "#fff",
+                    borderRadius: "20px 20px 0 0", padding: "20px 0 40px",
+                    boxShadow: "0 -8px 40px rgba(0,0,0,.3)", maxHeight: "80vh", overflowY: "auto" } },
+                React.createElement("div", { style: { width: 40, height: 4, borderRadius: 2,
+                    background: "rgba(128,128,128,.3)", margin: "0 auto 16px" } }),
+                React.createElement("h2", { style: { textAlign: "center", fontSize: 16, fontWeight: 900,
+                    color: theme === "nerv" ? "#ff6600" : theme === "nebula" ? "#c8b0ff" : "#1e3a5f",
+                    marginBottom: 8 } }, "📂 歷史學年紀錄"),
+                React.createElement("p", { style: { textAlign: "center", fontSize: 12,
+                    color: theme === "nerv" ? "rgba(255,102,0,.5)" : "#aab8cc", marginBottom: 16 } },
+                    "點選學年可切換查閱該年資料"),
+                yearRecords.length === 0
+                    ? React.createElement("p", { style: { textAlign: "center", color: "#aab8cc",
+                        fontSize: 13, padding: "20px 0" } }, "尚無歷史紀錄\n設定完成後自動建立")
+                    : React.createElement("div", { style: { padding: "0 16px" } },
+                        yearRecords.map((rec, i) => {
+                            const isActive = rec.year === schoolYear && rec.className === className;
+                            return React.createElement("div", { key: i,
+                                onClick: () => {
+                                    setSchoolYear(rec.year); localStorage.setItem("hw5ren:year", rec.year);
+                                    setSchoolName(rec.school); localStorage.setItem("hw5ren:school", rec.school);
+                                    setClassName(rec.className); localStorage.setItem("hw5ren:className", rec.className);
+                                    setShowHistory(false);
+                                    setStor(s => ({...s, msg: "☁️ 切換至 " + rec.year + "年 " + rec.className}));
+                                },
+                                style: { padding: "12px 16px", borderRadius: 12, marginBottom: 8,
+                                    border: isActive
+                                        ? "2px solid " + (theme === "nerv" ? "#ff6600" : "#1e3a5f")
+                                        : "1px solid " + (theme === "nerv" ? "rgba(255,102,0,.3)" : "#eef2f7"),
+                                    background: isActive
+                                        ? (theme === "nerv" ? "rgba(255,102,0,.15)" : "#e8f0fe")
+                                        : "transparent",
+                                    cursor: "pointer" } },
+                                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+                                    React.createElement("span", { style: { fontSize: 15, fontWeight: 900,
+                                        color: theme === "nerv" ? "#ffaa44" : "#1e3a5f" } },
+                                        rec.year + "年 " + rec.school + " " + rec.className),
+                                    isActive && React.createElement("span", { style: { fontSize: 11,
+                                        background: "#1e3a5f", color: "#fff", padding: "1px 6px", borderRadius: 10 } }, "目前")),
+                                React.createElement("div", { style: { fontSize: 11, color: "#aab8cc", marginTop: 4 } },
+                                    "Drive: " + rec.driveFile)
+                            );
+                        })),
+                React.createElement("div", { style: { padding: "0 16px" } },
+                    React.createElement("button", { onClick: () => setShowHistory(false),
+                        style: { width: "100%", padding: 12, background: "transparent",
+                            border: "1px solid #dde5ee", borderRadius: 10, cursor: "pointer",
+                            fontSize: 14, color: "#8a9db5", marginTop: 8 } }, "關閉"))
+            )
+        ),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); localStorage.setItem("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); localStorage.setItem("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); localStorage.setItem("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
