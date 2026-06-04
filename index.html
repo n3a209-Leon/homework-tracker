@@ -789,22 +789,31 @@ window.onerror = function(msg,src,line,col,err) {
   return true;
 };
 </script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script>
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
 function getDriveFilename(year, cls) {
   if (!year && !cls) return 'hw-5renren-ALL.json';
-  var safe = (cls||'').replace(/\s/g,'').slice(0,10);
+  const safe = (cls||'').replace(/\s/g,'').slice(0,10);
   return 'hw-'+(year||'unknown')+'-'+(safe||'class')+'.json';
 }
-var accessToken = null, driveFileId = null;
-function gSignIn() {
-  return new Promise(function(res,rej) {
-    var client = google.accounts.oauth2.initTokenClient({
+let accessToken = null, driveFileId = null;
+function loadGSI() {
+  return new Promise(res => {
+    if (typeof google !== 'undefined') { res(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = res; s.onerror = res;
+    document.head.appendChild(s);
+  });
+}
+async function gSignIn() {
+  await loadGSI();
+  return new Promise((res,rej) => {
+    const client = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
-      callback: function(resp) {
+      callback: resp => {
         if (resp.error) { rej(resp.error); return; }
         accessToken = resp.access_token;
         localStorage.setItem('hw5ren:tok', accessToken);
@@ -816,40 +825,40 @@ function gSignIn() {
 }
 async function findDriveFile(year, cls) {
   if (!accessToken) return null;
-  var name = getDriveFilename(year, cls);
-  var r = await fetch("https://www.googleapis.com/drive/v3/files?q=name='"+name+"'&fields=files(id)", {headers:{'Authorization':'Bearer '+accessToken}});
-  var d = await r.json();
+  const name = getDriveFilename(year, cls);
+  const r = await fetch("https://www.googleapis.com/drive/v3/files?q=name='"+name+"'&fields=files(id)", {headers:{'Authorization':'Bearer '+accessToken}});
+  const d = await r.json();
   if (d.files && d.files.length) { driveFileId = d.files[0].id; return driveFileId; }
   return null;
 }
 async function saveDrive(snapshot) {
   if (!accessToken) throw new Error('未登入');
-  var year = localStorage.getItem('hw5ren:year');
-  var cls = localStorage.getItem('hw5ren:className');
-  var name = getDriveFilename(year, cls);
-  var blob = new Blob([JSON.stringify(snapshot)], {type:'application/json'});
+  const year = localStorage.getItem('hw5ren:year');
+  const cls = localStorage.getItem('hw5ren:className');
+  const name = getDriveFilename(year, cls);
+  const blob = new Blob([JSON.stringify(snapshot)], {type:'application/json'});
   if (!driveFileId) await findDriveFile(year, cls);
-  var form = new FormData();
+  const form = new FormData();
   if (driveFileId) {
-    form.append('metadata', new Blob([JSON.stringify({name:name})], {type:'application/json'}));
+    form.append('metadata', new Blob([JSON.stringify({name})], {type:'application/json'}));
     form.append('file', blob);
-    var r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
     return r.ok;
   } else {
-    form.append('metadata', new Blob([JSON.stringify({name:name,mimeType:'application/json'})], {type:'application/json'}));
+    form.append('metadata', new Blob([JSON.stringify({name,mimeType:'application/json'})], {type:'application/json'}));
     form.append('file', blob);
-    var r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    if (r.ok) { var d2 = await r.json(); driveFileId = d2.id; return true; }
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
     return false;
   }
 }
 async function loadDrive(year, cls) {
-  var stored = localStorage.getItem('hw5ren:tok');
+  const stored = localStorage.getItem('hw5ren:tok');
   if (stored) accessToken = stored;
   if (!accessToken) return null;
-  var fid = await findDriveFile(year, cls);
+  const fid = await findDriveFile(year, cls);
   if (!fid) return null;
-  var r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", {headers:{'Authorization':'Bearer '+accessToken}});
+  const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", {headers:{'Authorization':'Bearer '+accessToken}});
   if (r.ok) return r.json();
   if (r.status === 401) { accessToken = null; localStorage.removeItem('hw5ren:tok'); }
   return null;
@@ -861,17 +870,8 @@ window.getDriveFilename = getDriveFilename;
 </script>
 <script>
 window.addEventListener('load', function() {
-  var useState=React.useState, useEffect=React.useEffect, useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
+  const {useState,useEffect,useCallback,useRef,useMemo} = React;
   try {
-var __awaiter = function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -896,9 +896,9 @@ const COUNSEL_PERIODS = ["早自習", "第1節", "第2節", "第3節", "第4節"
 const COUNSEL_TYPES = ["學習", "行為", "情緒", "人際", "家庭", "其他"];
 const COUNSEL_FOLLOWUP = ["需追蹤", "已處理", "轉介"];
 // ── Drive stubs（Artifact 模式下不實際連 Drive，PWA 版會覆蓋）──
-const gSignIn = typeof window !== "undefined" && window.gSignIn ? window.gSignIn : () => __awaiter(void 0, void 0, void 0, function* () { throw new Error("請使用 PWA 版本登入 Google"); });
-const loadDrive = typeof window !== "undefined" && window.loadDrive ? window.loadDrive : () => __awaiter(void 0, void 0, void 0, function* () { return null; });
-const saveDrive = typeof window !== "undefined" && window.saveDrive ? window.saveDrive : () => __awaiter(void 0, void 0, void 0, function* () { return false; });
+const gSignIn = typeof window !== "undefined" && window.gSignIn ? window.gSignIn : async () => { throw new Error("請使用 PWA 版本登入 Google"); };
+const loadDrive = typeof window !== "undefined" && window.loadDrive ? window.loadDrive : async () => null;
+const saveDrive = typeof window !== "undefined" && window.saveDrive ? window.saveDrive : async () => false;
 const LEAVE_TYPES = [
     { id: "personal", label: "事假", color: "#f57c00", bg: "#fff3e0" },
     { id: "sick", label: "病假", color: "#1565c0", bg: "#e3f2fd" },
@@ -931,141 +931,123 @@ function openDB() {
         req.onerror = e => reject(e.target.error);
     });
 }
-function idbSet(key, value) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const db = yield openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(DB_STORE, "readwrite");
-            tx.objectStore(DB_STORE).put(value, key);
-            tx.oncomplete = () => resolve(true);
-            tx.onerror = e => reject(e.target.error);
-        });
+async function idbSet(key, value) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, "readwrite");
+        tx.objectStore(DB_STORE).put(value, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = e => reject(e.target.error);
     });
 }
-function idbGet(key) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const db = yield openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(DB_STORE, "readonly");
-            const req = tx.objectStore(DB_STORE).get(key);
-            req.onsuccess = e => { var _a; return resolve((_a = e.target.result) !== null && _a !== void 0 ? _a : null); };
-            req.onerror = e => reject(e.target.error);
-        });
+async function idbGet(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, "readonly");
+        const req = tx.objectStore(DB_STORE).get(key);
+        req.onsuccess = e => { var _a; return resolve((_a = e.target.result) !== null && _a !== void 0 ? _a : null); };
+        req.onerror = e => reject(e.target.error);
     });
 }
-function idbKeys() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const db = yield openDB();
-        return new Promise((resolve, reject) => {
-            const tx = db.transaction(DB_STORE, "readonly");
-            const req = tx.objectStore(DB_STORE).getAllKeys();
-            req.onsuccess = e => resolve(e.target.result);
-            req.onerror = e => reject(e.target.error);
-        });
+async function idbKeys() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, "readonly");
+        const req = tx.objectStore(DB_STORE).getAllKeys();
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
     });
 }
 // ── Counseling load / save ───────────────────────────────────────────────────
-function loadCounsel(dateStr) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let raw = null;
+async function loadCounsel(dateStr) {
+    let raw = null;
+    try {
+        raw = await idbGet("counsel:"+dateStr);
+    }
+    catch (_a) { }
+    if (!raw) {
         try {
-            raw = yield idbGet("counsel:"+dateStr);
-        }
-        catch (_a) { }
-        if (!raw) {
-            try {
-                raw = localStorage.getItem("hw5ren:c:"+dateStr);
-            }
-            catch (_b) { }
-        }
-        if (raw) {
-            try {
-                return JSON.parse(raw);
-            }
-            catch (_c) { }
-        }
-        return [];
-    });
-}
-function saveCounsel(dateStr, records) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const json = JSON.stringify(records);
-        try {
-            yield idbSet("counsel:"+dateStr, json);
-        }
-        catch (_a) { }
-        try {
-            localStorage.setItem("hw5ren:c:"+dateStr, json);
+            raw = localStorage.getItem("hw5ren:c:"+dateStr);
         }
         catch (_b) { }
-    });
-}
-function loadCounselMonth(y, m) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const entries = {};
-        for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
-            const ds = y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-            const recs = yield loadCounsel(ds);
-            if (recs.length > 0)
-                entries[ds] = recs;
+    }
+    if (raw) {
+        try {
+            return JSON.parse(raw);
         }
-        return entries;
-    });
+        catch (_c) { }
+    }
+    return [];
+}
+async function saveCounsel(dateStr, records) {
+    const json = JSON.stringify(records);
+    try {
+        await idbSet("counsel:"+dateStr, json);
+    }
+    catch (_a) { }
+    try {
+        localStorage.setItem("hw5ren:c:"+dateStr, json);
+    }
+    catch (_b) { }
+}
+async function loadCounselMonth(y, m) {
+    const entries = {};
+    for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
+        const ds = y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+        const recs = await loadCounsel(ds);
+        if (recs.length > 0)
+            entries[ds] = recs;
+    }
+    return entries;
 }
 // ── Day load / save ──────────────────────────────────────────────────────────
-function loadDay(dateStr) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let raw = null;
-        // 1. IndexedDB（主要，跨版本）
+async function loadDay(dateStr) {
+    let raw = null;
+    // 1. IndexedDB（主要，跨版本）
+    try {
+        raw = await idbGet("day:"+dateStr);
+    }
+    catch (_a) { }
+    // 2. localStorage 備援
+    if (!raw) {
         try {
-            raw = yield idbGet("day:"+dateStr);
-        }
-        catch (_a) { }
-        // 2. localStorage 備援
-        if (!raw) {
-            try {
-                raw = localStorage.getItem("hw5ren:"+dateStr);
-            }
-            catch (_b) { }
-        }
-        if (raw) {
-            try {
-                const d = deser(JSON.parse(raw));
-                return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt };
-            }
-            catch (_c) { }
-        }
-        return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {} };
-    });
-}
-function saveDay(dateStr, rows, attendance, exempt) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const json = JSON.stringify(ser(rows, attendance, exempt));
-        // 1. IndexedDB（主要）
-        let idbOk = false;
-        try {
-            idbOk = yield idbSet("day:"+dateStr, json);
-        }
-        catch (_a) { }
-        // 2. localStorage（備援）
-        try {
-            localStorage.setItem("hw5ren:"+dateStr, json);
+            raw = localStorage.getItem("hw5ren:"+dateStr);
         }
         catch (_b) { }
-        return { ok: true, source: idbOk ? "idb" : "local" };
-    });
-}
-function loadMonth(y, m) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const days = daysInMonth(y, m);
-        const entries = {};
-        for (let d = 1; d <= days; d++) {
-            const ds = toDateStr(y, m, d);
-            const res = yield loadDay(ds);
-            entries[ds] = { rows: res.rows, attendance: res.attendance, exempt: res.exempt };
+    }
+    if (raw) {
+        try {
+            const d = deser(JSON.parse(raw));
+            return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt };
         }
-        return entries;
-    });
+        catch (_c) { }
+    }
+    return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {} };
+}
+async function saveDay(dateStr, rows, attendance, exempt) {
+    const json = JSON.stringify(ser(rows, attendance, exempt));
+    // 1. IndexedDB（主要）
+    let idbOk = false;
+    try {
+        idbOk = await idbSet("day:"+dateStr, json);
+    }
+    catch (_a) { }
+    // 2. localStorage（備援）
+    try {
+        localStorage.setItem("hw5ren:"+dateStr, json);
+    }
+    catch (_b) { }
+    return { ok: true, source: idbOk ? "idb" : "local" };
+}
+async function loadMonth(y, m) {
+    const days = daysInMonth(y, m);
+    const entries = {};
+    for (let d = 1; d <= days; d++) {
+        const ds = toDateStr(y, m, d);
+        const res = await loadDay(ds);
+        entries[ds] = { rows: res.rows, attendance: res.attendance, exempt: res.exempt };
+    }
+    return entries;
 }
 // ── serialise / deserialise ──────────────────────────────────────────────────
 function ser(rows, attendance, exempt) {
@@ -1319,32 +1301,30 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
         setSaved(true);
         setTimeout(() => { setSaved(false); onClose(); }, 1200);
     }
-    function doClear() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (clearDel !== "DEL") {
-                setClearMsg("請輸入正確的 DEL");
-                return;
+    async function doClear() {
+        if (clearDel !== "DEL") {
+            setClearMsg("請輸入正確的 DEL");
+            return;
+        }
+        try {
+            const keys = (await idbKeys()).filter(k => k.startsWith("day:2"));
+            const db = await openDB();
+            await new Promise((res, rej) => {
+                const tx = db.transaction(DB_STORE, "readwrite"), st = tx.objectStore(DB_STORE);
+                keys.forEach(k => st.delete(k));
+                tx.oncomplete = () => res();
+                tx.onerror = e => rej(e);
+            });
+            keys.forEach(k => { try {
+                localStorage.removeItem("hw5ren:"+k.replace("day:",""));
             }
-            try {
-                const keys = (yield idbKeys()).filter(k => k.startsWith("day:2"));
-                const db = yield openDB();
-                yield new Promise((res, rej) => {
-                    const tx = db.transaction(DB_STORE, "readwrite"), st = tx.objectStore(DB_STORE);
-                    keys.forEach(k => st.delete(k));
-                    tx.oncomplete = () => res();
-                    tx.onerror = e => rej(e);
-                });
-                keys.forEach(k => { try {
-                    localStorage.removeItem("hw5ren:"+k.replace("day:",""));
-                }
-                catch (_a) { } });
-                setClearMsg("✅ 已清除！");
-                setTimeout(() => { setClearModal(false); setClearDel(""); setClearMsg(""); onClose(); }, 1500);
-            }
-            catch (e) {
-                setClearMsg("❌ 清除失敗：" + String(e));
-            }
-        });
+            catch (_a) { } });
+            setClearMsg("✅ 已清除！");
+            setTimeout(() => { setClearModal(false); setClearDel(""); setClearMsg(""); onClose(); }, 1500);
+        }
+        catch (e) {
+            setClearMsg("❌ 清除失敗：" + String(e));
+        }
     }
     // Styles
     const panel = nerv
@@ -1520,17 +1500,17 @@ function App() {
     useEffect(() => {
         if (!authed)
             return;
-        (() => __awaiter(this, void 0, void 0, function* () {
+        (async () => {
             setDriveStatus('syncing');
             setStor(s => (Object.assign(Object.assign({}, s), { msg: '☁️ 從 Drive 載入…' })));
             try {
-                const snap = yield loadDrive();
+                const snap = await loadDrive();
                 if (snap && Object.keys(snap).length > 0) {
                     let c = 0;
                     for (const [k, v] of Object.entries(snap)) {
                         if (k.startsWith('day:2')) {
                             const ds = k.replace('day:', '');
-                            yield idbSet('day:' + ds, v);
+                            await idbSet('day:' + ds, v);
                             try {
                                 localStorage.setItem('hw5ren:' + ds, v);
                             }
@@ -1552,33 +1532,31 @@ function App() {
                 setStor({ state: 'ok', msg: '⚠️ 本機模式' });
             }
             // 不重複呼叫 doLoadMonth，由 curYear/curMonth useEffect 負責
-        }))();
+        })();
     }, [authed]);
-    function doSync() {
-        return __awaiter(this, void 0, void 0, function* () {
-            setDriveStatus('syncing');
-            try {
-                const keys = (yield idbKeys()).filter(k => k.startsWith('day:2'));
-                const snap = {};
-                for (const k of keys) {
-                    const v = yield idbGet(k);
-                    if (v)
-                        snap[k] = v;
-                }
-                const ok = yield saveDrive(snap);
-                if (ok) {
-                    markSynced();
-                    setDriveStatus('ok');
-                    return keys.length;
-                }
-                setDriveStatus('error');
-                return 0;
+    async function doSync() {
+        setDriveStatus('syncing');
+        try {
+            const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
+            const snap = {};
+            for (const k of keys) {
+                const v = await idbGet(k);
+                if (v)
+                    snap[k] = v;
             }
-            catch (_a) {
-                setDriveStatus('error');
-                return 0;
+            const ok = await saveDrive(snap);
+            if (ok) {
+                markSynced();
+                setDriveStatus('ok');
+                return keys.length;
             }
-        });
+            setDriveStatus('error');
+            return 0;
+        }
+        catch (_a) {
+            setDriveStatus('error');
+            return 0;
+        }
     }
     // Header subtitle
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
@@ -1613,13 +1591,13 @@ function App() {
     const [stor, setStor] = useState({ state: "init", msg: "初始化中…", detail: "" });
     // ── Check storage on mount ──
     useEffect(() => {
-        (() => __awaiter(this, void 0, void 0, function* () {
+        (async () => {
             setStor({ state: "checking", msg: "🔍 初始化儲存…", detail: "" });
             // 測試 IDB 是否可用
             let idbOk = false;
             try {
-                yield idbSet("__test__", "ping");
-                const v = yield idbGet("__test__");
+                await idbSet("__test__", "ping");
+                const v = await idbGet("__test__");
                 idbOk = (v === "ping");
             }
             catch (e) {
@@ -1633,7 +1611,7 @@ function App() {
             // 列出 IDB 裡所有資料天數
             let idbDays = [];
             try {
-                idbDays = (yield idbKeys()).filter(k => k.startsWith("day:2"));
+                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
             }
             catch (_a) { }
             // 列出 localStorage 資料天數
@@ -1651,13 +1629,13 @@ function App() {
                     const v = localStorage.getItem(k);
                     if (v) {
                         try {
-                            yield idbSet("day:"+ds, v);
+                            await idbSet("day:"+ds, v);
                             rescued++;
                         }
                         catch (_b) { }
                     }
                 }
-                idbDays = (yield idbKeys()).filter(k => k.startsWith("day:2"));
+                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
                 setStor({ state: "ok", msg: "✅ 已搶救 "+rescued+" 天資料到 IDB", detail: "IDB: "+idbDays.length+" 天" });
                 return;
             }
@@ -1668,59 +1646,51 @@ function App() {
                     ? "最近: "+idbDays.map(function(k){return k.replace("day:","");}).sort().slice(-3).join(", ")
                     : "尚無資料，請開始登記"
             });
-        }))();
+        })();
     }, []);
     // ── Load month ──
     useEffect(() => { doLoadMonth(curYear, curMonth); }, [curYear, curMonth]);
-    function doLoadMonth(y, m) {
-        return __awaiter(this, void 0, void 0, function* () {
-            setLoading(true);
-            const [entries, counselEntries] = yield Promise.all([
-                loadMonth(y, m),
-                loadCounselMonth(y, m)
-            ]);
-            setMonthDays(entries);
-            setCounselMonth(counselEntries);
-            setLoading(false);
-        });
+    async function doLoadMonth(y, m) {
+        setLoading(true);
+        const [entries, counselEntries] = await Promise.all([
+            loadMonth(y, m),
+            loadCounselMonth(y, m)
+        ]);
+        setMonthDays(entries);
+        setCounselMonth(counselEntries);
+        setLoading(false);
     }
-    function openCounsel(ds) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const recs = yield loadCounsel(ds);
-            setCounselRecords(recs);
-            setCounselDate(ds);
-            setCounselView(true);
-        });
+    async function openCounsel(ds) {
+        const recs = await loadCounsel(ds);
+        setCounselRecords(recs);
+        setCounselDate(ds);
+        setCounselView(true);
     }
-    function saveCounselRecord(records) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield saveCounsel(counselDate, records);
-            setCounselRecords(records);
-            setCounselMonth(prev => {
-                const next = Object.assign({}, prev);
-                if (records.length > 0)
-                    next[counselDate] = records;
-                else
-                    delete next[counselDate];
-                return next;
-            });
-            scheduleAutoSync();
+    async function saveCounselRecord(records) {
+        await saveCounsel(counselDate, records);
+        setCounselRecords(records);
+        setCounselMonth(prev => {
+            const next = Object.assign({}, prev);
+            if (records.length > 0)
+                next[counselDate] = records;
+            else
+                delete next[counselDate];
+            return next;
         });
+        scheduleAutoSync();
     }
-    function openDay(ds) {
-        return __awaiter(this, void 0, void 0, function* () {
-            setLoading(true);
-            const res = yield loadDay(ds);
-            const initRows = res.rows.length ? res.rows : [{ hwName: "", groupData: {} }];
-            setDayRows(initRows);
-            setDayAtt(res.attendance);
-            setDayExempt(res.exempt || {});
-            setSelDate(ds);
-            setView("day");
-            setLoading(false);
-            setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
-            setHistoryIdx(0);
-        });
+    async function openDay(ds) {
+        setLoading(true);
+        const res = await loadDay(ds);
+        const initRows = res.rows.length ? res.rows : [{ hwName: "", groupData: {} }];
+        setDayRows(initRows);
+        setDayAtt(res.attendance);
+        setDayExempt(res.exempt || {});
+        setSelDate(ds);
+        setView("day");
+        setLoading(false);
+        setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+        setHistoryIdx(0);
     }
     // ── Undo / Redo history ──
     const [history, setHistory] = useState([]); // [{ rows, att }, ...]
@@ -1777,17 +1747,17 @@ function App() {
             return;
         if (autoSyncTimer.current)
             clearTimeout(autoSyncTimer.current);
-        autoSyncTimer.current = setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+        autoSyncTimer.current = setTimeout(async () => {
             try {
-                const allIdbKeys = yield idbKeys();
+                const allIdbKeys = await idbKeys();
                 const keys = allIdbKeys.filter(k => k.startsWith("day:2") || k.startsWith("counsel:"));
                 const snap = {};
                 for (const k of keys) {
-                    const v = yield idbGet(k);
+                    const v = await idbGet(k);
                     if (v)
                         snap[k] = v;
                 }
-                const ok = yield saveDrive(snap);
+                const ok = await saveDrive(snap);
                 if (ok) {
                     setDriveStatus("ok");
                     markSynced();
@@ -1799,15 +1769,15 @@ function App() {
             catch (_a) {
                 setDriveStatus("error");
             }
-        }), 3000);
+        }, 3000);
     }
-    const saveCurrent = useCallback((newRows, newAtt, newExempt) => __awaiter(this, void 0, void 0, function* () {
+    const saveCurrent = useCallback(async (newRows, newAtt, newExempt) => {
         const rows = newRows !== null && newRows !== void 0 ? newRows : dayRowsRef.current;
         const att = newAtt !== null && newAtt !== void 0 ? newAtt : dayAttRef.current;
         const exempt = newExempt !== null && newExempt !== void 0 ? newExempt : dayExemptRef.current;
         setStor(s => (Object.assign(Object.assign({}, s), { state: "saving", msg: "💾 儲存中…" })));
         const date = selDateRef.current;
-        const res = yield saveDay(date, rows, att, exempt);
+        const res = await saveDay(date, rows, att, exempt);
         setMonthDays(prev => (Object.assign(Object.assign({}, prev), { [date]: { rows, attendance: att, exempt } })));
         setStor({ state: "saved",
             msg: res.source === "idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
@@ -1817,7 +1787,7 @@ function App() {
             : s), 2000);
         // 3秒後自動同步到 Drive（背景執行，不影響操作）
         scheduleAutoSync();
-    }), [authed]);
+    }, [authed]);
     function updRows(fn) {
         setDayRows(prev => {
             const next = fn(prev);
@@ -2210,14 +2180,14 @@ function App() {
                         React.createElement("button", { className: "undo-btn", onClick: redo, disabled: !canRedo, title: "\u4E0B\u4E00\u6B65" }, isNerv ? "▷" : "↪")))),
             React.createElement("div", { className: "excel-bar" },
                 importMsg && React.createElement("span", { className: "import-msg" }, importMsg),
-                React.createElement("button", { className: "excel-btn diag-btn", onClick: () => __awaiter(this, void 0, void 0, function* () {
+                React.createElement("button", { className: "excel-btn diag-btn", onClick: async () => {
                         setImportMsg("🔍 掃描中…");
                         let idbOk = false, idbKeys_ = [], lsKeys = [];
                         try {
-                            yield idbSet("__diagtest__", "1");
-                            const v = yield idbGet("__diagtest__");
+                            await idbSet("__diagtest__", "1");
+                            const v = await idbGet("__diagtest__");
                             idbOk = v === "1";
-                            idbKeys_ = (yield idbKeys()).filter(k => k.startsWith("day:2"));
+                            idbKeys_ = (await idbKeys()).filter(k => k.startsWith("day:2"));
                         }
                         catch (e) {
                             idbOk = false;
@@ -2230,7 +2200,7 @@ function App() {
                         setImportMsg("IDB:"+(idbOk?"✅":"❌")+" 資料"+idbKeys_.length+"天 | LS:"+lsKeys.length+"天 | 共"+(idbKeys_.length+lsKeys.length)+"天");
                         // 若 IDB 有資料但頁面空白，強制重載月份
                         if (idbKeys_.length > 0) {
-                            yield doLoadMonth(curYear, curMonth);
+                            await doLoadMonth(curYear, curMonth);
                         }
                         // 若 IDB 空但 LS 有資料，搶救
                         if (idbOk && idbKeys_.length === 0 && lsKeys.length > 0) {
@@ -2239,26 +2209,26 @@ function App() {
                                 const v = localStorage.getItem(k);
                                 if (v)
                                     try {
-                                        yield idbSet("day:"+ds, v);
+                                        await idbSet("day:"+ds, v);
                                     }
                                     catch (_a) { }
                             }
-                            yield doLoadMonth(curYear, curMonth);
+                            await doLoadMonth(curYear, curMonth);
                             setImportMsg("✅ 已從本機搶救 "+lsKeys.length+" 天！");
                         }
                         setTimeout(() => setImportMsg(""), 8000);
-                    }) }, "\uD83D\uDD0D \u8A3A\u65B7"),
-                React.createElement("button", { className: "excel-btn backup-btn", onClick: () => __awaiter(this, void 0, void 0, function* () {
+                    } }, "\uD83D\uDD0D \u8A3A\u65B7"),
+                React.createElement("button", { className: "excel-btn backup-btn", onClick: async () => {
                         setImportMsg("⏳ 打包所有資料…");
                         try {
-                            const allKeys = (yield idbKeys()).filter(k => k.startsWith("day:2"));
+                            const allKeys = (await idbKeys()).filter(k => k.startsWith("day:2"));
                             if (allKeys.length === 0) {
                                 setImportMsg("⚠️ 尚無資料");
                                 return;
                             }
                             const snapshot = {};
                             for (const k of allKeys) {
-                                const v = yield idbGet(k);
+                                const v = await idbGet(k);
                                 if (v)
                                     snapshot[k] = v;
                             }
@@ -2270,7 +2240,7 @@ function App() {
                         catch (e) {
                             setImportMsg("❌ " + String(e).slice(0, 50));
                         }
-                    }) }, "\uD83D\uDCE4 \u5099\u4EFD"),
+                    } }, "\uD83D\uDCE4 \u5099\u4EFD"),
                 React.createElement("button", { className: "excel-btn import-btn2", onClick: () => setShowImport(true) }, "\uD83D\uDCE5 \u532F\u5165"))),
         view === "month" && (React.createElement("main", null, loading ? (React.createElement("div", { className: "loading-wrap" },
             React.createElement("div", { className: "loading-spinner" }),
@@ -2414,17 +2384,17 @@ function App() {
                         React.createElement("div", { className: "att-nums" }, nums.map(n => (React.createElement("span", { key: n, className: "att-num", style: { background: lt.bg, color: lt.color, borderColor: lt.color } }, n))))));
                 }),
                 !((_a = dayAtt.personal) === null || _a === void 0 ? void 0 : _a.size) && !((_b = dayAtt.sick) === null || _b === void 0 ? void 0 : _b.size) && !((_c = dayAtt.public) === null || _c === void 0 ? void 0 : _c.size) && (React.createElement("p", { className: "att-empty" }, isNerv ? "▸ ALL PILOTS PRESENT ◂" : "今日全員到齊"))),
-            React.createElement("button", { className: "day-backup-btn", onClick: () => __awaiter(this, void 0, void 0, function* () {
+            React.createElement("button", { className: "day-backup-btn", onClick: async () => {
                     try {
                         // 收集所有天數資料
-                        const allKeys = (yield idbKeys()).filter(k => k.startsWith("day:2"));
+                        const allKeys = (await idbKeys()).filter(k => k.startsWith("day:2"));
                         // 確保包含今日最新資料
-                        let raw = yield idbGet("day:"+selDate);
+                        let raw = await idbGet("day:"+selDate);
                         if (!raw)
                             raw = localStorage.getItem("hw5ren:"+selDate);
                         const snapshot = {};
                         for (const k of allKeys) {
-                            const v = yield idbGet(k);
+                            const v = await idbGet(k);
                             if (v)
                                 snapshot[k] = v;
                         }
@@ -2444,7 +2414,7 @@ function App() {
                     catch (e) {
                         setImportMsg("❌ " + String(e).slice(0, 40));
                     }
-                }) }, "\uD83D\uDCE4 \u5099\u4EFD\u5168\u90E8\u5230 Drive"))),
+                } }, "\uD83D\uDCE4 \u5099\u4EFD\u5168\u90E8\u5230 Drive"))),
         modal && (React.createElement("div", { className: "ov", onClick: closeModal },
             React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
                 modal.phase === "input" && (React.createElement(React.Fragment, null,
@@ -2579,7 +2549,7 @@ function App() {
                 React.createElement("textarea", { className: "backup-textarea", value: importText, onChange: e => setImportText(e.target.value), placeholder: "\u5728\u6B64\u8CBC\u4E0A JSON...", rows: 6 }),
                 React.createElement("div", { className: "ma", style: { justifyContent: "flex-start", gap: 8 } },
                     React.createElement("button", { className: "bc", onClick: () => { setShowImport(false); setImportText(""); } }, "\u53D6\u6D88"),
-                    React.createElement("button", { className: "bk", onClick: () => __awaiter(this, void 0, void 0, function* () {
+                    React.createElement("button", { className: "bk", onClick: async () => {
                             if (!importText.trim()) {
                                 return;
                             }
@@ -2589,7 +2559,7 @@ function App() {
                                 let count = 0;
                                 const importedDates = [];
                                 if (parsed.date && parsed.data) {
-                                    yield idbSet("day:"+parsed.date, parsed.data);
+                                    await idbSet("day:"+parsed.date, parsed.data);
                                     localStorage.setItem("hw5ren:"+parsed.date, parsed.data);
                                     importedDates.push(parsed.date);
                                     count = 1;
@@ -2598,7 +2568,7 @@ function App() {
                                     for (const [k, v] of Object.entries(parsed)) {
                                         if (k.startsWith("day:2")) {
                                             const ds = k.replace("day:", "");
-                                            yield idbSet("day:"+ds, v);
+                                            await idbSet("day:"+ds, v);
                                             localStorage.setItem("hw5ren:"+ds, v);
                                             importedDates.push(ds);
                                             count++;
@@ -2610,10 +2580,10 @@ function App() {
                                     const [y, m] = firstDate.split("-").map(Number);
                                     setCurYear(y);
                                     setCurMonth(m - 1);
-                                    yield doLoadMonth(y, m - 1);
+                                    await doLoadMonth(y, m - 1);
                                 }
                                 else {
-                                    yield doLoadMonth(curYear, curMonth);
+                                    await doLoadMonth(curYear, curMonth);
                                 }
                                 // 關閉 modal、回月曆、顯示成功
                                 setShowImport(false);
@@ -2626,7 +2596,7 @@ function App() {
                                 setImportMsg("❌ 匯入失敗：" + String(e).slice(0, 60));
                                 setTimeout(() => setImportMsg(""), 6000);
                             }
-                        }) }, "\u78BA\u8A8D\u532F\u5165"))))),
+                        } }, "\u78BA\u8A8D\u532F\u5165"))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); localStorage.setItem("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); localStorage.setItem("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); localStorage.setItem("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
