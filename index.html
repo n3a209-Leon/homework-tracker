@@ -952,6 +952,17 @@ body{margin:0;padding:0;}
 </style>
 </head>
 <body>
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  document.getElementById('root').innerHTML = 
+    '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all">' +
+    '<b>JS錯誤：</b><br>' + msg + 
+    '<br><b>位置：</b>' + src + ':' + line + ':' + col +
+    '<br><b>詳細：</b><br>' + (err && err.stack ? err.stack.slice(0,400) : '無') +
+    '</div>';
+  return true;
+};
+</script>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif">正在載入...</div></div>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
