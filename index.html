@@ -11,7 +11,6 @@
 <title>作業繳交記錄</title>
 <style>
 
-
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
@@ -22,14 +21,14 @@
 
         /* ── HEADER ── */
         header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
-        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 0 6px}
+        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;padding-bottom:10px}
         .ti{font-size:22px} h1{color:#fff;font-size:19px;font-weight:900;letter-spacing:2px}
         .sub{color:#a8cdf0;font-size:12px;letter-spacing:1px}
         .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
-        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:5px 0 6px;flex-wrap:nowrap}
+        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
 
         /* ── STORAGE STATUS BAR ── */
-        .stor-bar{display:flex;align-items:center;gap:8px;padding:4px 14px;font-size:11px;font-weight:600;flex-wrap:wrap;transition:background .3s}
+        .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
         .stor-init  { background:rgba(255,255,255,.08); color:#90a4ae }
         .stor-checking { background:rgba(255,220,80,.15); color:#ffe082 }
         .stor-ok    { background:rgba(76,175,128,.18); color:#a5d6a7 }
@@ -72,9 +71,11 @@
         /* ══════════════════════════════════════════
            NERV THEME — MAGI SYSTEM HUD
         ══════════════════════════════════════════ */
-                        @keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(255,102,0,.4)}50%{box-shadow:0 0 18px rgba(255,102,0,.8)}}
+        @keyframes scanline{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+        @keyframes flicker{0%,95%,100%{opacity:1}96%,98%{opacity:.85}}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(255,102,0,.4)}50%{box-shadow:0 0 18px rgba(255,102,0,.8)}}
 
-        [data-theme="nerv"]{background:#050200;color:#ff6600;font-family:"Share Tech Mono","Noto Sans TC",monospace}
+        [data-theme="nerv"]{background:#050200;color:#ff6600;font-family:"Share Tech Mono","Noto Sans TC",monospace;animation:flicker 8s infinite}
         [data-theme="nerv"]::before{content:"";position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:9999}
         [data-theme="nerv"] .app{background-image:radial-gradient(circle at 20% 30%,rgba(255,102,0,.04) 0%,transparent 50%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 0 L56 16 L56 50 L28 66 L0 50 L0 16 Z' fill='none' stroke='rgba(255,102,0,0.06)' stroke-width='1'/%3E%3C/svg%3E");background-size:auto,56px 100px}
 
@@ -86,7 +87,7 @@
         [data-theme="nerv"] .theme-btn{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.5);border-radius:2px;letter-spacing:1px;font-size:11px;box-shadow:0 0 8px rgba(255,102,0,.2)}
         [data-theme="nerv"] .stor-bar{border-left:3px solid #ff6600;background:rgba(255,102,0,.05)!important;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
         [data-theme="nerv"] .nav-bar{border-top:1px solid rgba(255,102,0,.2)}
-        [data-theme="nerv"] .back-btn,[data-theme="nerv"] .nav-btn,[data-theme="nerv"] .undo-btn{background:rgba(255,102,0,.08);color:#ff6600;border:1px solid rgba(255,102,0,.35);border-radius:2px;font-family:"Share Tech Mono",monospace;display:inline-flex!important;visibility:visible!important}
+        [data-theme="nerv"] .back-btn,[data-theme="nerv"] .nav-btn,[data-theme="nerv"] .undo-btn{background:rgba(255,102,0,.08);color:#ff6600;border:1px solid rgba(255,102,0,.35);border-radius:2px;font-family:"Share Tech Mono",monospace}
         [data-theme="nerv"] .back-btn:hover,[data-theme="nerv"] .nav-btn:hover,[data-theme="nerv"] .undo-btn:hover:not(:disabled){background:rgba(255,102,0,.2);box-shadow:0 0 8px rgba(255,102,0,.4)}
         [data-theme="nerv"] .month-label{color:#ff6600;text-shadow:0 0 8px rgba(255,102,0,.6);letter-spacing:3px}
         [data-theme="nerv"] .date-label{color:#ff4400;letter-spacing:2px}
@@ -190,185 +191,10 @@
         [data-theme="nerv"] .backup-textarea{background:#0a0200;border-color:rgba(255,102,0,.3);color:#ff8844;font-family:'Share Tech Mono',monospace}
 
         /* ── BACKUP WARNING BAR ── */
-
-        /* ── NEBULA 星雲主題 ── */
-        [data-theme="nebula"]{
-          background:#060818;
-          color:#c8d8ff;
-          font-family:'Noto Sans TC',sans-serif;
-        }
-        [data-theme="nebula"] .app{
-          background:
-            radial-gradient(ellipse at 20% 20%, rgba(130,80,200,.15) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 80%, rgba(60,120,255,.12) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 50%, rgba(200,100,255,.06) 0%, transparent 70%),
-            #060818;
-        }
-        [data-theme="nebula"] header{
-          background:linear-gradient(180deg,rgba(20,10,50,.98),rgba(10,5,30,.95));
-          border-bottom:1px solid rgba(150,100,255,.3);
-          box-shadow:0 2px 20px rgba(100,60,200,.3);
-        }
-        [data-theme="nebula"] h1{color:#d4b8ff;letter-spacing:2px;text-shadow:0 0 15px rgba(180,120,255,.5)}
-        [data-theme="nebula"] .sub{color:rgba(180,150,255,.7);font-size:10px}
-        [data-theme="nebula"] .theme-btn,[data-theme="nebula"] .user-btn{
-          background:rgba(150,100,255,.15);
-          border:1px solid rgba(150,100,255,.4);
-          color:#c8b0ff;
-          border-radius:6px;
-        }
-        [data-theme="nebula"] .stor-bar{background:rgba(100,60,200,.1);font-size:11px}
-        [data-theme="nebula"] .backup-warn{
-          background:linear-gradient(90deg,rgba(100,60,200,.15),rgba(60,100,255,.1));
-          border-left:3px solid rgba(150,100,255,.6);
-          color:#b0a0ff;
-        }
-        [data-theme="nebula"] .nav-bar{border-top:1px solid rgba(150,100,255,.2)}
-        [data-theme="nebula"] .back-btn,[data-theme="nebula"] .nav-btn,[data-theme="nebula"] .undo-btn{
-          background:rgba(150,100,255,.1);
-          border:1px solid rgba(150,100,255,.35);
-          color:#c8b0ff;
-          border-radius:6px;
-        }
-        [data-theme="nebula"] .month-label{color:#e0d0ff;text-shadow:0 0 8px rgba(180,130,255,.4)}
-        [data-theme="nebula"] .date-label{color:rgba(200,180,255,.8)}
-        [data-theme="nebula"] .sync-bar{border-top:1px solid rgba(150,100,255,.15)}
-        [data-theme="nebula"] .excel-btn{
-          background:rgba(150,100,255,.1);
-          border:1px solid rgba(150,100,255,.3);
-          color:#c8b0ff;
-        }
-        [data-theme="nebula"] .backup-btn{background:rgba(100,200,150,.2)!important;border-color:rgba(100,200,150,.4)!important;color:#80ffb0!important}
-        /* 月曆 */
-        [data-theme="nebula"] .calendar{
-          background:#0a0520;
-          border:1px solid rgba(150,100,255,.3);
-          border-radius:12px;
-          box-shadow:0 4px 30px rgba(100,60,200,.2);
-        }
-        [data-theme="nebula"] .wd-row{background:linear-gradient(90deg,#0d0630,#0a0425)}
-        [data-theme="nebula"] .wd{color:#a080ff;letter-spacing:1px}
-        [data-theme="nebula"] .cal-grid{background:#060818}
-        [data-theme="nebula"] .cal-cell{
-          border-color:rgba(100,60,200,.15);
-          background:#07091a;
-        }
-        [data-theme="nebula"] .cal-cell:hover{background:#0d1030;border-color:rgba(150,100,255,.4)}
-        [data-theme="nebula"] .cal-cell.is-today .cal-day{
-          background:linear-gradient(135deg,#6030c0,#4060e0);
-          color:#fff;
-          border-radius:50%;
-          width:22px;height:22px;
-          display:flex;align-items:center;justify-content:center;
-          box-shadow:0 0 12px rgba(120,80,220,.7);
-          font-size:12px;
-        }
-        [data-theme="nebula"] .cal-day{color:#a080ff}
-        [data-theme="nebula"] .cal-cell.is-complete{background:linear-gradient(135deg,#040d1a,#061220)}
-        [data-theme="nebula"] .cal-cell.is-partial{background:linear-gradient(135deg,#0d0820,#0a0618)}
-        [data-theme="nebula"] .cal-ok{color:#60d0ff;text-shadow:0 0 8px rgba(60,180,255,.6)}
-        [data-theme="nebula"] .cal-absent{background:rgba(255,100,150,.15);color:#ff80a0}
-        [data-theme="nebula"] .cal-counsel{color:#c080ff}
-        /* 表格 */
-        [data-theme="nebula"] .table-wrapper{
-          background:#080a1e;
-          border:1px solid rgba(150,100,255,.3);
-          border-radius:12px;
-        }
-        [data-theme="nebula"] thead{background:linear-gradient(90deg,#0d0630,#0a0428)}
-        [data-theme="nebula"] th{color:#a080ff;border-bottom:1px solid rgba(150,100,255,.3)}
-        [data-theme="nebula"] tbody tr{border-color:rgba(100,80,200,.15)}
-        [data-theme="nebula"] tbody tr:hover{background:rgba(100,60,200,.08)}
-        [data-theme="nebula"] .hwc{color:#c8b0ff}
-        [data-theme="nebula"] .hwe{color:rgba(150,120,200,.3)!important}
-        [data-theme="nebula"] .cb{background:linear-gradient(135deg,#206040,#308060);box-shadow:0 0 8px rgba(60,200,120,.3)}
-        [data-theme="nebula"] .pb{background:linear-gradient(135deg,#602080,#8030a0);box-shadow:0 0 8px rgba(180,60,220,.3)}
-        [data-theme="nebula"] .ab{background:linear-gradient(135deg,#601020,#801830)}
-        [data-theme="nebula"] .ub{background:rgba(100,80,200,.15);color:rgba(150,120,255,.5)}
-        [data-theme="nebula"] .mn{background:#8040c0;color:#e0c8ff;border-radius:4px}
-        [data-theme="nebula"] .mn-exempt{background:#c0a000!important;color:#000!important}
-        /* 面板 */
-        [data-theme="nebula"] .exempt-panel,[data-theme="nebula"] .att-panel{
-          background:#080a1e;
-          border:1px solid rgba(150,100,255,.25);
-          border-radius:12px;
-        }
-        [data-theme="nebula"] .exempt-title{color:#c080ff}
-        [data-theme="nebula"] .exempt-hw-row:hover{background:rgba(100,60,200,.08)}
-        [data-theme="nebula"] .att-title{color:#a080ff}
-        [data-theme="nebula"] .att-type-btn{border-color:rgba(150,100,255,.3);color:#c8b0ff}
-        [data-theme="nebula"] .day-backup-btn{
-          background:linear-gradient(135deg,rgba(100,60,200,.3),rgba(60,100,255,.2));
-          border:1px solid rgba(150,100,255,.4);
-          color:#c8b0ff;
-        }
-        /* Modal */
-        [data-theme="nebula"] .ov{background:rgba(2,2,15,.75)}
-        [data-theme="nebula"] .mo{
-          background:#0a0c20;
-          border:1px solid rgba(150,100,255,.4);
-          border-radius:16px;
-          box-shadow:0 20px 60px rgba(80,40,160,.4);
-        }
-        [data-theme="nebula"] .mt{color:#c8b0ff}
-        [data-theme="nebula"] .pb2{
-          background:rgba(100,60,200,.08);
-          border:1px solid rgba(150,100,255,.3);
-          color:#b0a0ff;
-          border-radius:8px;
-        }
-        [data-theme="nebula"] .pb2:hover{background:rgba(100,60,200,.2)}
-        [data-theme="nebula"] .pb2.act{background:rgba(150,100,255,.3);border-color:#a080ff;color:#e0d0ff}
-        [data-theme="nebula"] .nb{
-          background:rgba(100,60,200,.08);
-          border:1px solid rgba(150,100,255,.3);
-          color:#b0a0ff;
-          border-radius:50%;
-        }
-        [data-theme="nebula"] .nb:hover{background:rgba(100,60,200,.25)}
-        [data-theme="nebula"] .nb.sub{
-          background:linear-gradient(135deg,#5030a0,#4050c0);
-          border-color:#8060d0;
-          color:#fff;
-          box-shadow:0 0 12px rgba(120,80,200,.5);
-        }
-        [data-theme="nebula"] .nb.ldr{border-color:#ff80a0;border-width:2px}
-        [data-theme="nebula"] .nb.sec{border-color:#80c0ff;border-style:dashed}
-        [data-theme="nebula"] .bc{
-          background:rgba(100,60,200,.08);
-          border:1px solid rgba(150,100,255,.3);
-          color:rgba(180,160,255,.6);
-          border-radius:10px;
-        }
-        [data-theme="nebula"] .bk{
-          background:linear-gradient(135deg,#5030a0,#4060c0);
-          border:none;
-          color:#fff;
-          border-radius:10px;
-          box-shadow:0 4px 15px rgba(80,50,180,.4);
-        }
-        [data-theme="nebula"] .month-summary{background:#080a1e;border:1px solid rgba(150,100,255,.2);border-radius:12px}
-        [data-theme="nebula"] .summary-row{border-color:rgba(100,80,200,.15)}
-        [data-theme="nebula"] .sum-date{color:#a080ff}
-        [data-theme="nebula"] .tag-ok{background:#042020;color:#60d0a0;border:1px solid rgba(60,200,120,.2);border-radius:6px}
-        [data-theme="nebula"] .tag-partial{background:#0d0820;color:#c080ff;border:1px solid rgba(150,80,220,.2);border-radius:6px}
-        [data-theme="nebula"] .tag-absent{background:#1a0818;color:#ff80a0;border:1px solid rgba(255,80,120,.2);border-radius:6px}
-        [data-theme="nebula"] .no-data{color:rgba(150,120,255,.3)}
-        /* 星星背景效果 */
-        [data-theme="nebula"] .cal-grid::before{
-          content:'✦ ✧ ⋆ ✦ ✧';
-          position:absolute;
-          font-size:8px;
-          color:rgba(200,180,255,.08);
-          pointer-events:none;
-          top:4px;right:4px;
-          letter-spacing:4px;
-        }
-
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
         @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-        .backup-warn{padding:4px 0;font-size:11px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
+        .backup-warn{padding:6px 0;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
         .backup-warn-text{display:inline-block;animation:marquee 12s linear infinite;padding-left:100%}
         .backup-warn-nerv{
           background:#1a0000;
@@ -600,7 +426,7 @@
             0 0 8px rgba(255,102,0,.9),
             0 0 20px rgba(255,102,0,.4),
             2px 2px 0 rgba(0,0,0,.6);
-          
+          animation: unit-flicker 6s ease infinite;
           position: relative;
           padding: 2px 8px;
           background:
@@ -943,30 +769,19 @@
           .att-header{flex-direction:column;align-items:flex-start}
         }
       
-/* PWA extra */
-body{margin:0;padding:0;}
-.drive-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
-.drive-dot.ok{background:#4caf80}.drive-dot.syncing{background:#ffaa00;animation:pulse .6s infinite}
-.drive-dot.error{background:#ff5252}.drive-dot.offline{background:#888}
-
 </style>
 </head>
 <body>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif">正在載入...</div></div>
 <script>
-window.onerror = function(msg, src, line, col, err) {
-  document.getElementById('root').innerHTML = 
-    '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all">' +
-    '<b>JS錯誤：</b><br>' + msg + 
-    '<br><b>位置：</b>' + src + ':' + line + ':' + col +
-    '<br><b>詳細：</b><br>' + (err && err.stack ? err.stack.slice(0,400) : '無') +
-    '</div>';
+window.onerror = function(msg,src,line,col,err) {
+  document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+msg+'<br><b>位置：</b>'+(src||'')+':'+line+'<br><b>React:</b>'+(typeof React!="undefined"?React.version:"未載入")+'</div>';
   return true;
 };
 </script>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif">正在載入...</div></div>
-<script src="https://accounts.google.com/gsi/client" async defer crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script>
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
 function getDriveFilename(year, cls) {
@@ -1038,15 +853,7 @@ window.getDriveFilename = getDriveFilename;
 window.addEventListener('load', function() {
   var useState=React.useState, useEffect=React.useEffect, useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
   try {
-function handleThemeToggle() {
-    setShowThemeMenu(function(v) { return !v; });
-  }
-  function setThemeAndSave(t) {
-    localStorage.setItem("hw5ren:theme", t);
-    setTheme(t);
-    setShowThemeMenu(false);
-    if (t === "nerv") startIntro();
-  }var __awaiter = function (thisArg, _arguments, P, generator) {
+var __awaiter = function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1092,7 +899,6 @@ function nervUnit(id) { return String(id); }
 // ── Storage ──────────────────────────────────────────────────────────────────
 const LS_PREFIX = "hw5ren:"; // localStorage key prefix
 // ── IndexedDB 持久儲存（iPhone 跨版本可靠）────────────────────────────────
-const getDriveFilename = window.getDriveFilename || function(y,c){ return "hw-5renren-ALL.json"; };
 const DB_NAME = "hw5ren_db";
 const DB_STORE = "dayData";
 let _db = null;
@@ -1684,13 +1490,17 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
     const [showThemeMenu, setShowThemeMenu] = useState(false);
-    const [yearRecords, setYearRecords] = useState(() => { try { return JSON.parse(localStorage.getItem('hw5ren:years') || '[]'); } catch(e2) { return []; } });
+    const [yearRecords, setYearRecords] = useState(() => { try {
+        return JSON.parse(localStorage.getItem('hw5ren:years') || '[]');
+    }
+    catch (_a) {
+        return [];
+    } });
     const [showHistory, setShowHistory] = useState(false);
-    const [lastSyncTime, setLastSyncTime] = useState(() => localStorage.getItem('hw5ren:lastSync') || '');
     const THEMES = [
-      {id:'default', icon:'☀️', name:'一般模式', desc:'清爽藍白配色'},
-      {id:'nebula',  icon:'🌌', name:'星雲模式', desc:'天馬座星雲・深邂宇宙'},
-      {id:'nerv',    icon:'⧁',  name:'NERV模式', desc:'新世紀福音戰士'},
+        { id: 'default', icon: '☀️', name: '一般模式', desc: '清爽藍白配色' },
+        { id: 'nebula', icon: '🌌', name: '星雲模式', desc: '天馬座星雲・深邃宇宙' },
+        { id: 'nerv', icon: '⬡', name: 'NERV模式', desc: '新世紀福音戰士' },
     ];
     const isNerv = theme === "nerv";
     const isNebula = theme === "nebula";
@@ -1764,6 +1574,25 @@ function App() {
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
     // ── 備份狀態 ──
     const todayStr = today();
+    const [lastSyncTime, setLastSyncTime] = useState(() => localStorage.getItem("hw5ren:lastSync") || "");
+    function getDriveFilename(year, cls) {
+        if (!year && !cls)
+            return 'hw-5renren-ALL.json';
+        const safe = (cls || '').replace(/\s/g, '').slice(0, 10);
+        return "hw-"+(year||"unknown")+"-"+(safe||"class")+".json";
+    }
+    function saveYearRecord(year, school, cls) {
+        if (!year && !cls)
+            return;
+        const key = year+"-"+school+"-"+cls;
+        setYearRecords(prev => {
+            const filtered = prev.filter(r => r.year+"-"+r.school+"-"+r.className !== key);
+            const rec = { year, school, className: cls, driveFile: getDriveFilename(year, cls), savedAt: new Date().toLocaleDateString('zh-TW') };
+            const updated = [rec, ...filtered].slice(0, 20);
+            localStorage.setItem('hw5ren:years', JSON.stringify(updated));
+            return updated;
+        });
+    }
     function markSynced() {
         const now = new Date();
         const ts = (now.getMonth()+1)+"/"+now.getDate()+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
@@ -1933,24 +1762,7 @@ function App() {
     useEffect(() => { dayRowsRef.current = dayRows; }, [dayRows]);
     // ── 自動同步 Timer（debounce 3秒）──
     const autoSyncTimer = useRef(null);
-    function markSynced() {
-    var now = new Date();
-    var ts = (now.getMonth()+1)+"/"+now.getDate()+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-    localStorage.setItem("hw5ren:lastSync", ts);
-    setLastSyncTime(ts);
-  }
-  function saveYearRecord(year, school, cls) {
-    if (!year && !cls) return;
-    var key = year+"-"+school+"-"+cls;
-    setYearRecords(function(prev) {
-      var filtered = prev.filter(function(r) { return r.year+"-"+r.school+"-"+r.className !== key; });
-      var rec = {year:year, school:school, className:cls, driveFile:getDriveFilename(year,cls), savedAt:new Date().toLocaleDateString("zh-TW")};
-      var updated = [rec].concat(filtered).slice(0,20);
-      localStorage.setItem("hw5ren:years", JSON.stringify(updated));
-      return updated;
-    });
-  }
-  function scheduleAutoSync() {
+    function scheduleAutoSync() {
         if (!authed)
             return;
         if (autoSyncTimer.current)
@@ -2258,11 +2070,12 @@ function App() {
             }
         }, 420);
     }
-    function handleThemeToggle() {
-        const next = theme === "default" ? "nerv" : "default";
-        localStorage.setItem("hw5ren:theme", next);
-        setTheme(next);
-        if (next === "nerv")
+    function handleThemeToggle() { setShowThemeMenu(v => !v); }
+    function setThemeAndSave(t) {
+        localStorage.setItem('hw5ren:theme', t);
+        setTheme(t);
+        setShowThemeMenu(false);
+        if (t === 'nerv')
             startIntro();
     }
     // ── Format selDate nicely ──
@@ -2300,7 +2113,27 @@ function App() {
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle }, isNerv ? "🔵 一般模式" : "🟠 NERV模式"),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
+                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")), /* ── NEBULA 星雲主題 ── */
+            [data - theme] = "nebula",
+            "]",
+            background,
+            ":#060818;color:#c8d8ff} [data-theme=\"nebula\"] header",
+            background,
+            ":rgba(10,5,30,.98);border-bottom:1px solid rgba(150,100,255,.3)} [data-theme=\"nebula\"] h1",
+            color,
+            ":#d4b8ff} [data-theme=\"nebula\"] .theme-btn",
+            background,
+            ":rgba(150,100,255,.15);border:1px solid rgba(150,100,255,.4);color:#c8b0ff} [data-theme=\"nebula\"] .back-btn,.cal-cell,[data-theme=\"nebula\"] .undo-btn",
+            color,
+            ":#c8b0ff} [data-theme=\"nebula\"] .calendar",
+            background,
+            ":#0a0520;border:1px solid rgba(150,100,255,.3)} [data-theme=\"nebula\"] .cal-day",
+            color,
+            ":#a080ff} [data-theme=\"nebula\"] .mo",
+            background,
+            ":#0a0c20;border:1px solid rgba(150,100,255,.4);border-radius:16px} [data-theme=\"nebula\"] .bk",
+            background,
+            ":linear-gradient(135deg,#5030a0,#4060c0);color:#fff} /* \u2500\u2500 NERV INTRO OVERLAY \u2500\u2500 */}",
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
                     React.createElement("div", { className: "nerv-hex-ring" },
@@ -2365,6 +2198,7 @@ function App() {
                         ? "◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 // ◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 //"
                         : "🔌 Drive 未連線　資料儲存於本機　登入後自動同步　🔌 Drive 未連線　資料儲存於本機"))),
             React.createElement("div", { className: "nav-bar" },
+                (view === "day" || view === "settings" || counselView) && (React.createElement("button", { className: "back-btn", onClick: () => { setView("month"); setCounselView(false); } }, isNerv ? "⬡ HOME" : "🏠")),
                 view === "day" && (React.createElement("button", { className: "back-btn", onClick: () => setView("month") }, isNerv ? "◀ RETURN" : "← 月曆")),
                 React.createElement("button", { className: "nav-btn", onClick: prevMonth }, "\u2039"),
                 React.createElement("span", { className: "month-label" }, isNerv
@@ -2809,7 +2643,7 @@ function App() {
 
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
   } catch(e) {
-    document.getElementById('root').innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>' + e.message + '<br><br><b>位置：</b><br>' + (e.stack||'').slice(0,500) + '</div>';
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+( e.stack||'').slice(0,400)+'</div>';
   }
 });
 </script>
