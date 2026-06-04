@@ -2435,43 +2435,18 @@ function App() {
 
         {/* ── 主題選擇底部選單 ── */}
         {showThemeMenu && (
-          <div onClick={()=>setShowThemeMenu(false)}
-            style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,.5)"}}>
-            <div onClick={e=>e.stopPropagation()} style={{
-              position:"absolute",bottom:0,left:0,right:0,
-              background: theme==='nerv'?"#120400":theme==='nebula'?"#0a0c20":"#fff",
-              borderRadius:"20px 20px 0 0",
-              padding:"12px 0 40px",
-              boxShadow:"0 -8px 40px rgba(0,0,0,.3)"
-            }}>
-              {/* 拖曳把手 */}
+          <div onClick={()=>setShowThemeMenu(false)} style={{position:"fixed",inset:0,zIndex:300,background:"rgba(0,0,0,.5)"}}>
+            <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:0,left:0,right:0,background:theme==='nerv'?"#120400":theme==='nebula'?"#0a0c20":"#fff",borderRadius:"20px 20px 0 0",padding:"12px 0 40px",boxShadow:"0 -8px 40px rgba(0,0,0,.3)"}}>
               <div style={{width:40,height:4,borderRadius:2,background:"rgba(128,128,128,.3)",margin:"0 auto 16px"}}/>
-              <p style={{textAlign:"center",fontSize:12,fontWeight:700,color:
-                theme==='nerv'?"rgba(255,102,0,.5)":theme==='nebula'?"rgba(150,120,255,.5)":"#aab8cc",
-                marginBottom:12,letterSpacing:2}}>選擇主題</p>
+              <p style={{textAlign:"center",fontSize:12,fontWeight:700,color:theme==='nerv'?"rgba(255,102,0,.5)":theme==='nebula'?"rgba(150,120,255,.5)":"#aab8cc",marginBottom:12,letterSpacing:2}}>選擇主題</p>
               {THEMES.map((t,i)=>(
-                <button key={t.id} onClick={()=>setThemeAndSave(t.id)}
-                  style={{
-                    display:"flex",alignItems:"center",gap:14,
-                    width:"100%",padding:"16px 24px",
-                    background:theme===t.id?
-                      (theme==='nerv'?"rgba(255,102,0,.15)":theme==='nebula'?"rgba(150,100,255,.15)":"#f0f4ff")
-                      :"transparent",
-                    border:"none",
-                    borderTop: i>0?"1px solid "+(theme==='nerv'?"rgba(255,102,0,.1)":theme==='nebula'?"rgba(150,100,255,.1)":"rgba(0,0,0,.06)"):"none",
-                    cursor:"pointer",textAlign:"left",
-                    color:theme==='nerv'?"#ff8844":theme==='nebula'?"#c8b0ff":"#1e3a5f",
-                    fontFamily:theme==='nerv'?"Share Tech Mono,monospace":"inherit"
-                  }}>
+                <button key={t.id} onClick={()=>setThemeAndSave(t.id)} style={{display:"flex",alignItems:"center",gap:14,width:"100%",padding:"16px 24px",background:theme===t.id?(theme==='nerv'?"rgba(255,102,0,.15)":theme==='nebula'?"rgba(150,100,255,.15)":"#f0f4ff"):"transparent",border:"none",borderTop:i>0?"1px solid "+(theme==='nerv'?"rgba(255,102,0,.1)":theme==='nebula'?"rgba(150,100,255,.1)":"rgba(0,0,0,.06)"):"none",cursor:"pointer",textAlign:"left",color:theme==='nerv'?"#ff8844":theme==='nebula'?"#c8b0ff":"#1e3a5f",fontFamily:theme==='nerv'?"Share Tech Mono,monospace":"inherit"}}>
                   <span style={{fontSize:24}}>{t.icon}</span>
                   <div>
                     <div style={{fontSize:15,fontWeight:700}}>{t.name}</div>
                     <div style={{fontSize:11,opacity:.6,marginTop:2}}>{t.desc}</div>
                   </div>
-                  {theme===t.id && (
-                    <span style={{marginLeft:"auto",fontSize:18,color:
-                      theme==='nerv'?"#ff6600":theme==='nebula'?"#a080ff":"#1e3a5f"}}>✓</span>
-                  )}
+                  {theme===t.id && <span style={{marginLeft:"auto",fontSize:18,color:theme==='nerv'?"#ff6600":theme==='nebula'?"#a080ff":"#1e3a5f"}}>✓</span>}
                 </button>
               ))}
             </div>
@@ -3304,9 +3279,7 @@ function App() {
   );
 }
 
-// ── Click outside to close theme menu helper ──────────────────────────────────
-
-  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
 </body>
 </html>
