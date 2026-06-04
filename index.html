@@ -2072,9 +2072,8 @@ function App() {
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
-                    if (typeof google !== "undefined") {
-                        gSignIn().then(() => setAuthed(true)).catch(() => setStor({ state: "error", msg: "登入失敗" }));
-                    }
+                    setStor({ state: "saving", msg: "🔑 登入中..." });
+                    gSignIn().then(() => setAuthed(true)).catch((e) => setStor({ state: "error", msg: "登入失敗" }));
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
@@ -2091,7 +2090,7 @@ function App() {
                     " ",
                     React.createElement("em", null, "\u4F5C\u696D\u7E73\u4EA4\u30B7\u30B9\u30C6\u30E0")) : "作業繳交紀錄"),
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
-                React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle }, isNerv ? "🔵 一般模式" : "🟠 NERV模式"),
+                React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
                 React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
             intro && (React.createElement("div", { className: "nerv-intro" },
@@ -2597,6 +2596,16 @@ function App() {
                                 setTimeout(() => setImportMsg(""), 6000);
                             }
                         } }, "\u78BA\u8A8D\u532F\u5165"))))),
+        showThemeMenu && (React.createElement("div", { onClick: () => setShowThemeMenu(false), style: { position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.5)' } },
+            React.createElement("div", { onClick: e => e.stopPropagation(), style: { position: 'absolute', bottom: 0, left: 0, right: 0, background: theme === 'nerv' ? '#120400' : theme === 'nebula' ? '#0a0c20' : '#fff', borderRadius: '20px 20px 0 0', padding: '12px 0 40px', boxShadow: '0 -8px 40px rgba(0,0,0,.3)' } },
+                React.createElement("div", { style: { width: 40, height: 4, borderRadius: 2, background: 'rgba(128,128,128,.3)', margin: '0 auto 16px' } }),
+                React.createElement("p", { style: { textAlign: 'center', fontSize: 12, fontWeight: 700, color: theme === 'nerv' ? 'rgba(255,102,0,.5)' : theme === 'nebula' ? 'rgba(150,120,255,.5)' : '#aab8cc', marginBottom: 12, letterSpacing: 2 } }, "\u9078\u64C7\u4E3B\u984C"),
+                THEMES.map((t, i) => (React.createElement("button", { key: t.id, onClick: () => setThemeAndSave(t.id), style: { display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '16px 24px', background: theme === t.id ? (theme === 'nerv' ? 'rgba(255,102,0,.15)' : theme === 'nebula' ? 'rgba(150,100,255,.15)' : '#f0f4ff') : 'transparent', border: 'none', borderTop: i > 0 ? '1px solid ' + (theme === 'nerv' ? 'rgba(255,102,0,.1)' : theme === 'nebula' ? 'rgba(150,100,255,.1)' : 'rgba(0,0,0,.06)') : 'none', cursor: 'pointer', textAlign: 'left', color: theme === 'nerv' ? '#ff8844' : theme === 'nebula' ? '#c8b0ff' : '#1e3a5f', fontFamily: theme === 'nerv' ? 'Share Tech Mono,monospace' : 'inherit' } },
+                    React.createElement("span", { style: { fontSize: 24 } }, t.icon),
+                    React.createElement("div", null,
+                        React.createElement("div", { style: { fontSize: 15, fontWeight: 700 } }, t.name),
+                        React.createElement("div", { style: { fontSize: 11, opacity: .6, marginTop: 2 } }, t.desc)),
+                    theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); localStorage.setItem("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); localStorage.setItem("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); localStorage.setItem("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
