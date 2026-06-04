@@ -1243,6 +1243,8 @@ function daySummary(rows, grps) {
 <script type="text/babel">
 const {useState,useEffect,useCallback,useRef,useMemo}=React;
 
+const {useState,useEffect,useCallback,useRef,useMemo}=React;
+
 // ── Counsel View Component ────────────────────────────────────────────────────
 function CounselView({ date, records, onSave, onClose, isNerv, allMembers, groups, fmtDate }) {
   const [recs, setRecs] = useState(() => records.length > 0 ? JSON.parse(JSON.stringify(records)) : [newRec(date)]);
@@ -1714,6 +1716,8 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
   );
 }
 
+</script>
+<script type="text/babel">
 function App() {
   const [view, setView] = useState("month");
   const [groups, setGroups] = useState(() => loadGroups());
@@ -3163,6 +3167,7 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
 
 </script>
 </body>
