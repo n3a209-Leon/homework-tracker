@@ -1684,8 +1684,6 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
     const [showThemeMenu, setShowThemeMenu] = useState(false);
-    const [schoolName, setSchoolName] = useState(() => localStorage.getItem('hw5ren:school') || '');
-    const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem('hw5ren:year') || String(new Date().getFullYear()));
     const [yearRecords, setYearRecords] = useState(() => { try { return JSON.parse(localStorage.getItem('hw5ren:years') || '[]'); } catch(e2) { return []; } });
     const [showHistory, setShowHistory] = useState(false);
     const [lastSyncTime, setLastSyncTime] = useState(() => localStorage.getItem('hw5ren:lastSync') || '');
@@ -1766,7 +1764,6 @@ function App() {
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
     // ── 備份狀態 ──
     const todayStr = today();
-    const [lastSyncTime, setLastSyncTime] = useState(() => localStorage.getItem("hw5ren:lastSync") || "");
     function markSynced() {
         const now = new Date();
         const ts = (now.getMonth()+1)+"/"+now.getDate()+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
