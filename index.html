@@ -784,7 +784,12 @@ body{margin:0;padding:0;}
 <script>
 // ── Google Drive ──────────────────────────────────────────────────────────────
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
-const DRIVE_FILENAME = 'hw-5renren-ALL.json';
+const DRIVE_FILENAME = 'hw-5renren-ALL.json'; // legacy
+function getDriveFilename(year, cls) {
+  if (!year && !cls) return DRIVE_FILENAME;
+  const safe = (cls||'').replace(/\s/g,'').slice(0,10);
+  return `hw-${year||'unknown'}-${safe||'class'}.json`;
+}
 let accessToken = null, driveFileId = null;
 
 function gSignIn(){
@@ -805,7 +810,8 @@ function gSignIn(){
 
 async function findDriveFile(){
   if(!accessToken)return null;
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILENAME}'&fields=files(id)`,{headers:{'Authorization':'Bearer '+accessToken}});
+  const activeName = getDriveFilename(localStorage.getItem('hw5ren:year'), localStorage.getItem('hw5ren:className'));
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${activeName}'&fields=files(id)`,{headers:{'Authorization':'Bearer '+accessToken}});
   const d=await r.json();
   if(d.files?.length){driveFileId=d.files[0].id;return driveFileId;}
   return null;
@@ -817,7 +823,7 @@ async function saveDrive(snapshot){
   if(!driveFileId)await findDriveFile();
   const form=new FormData();
   if(driveFileId){
-    form.append('metadata',new Blob([JSON.stringify({name:DRIVE_FILENAME})],{type:'application/json'}));
+    form.append('metadata',new Blob([JSON.stringify({name:getDriveFilename(localStorage.getItem("hw5ren:year"),localStorage.getItem("hw5ren:className"))})],{type:'application/json'}));
     form.append('file',blob);
     const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`,{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
     return r.ok;
@@ -1252,7 +1258,7 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
 }
 
 // ── Settings View Component ───────────────────────────────────────────────────
-function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
+function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, onSaved, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
   const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
   const [draftClass, setDraftClass] = useState(className);
   const [draftSchool, setDraftSchool] = useState(schoolName);
@@ -1329,6 +1335,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     setClassName(draftClass.trim());
     setSchoolName(draftSchool.trim());
     setSchoolYear(draftYear.trim());
+    if (onSaved) onSaved(draftYear.trim(), draftSchool.trim(), draftClass.trim());
     setSaved(true);
     setTimeout(()=>{ setSaved(false); onClose(); }, 1200);
   }
@@ -1602,6 +1609,11 @@ function App() {
   const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
   const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
   const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
+  // ── 歷史學年 ──
+  const [yearRecords, setYearRecords] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("hw5ren:years") || "[]"); } catch { return []; }
+  });
+  const [showHistory, setShowHistory] = useState(false);
   const ALL_MEMBERS = [...new Set(groups.flatMap(g=>g.members))].sort((a,b)=>a-b);
   function saveGroups(g) {
     setGroups(g);
@@ -1681,6 +1693,23 @@ function App() {
   const headerSub = React.useMemo(()=>(
     authed ? [schoolYear&&`${schoolYear}年`, schoolName, className].filter(Boolean).join(" ") : ""
   ), [authed, schoolYear, schoolName, className]);
+
+  // ── 儲存學年紀錄（每次設定儲存時自動記錄）──
+  function saveYearRecord(year, school, cls) {
+    if (!year && !cls) return;
+    const key = `${year}-${school}-${cls}`;
+    setYearRecords(prev => {
+      const filtered = prev.filter(r => `${r.year}-${r.school}-${r.className}` !== key);
+      const newRec = {
+        year, school, className: cls,
+        driveFile: getDriveFilename(year, cls),
+        savedAt: new Date().toLocaleDateString('zh-TW')
+      };
+      const updated = [newRec, ...filtered].slice(0, 20);
+      localStorage.setItem("hw5ren:years", JSON.stringify(updated));
+      return updated;
+    });
+  }
 
   // ── 備份狀態 ──
   const todayStr = today();
@@ -1834,14 +1863,17 @@ function App() {
   const canUndo = historyIdx > 0;
   const canRedo = historyIdx < history.length - 1;
 
-  const selDateRef  = useRef(today());
-  useEffect(() => { selDateRef.current  = selDate;  }, [selDate]);
+  const selDateRef   = useRef(today());
   const dayExemptRef = useRef({});
-  useEffect(() => { dayExemptRef.current = dayExempt; }, [dayExempt]);
-  const dayAttRef   = useRef({ personal:new Set(), sick:new Set(), public:new Set() });
-  useEffect(() => { dayAttRef.current   = dayAtt;   }, [dayAtt]);
-  const dayRowsRef  = useRef([]);
-  useEffect(() => { dayRowsRef.current  = dayRows;  }, [dayRows]);
+  const dayAttRef    = useRef({ personal:new Set(), sick:new Set(), public:new Set() });
+  const dayRowsRef   = useRef([]);
+  // 同步 refs（合併為單一 useEffect，減少 render 開銷）
+  useEffect(() => {
+    selDateRef.current   = selDate;
+    dayExemptRef.current = dayExempt;
+    dayAttRef.current    = dayAtt;
+    dayRowsRef.current   = dayRows;
+  });
 
   // ── 自動同步 Timer（debounce 3秒）──
   const autoSyncTimer = useRef(null);
@@ -2058,7 +2090,7 @@ function App() {
   }
 
   // ── Month calendar grid ──
-  function CalendarCell({ dateStr, d }) {
+  const CalendarCell = React.memo(function CalendarCell({ dateStr, d }) {
     const entry = monthDays[dateStr] || { rows:[], attendance:{ personal:new Set(), sick:new Set(), public:new Set() } };
     const rows = entry.rows || [];
     const att  = entry.attendance || { personal:new Set(), sick:new Set(), public:new Set() };
@@ -2097,6 +2129,7 @@ function App() {
       </div>
     );
   }
+  );
 
   // ── NERV Intro Animation ──
   const [intro, setIntro] = useState(() => {
@@ -2181,6 +2214,10 @@ function App() {
           <button className="theme-btn" onClick={()=>openCounsel(selDate||today())} title="輔導紀錄"
             style={{background: Object.keys(counselMonth).length>0?"rgba(156,39,176,.35)":"rgba(255,255,255,.15)"}}>
             {isNerv ? "◈" : "💬"}
+          </button>
+          <button className="theme-btn" onClick={()=>setShowHistory(true)} title="歷史學年"
+            style={{background: yearRecords.length>0?"rgba(255,193,7,.25)":"rgba(255,255,255,.15)"}}>
+            {isNerv ? "◎" : "📂"}
           </button>
           <button className="theme-btn" onClick={()=>setView("settings")} title="設定">
             {isNerv ? "⚙" : "⚙️"}
@@ -2278,6 +2315,12 @@ function App() {
           </span>
         </div>
         <div className="nav-bar">
+          {/* 首頁按鈕：永遠顯示 */}
+          {(view==="day" || view==="settings" || counselView) && (
+            <button className="back-btn" onClick={()=>{ setView("month"); setCounselView(false); }}>
+              {isNerv ? "⬡ HOME" : "🏠"}
+            </button>
+          )}
           {view==="day" && (
             <button className="back-btn" onClick={()=>setView("month")}>{isNerv ? "◀ RETURN" : "← 月曆"}</button>
           )}
@@ -2915,6 +2958,7 @@ function App() {
           setSchoolName={(v)=>{ setSchoolName(v); localStorage.setItem("hw5ren:school",v); }}
           schoolYear={schoolYear}
           setSchoolYear={(v)=>{ setSchoolYear(v); localStorage.setItem("hw5ren:year",v); }}
+          onSaved={(y,s,c)=>saveYearRecord(y,s,c)}
           onClose={()=>setView("month")}
           isNerv={isNerv}
           idbKeys={idbKeys}
@@ -2922,6 +2966,83 @@ function App() {
           openDB={openDB}
           DB_STORE={DB_STORE}
         />
+      )}
+
+      {/* ── 歷史學年 Modal ── */}
+      {showHistory && (
+        <div className="ov" onClick={()=>setShowHistory(false)}>
+          <div className="mo" onClick={e=>e.stopPropagation()} style={{maxHeight:"80vh",overflowY:"auto"}}>
+            <h2 className="mt" style={{fontSize:16}}>{isNerv?"◎ ARCHIVE":"📂 歷史學年紀錄"}</h2>
+            <p className="mhint">{isNerv?"// 點選學年可切換載入 //":"點選學年可切換查閱該年資料"}</p>
+            {yearRecords.length === 0 ? (
+              <p style={{color:"#aab8cc",fontSize:13,textAlign:"center",padding:"20px 0"}}>
+                {isNerv?"// NO ARCHIVE DATA //":"尚無歷史紀錄\n儲存設定後自動建立"}
+              </p>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+                {yearRecords.map((rec, i) => {
+                  const isActive = rec.year===schoolYear && rec.className===className;
+                  return (
+                    <div key={i} onClick={async()=>{
+                      // 切換到此學年
+                      setSchoolYear(rec.year); localStorage.setItem("hw5ren:year", rec.year);
+                      setSchoolName(rec.school); localStorage.setItem("hw5ren:school", rec.school);
+                      setClassName(rec.className); localStorage.setItem("hw5ren:className", rec.className);
+                      driveFileId = null; // 重置 Drive file ID，讓它重新搜尋
+                      setShowHistory(false);
+                      // 重新從 Drive 載入該學年資料
+                      setDriveStatus("syncing");
+                      setStor(s=>({...s,msg:"☁️ 載入歷史資料…"}));
+                      try {
+                        const snap = await loadDrive();
+                        if(snap && Object.keys(snap).length>0){
+                          let ct=0;
+                          for(const [k,v] of Object.entries(snap)){
+                            if(k.startsWith("day:2")){
+                              await idbSet("day:"+k.replace("day:",""),v);
+                              ct++;
+                            }
+                          }
+                          setDriveStatus("ok");
+                          setStor({state:"ok",msg:`☁️ 載入 ${rec.year}年 ${rec.className} ${ct}天`});
+                        }
+                      } catch { setDriveStatus("error"); }
+                      await doLoadMonth(curYear, curMonth);
+                    }}
+                    style={{
+                      padding:"12px 16px",
+                      borderRadius: isNerv?2:12,
+                      border: isActive
+                        ?(isNerv?"2px solid #ff6600":"2px solid #1e3a5f")
+                        :(isNerv?"1px solid rgba(255,102,0,.3)":"1px solid #eef2f7"),
+                      background: isActive
+                        ?(isNerv?"rgba(255,102,0,.15)":"#e8f0fe")
+                        :(isNerv?"rgba(255,102,0,.04)":"#fff"),
+                      cursor:"pointer",
+                      transition:"all .15s"
+                    }}>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <div>
+                          <span style={{fontSize:15,fontWeight:900,color:isNerv?"#ffaa44":"#1e3a5f",fontFamily:isNerv?"Share Tech Mono,monospace":"inherit"}}>
+                            {rec.year}年 {rec.school} {rec.className}
+                          </span>
+                          {isActive && <span style={{marginLeft:8,fontSize:11,background:isNerv?"rgba(255,102,0,.3)":"#1e3a5f",color:"#fff",padding:"1px 6px",borderRadius:10}}>目前</span>}
+                        </div>
+                        <span style={{fontSize:11,color:isNerv?"rgba(255,102,0,.4)":"#aab8cc"}}>{rec.savedAt}</span>
+                      </div>
+                      <div style={{fontSize:11,color:isNerv?"rgba(255,102,0,.5)":"#8a9db5",marginTop:4,fontFamily:isNerv?"Share Tech Mono,monospace":"inherit"}}>
+                        {isNerv?"// ":""}Drive: {rec.driveFile}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div style={{display:"flex",gap:8}}>
+              <button className="bc" onClick={()=>setShowHistory(false)}>關閉</button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
