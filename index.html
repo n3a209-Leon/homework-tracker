@@ -22,14 +22,14 @@
 
         /* ── HEADER ── */
         header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
-        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;padding-bottom:10px}
+        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 0 6px}
         .ti{font-size:22px} h1{color:#fff;font-size:19px;font-weight:900;letter-spacing:2px}
         .sub{color:#a8cdf0;font-size:12px;letter-spacing:1px}
         .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
-        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
+        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:5px 0 6px;flex-wrap:nowrap}
 
         /* ── STORAGE STATUS BAR ── */
-        .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
+        .stor-bar{display:flex;align-items:center;gap:8px;padding:4px 14px;font-size:11px;font-weight:600;flex-wrap:wrap;transition:background .3s}
         .stor-init  { background:rgba(255,255,255,.08); color:#90a4ae }
         .stor-checking { background:rgba(255,220,80,.15); color:#ffe082 }
         .stor-ok    { background:rgba(76,175,128,.18); color:#a5d6a7 }
@@ -193,7 +193,7 @@
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
         @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-        .backup-warn{padding:6px 0;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
+        .backup-warn{padding:4px 0;font-size:11px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
         .backup-warn-text{display:inline-block;animation:marquee 12s linear infinite;padding-left:100%}
         .backup-warn-nerv{
           background:#1a0000;
@@ -2206,22 +2206,32 @@ function App() {
       <header>
         <div className="hi">
           <span className="ti">{isNerv ? "⬡" : "📋"}</span>
-          <h1>{isNerv ? <><em>NERV</em> <span className="nerv-slash">//</span> <em>作業繳交システム</em></> : "作業繳交紀錄"}</h1>
-          <span className="sub">{isNerv ? `▸ ${(headerSub||"CLASS-05REN").toUpperCase()} ◂ TACTICAL OPS` : headerSub}</span>
-          <button className="theme-btn" onClick={handleThemeToggle}>
-            {isNerv ? "🔵 一般模式" : "🟠 NERV模式"}
-          </button>
-          <button className="theme-btn" onClick={()=>openCounsel(selDate||today())} title="輔導紀錄"
-            style={{background: Object.keys(counselMonth).length>0?"rgba(156,39,176,.35)":"rgba(255,255,255,.15)"}}>
-            {isNerv ? "◈" : "💬"}
-          </button>
-          <button className="theme-btn" onClick={()=>setShowHistory(true)} title="歷史學年"
-            style={{background: yearRecords.length>0?"rgba(255,193,7,.25)":"rgba(255,255,255,.15)"}}>
-            {isNerv ? "◎" : "📂"}
-          </button>
-          <button className="theme-btn" onClick={()=>setView("settings")} title="設定">
-            {isNerv ? "⚙" : "⚙️"}
-          </button>
+          <div style={{flex:1,minWidth:0}}>
+            <h1 style={{fontSize:15,fontWeight:900,letterSpacing:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+              {isNerv ? <><em>NERV</em> <span className="nerv-slash">//</span> <em>作業繳交システム</em></> : "作業繳交紀錄"}
+            </h1>
+            {headerSub && (
+              <span className="sub" style={{fontSize:10,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",display:"block"}}>
+                {isNerv ? `▸ ${headerSub.toUpperCase()} ◂` : headerSub}
+              </span>
+            )}
+          </div>
+          <div style={{display:"flex",gap:4,flexShrink:0,alignItems:"center"}}>
+            <button className="theme-btn" onClick={handleThemeToggle} style={{padding:"4px 8px",fontSize:11}}>
+              {isNerv ? "🔵" : "🟠"}
+            </button>
+            <button className="theme-btn" onClick={()=>openCounsel(selDate||today())} title="輔導紀錄"
+              style={{background: Object.keys(counselMonth).length>0?"rgba(156,39,176,.35)":"rgba(255,255,255,.15)",padding:"4px 8px"}}>
+              {isNerv ? "◈" : "💬"}
+            </button>
+            <button className="theme-btn" onClick={()=>setShowHistory(true)} title="歷史學年"
+              style={{background: yearRecords.length>0?"rgba(255,193,7,.25)":"rgba(255,255,255,.15)",padding:"4px 8px"}}>
+              {isNerv ? "◎" : "📂"}
+            </button>
+            <button className="theme-btn" onClick={()=>setView("settings")} title="設定" style={{padding:"4px 8px"}}>
+              {isNerv ? "⚙" : "⚙️"}
+            </button>
+          </div>
         </div>
 
       {/* ── NERV INTRO OVERLAY ── */}
