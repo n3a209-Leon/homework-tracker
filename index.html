@@ -782,15 +782,30 @@
 </style>
 </head>
 <body>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif">正在載入...</div></div>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
+<script>
+// Fallback: if app doesn't start in 8 seconds, show diagnostic
+setTimeout(function() {
+  var root = document.getElementById('root');
+  if (root && root.innerHTML.indexOf('正在載入') !== -1) {
+    root.innerHTML = '<div style="padding:20px;font-size:13px;font-family:sans-serif;background:#fff">' +
+      '<b style="color:#c00">載入逾時診斷：</b><br>' +
+      'React: ' + (typeof React !== "undefined" ? React.version : "未載入") + '<br>' +
+      'ReactDOM: ' + (typeof ReactDOM !== "undefined" ? "OK" : "未載入") + '<br>' +
+      'Window load fired: ' + (window._loadFired ? "Yes" : "No") + '<br>' +
+      'App error: ' + (window._appError || "None") +
+      '</div>';
+  }
+}, 8000);
+</script>
 <script>
 window.onerror = function(msg,src,line,col,err) {
   document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+msg+'<br><b>位置：</b>'+(src||'')+':'+line+'<br><b>React:</b>'+(typeof React!="undefined"?React.version:"未載入")+'</div>';
   return true;
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
 <script>
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
 function getDriveFilename(year, cls) {
@@ -869,6 +884,7 @@ window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
 </script>
 <script>
+window._loadFired = true;
 window.addEventListener('load', function() {
   const {useState,useEffect,useCallback,useRef,useMemo} = React;
   try {
@@ -2668,9 +2684,9 @@ function App() {
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); localStorage.setItem("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); localStorage.setItem("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); localStorage.setItem("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+    ReactDOM.render(React.createElement(App), document.getElementById('root'));
   } catch(e) {
-    document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+(e.stack||'').slice(0,400)+'</div>';
+    window._appError = e.message; document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+(e.stack||'').slice(0,400)+'</div>';
   }
 });
 </script>
