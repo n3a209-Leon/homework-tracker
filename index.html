@@ -189,8 +189,9 @@
         [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
         [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
+
         /* ========================================================
-           🌟 星雲主題 (nebula) 專屬按鈕升級 (不影響常規與 NERV)
+           🌟 星雲主題 (nebula) 專屬作業紀錄按鈕完美升級修正版
            ======================================================== */
         @keyframes nebula-green-pulse {
           0%, 100% {
@@ -201,25 +202,54 @@
           }
         }
 
-        /* 當主題是星雲時，精準鎖定選中(sub)或完成(done)的作業按鈕 */
+        /* 修正 Bug：相容 React 渲染出來的 .nbsub 拼接名稱 */
+        [data-theme="nebula"] .nbsub,
         [data-theme="nebula"] .nb.sub {
           background: rgba(30,160,80,.25) !important;
           border: 2px solid #3dd68c !important;
           color: #a0ffcc !important;
           animation: nebula-green-pulse 2s ease-in-out infinite !important;
-          transform: scale(1.08);
+          transform: scale(1.08) !important;
           transition: all 0.2s ease;
           position: relative;
-          z-index: 2; /* 確保放大的時候不會被旁邊的按鈕切掉 */
+          z-index: 5;
         }
 
-        /* 確保常規/星雲主題下的組員排版與文字完全不受 position 影響 */
-        [data-theme="nebula"] .nw {
-          display: flex;
+        /* 修正 Bug：徹底打碎 NERV 六角形在星雲主題下的絕對定位重疊 */
+        [data-theme="nebula"] .ng .nw {
+          position: static !important;
+          width: auto !important;
+          height: auto !important;
+          display: inline-flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
+          margin: 6px;
         }
+
+        /* 確保星雲主題下的按鈕不會縮小變形，且維持圓鈕 */
+        [data-theme="nebula"] .nb {
+          position: static !important;
+          width: 42px !important;
+          height: 42px !important;
+          border-radius: 50% !important;
+          clip-path: none !important;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: inherit !important;
+          box-shadow: none;
+        }
+
+        /* 確保組長與秘書長的標籤正常浮現，並且可以被精準點擊 */
+        [data-theme="nebula"] .rt {
+          position: static !important;
+          transform: none !important;
+          font-size: 11px !important;
+          margin-top: 4px;
+          display: block !important;
+        }
+        
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
         [data-theme="nerv"] .nb.sec{background:rgba(255,200,0,.1);box-shadow:0 0 8px rgba(255,200,0,.3)}
         [data-theme="nerv"] .lt{background:rgba(255,0,0,.15);color:#ff5555;border-radius:2px}
