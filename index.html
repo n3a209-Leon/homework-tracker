@@ -3995,30 +3995,6 @@ setTimeout(function(){
     }
   } catch(e) {}
 })();
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-
-import {
-  getFirestore
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAqgA9pYvOduWypEE5kxVNlq9fEfrEMV0c",
-  authDomain: "attendance-pwa-9fa73.firebaseapp.com",
-  projectId: "attendance-pwa-9fa73",
-  storageBucket: "attendance-pwa-9fa73.firebasestorage.app",
-  messagingSenderId: "231697999145",
-  appId: "1:231697999145:web:b92cba42082eb9cc574338"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.db = db;
-
-console.log("Firebase Connected");
      
 </script>
 </body>
