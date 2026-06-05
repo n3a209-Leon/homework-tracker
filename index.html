@@ -1414,23 +1414,44 @@ function loadGSI() {
     document.head.appendChild(s);
   });
 }
-async function gSignIn() {
+async function gSignIn(silent = false) {
+
   await loadGSI();
+
   if (typeof google === 'undefined' || !google.accounts) {
-    throw new Error('Google 登入服務無法載入，請確認網路連線後重試');
+    throw new Error('Google 登入服務無法載入');
   }
-  return new Promise((res,rej) => {
+
+  return new Promise((res, rej) => {
+
     const client = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
+      client_id: CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+
       callback: resp => {
-        if (resp.error) { rej(resp.error); return; }
+
+        if (resp.error) {
+          rej(resp.error);
+          return;
+        }
+
         accessToken = resp.access_token;
-        safeSet('hw5ren:tok', accessToken);
+
+        safeSet(
+          'hw5ren:tok',
+          accessToken
+        );
+
         res(accessToken);
       }
     });
-    client.requestAccessToken();
+
+    client.requestAccessToken({
+      prompt: silent ? '' : 'consent'
+    });
+
   });
+
 }
 async function findDriveFile(year, cls) {
   if (!accessToken) return null;
@@ -1469,13 +1490,53 @@ async function loadDrive(year, cls) {
   if (!fid) return null;
   const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", {headers:{'Authorization':'Bearer '+accessToken}});
   if (r.ok) return r.json();
-  if (r.status === 401) { accessToken = null; safeRemove('hw5ren:tok'); }
+  if (r.status === 401) {
+
+  accessToken = null;
+
+  try {
+
+    const ok = await window.refreshTokenSilently();
+
+    if (ok) {
+
+      return await loadDrive(
+        year,
+        cls
+      );
+
+    }
+
+  } catch(e) {}
+
+  safeRemove('hw5ren:tok');
+
+}
   return null;
 }
 window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
 window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
+
+window.refreshTokenSilently = async function() {
+
+  try {
+
+    await gSignIn(true);
+
+    return true;
+
+  } catch (e) {
+
+    console.warn('Silent token refresh failed', e);
+
+    return false;
+
+  }
+
+};
+
 debugStep('GOOGLE API READY');
 
 
