@@ -189,6 +189,37 @@
         [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
         [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
+        /* ========================================================
+           🌟 星雲主題 (nebula) 專屬按鈕升級 (不影響常規與 NERV)
+           ======================================================== */
+        @keyframes nebula-green-pulse {
+          0%, 100% {
+            box-shadow: 0 0 6px rgba(61,214,140,.6), 0 0 14px rgba(61,214,140,.2), inset 0 0 6px rgba(61,214,140,.1);
+          }
+          50% {
+            box-shadow: 0 0 14px rgba(61,214,140,.9), 0 0 28px rgba(61,214,140,.4), inset 0 0 10px rgba(61,214,140,.2);
+          }
+        }
+
+        /* 當主題是星雲時，精準鎖定選中(sub)或完成(done)的作業按鈕 */
+        [data-theme="nebula"] .nb.sub {
+          background: rgba(30,160,80,.25) !important;
+          border: 2px solid #3dd68c !important;
+          color: #a0ffcc !important;
+          animation: nebula-green-pulse 2s ease-in-out infinite !important;
+          transform: scale(1.08);
+          transition: all 0.2s ease;
+          position: relative;
+          z-index: 2; /* 確保放大的時候不會被旁邊的按鈕切掉 */
+        }
+
+        /* 確保常規/星雲主題下的組員排版與文字完全不受 position 影響 */
+        [data-theme="nebula"] .nw {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
         [data-theme="nerv"] .nb.sec{background:rgba(255,200,0,.1);box-shadow:0 0 8px rgba(255,200,0,.3)}
         [data-theme="nerv"] .lt{background:rgba(255,0,0,.15);color:#ff5555;border-radius:2px}
