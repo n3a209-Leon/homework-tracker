@@ -186,6 +186,7 @@
         [data-theme="nerv"] .hi2{background:rgba(255,102,0,.05);border:1px solid rgba(255,102,0,.4);color:#ff8844;border-radius:2px;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
         [data-theme="nerv"] .hi2:focus{border-color:#ff6600;box-shadow:0 0 10px rgba(255,102,0,.3)}
         [data-theme="nerv"] .nb{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:#ff8844;border-radius:0;font-family:"Share Tech Mono",monospace;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
+        [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
         [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
@@ -340,9 +341,17 @@
         .all-btn.all-none{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.3)}
         .mark-count{font-size:13px;color:#8a9db5;font-weight:600}
         .nw{display:flex;flex-direction:column;align-items:center;gap:3px}
-        .nb{width:46px;height:46px;border-radius:50%;border:2.5px solid #c0ccd8;background:#fff;color:#1e3a5f;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
-        .nb:hover{border-color:#2d7dd2;background:#eef4fc}
-        .nb.sub{background:#4caf80;border-color:#4caf80;color:#fff;box-shadow:0 2px 8px rgba(76,175,128,.35)}
+        .nb{width:46px;height:46px;border-radius:50%;border:2.5px solid #c0ccd8;background:#fff;color:#1e3a5f;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
+        .nb:hover{border-color:#2d7dd2;background:#eef4fc;transform:scale(1.08)}
+        .nb.sub{
+          background:rgba(40,180,90,.15);
+          border:2.5px solid #3dd68c;
+          color:#1a8a4a;
+          box-shadow:0 0 8px rgba(76,210,120,.7),0 0 20px rgba(76,210,120,.35),inset 0 0 8px rgba(76,210,120,.15);
+          animation:green-glow-pulse 2s ease-in-out infinite;
+          transform:scale(1.08);
+          font-weight:900;
+        }
         .nb.ldr{border-color:#e53935;border-width:3px}
         .nb.sec{border-color:#2e7d32;border-width:3px;border-style:dashed}
         .nb.ldr.sub{border-color:#b71c1c} .nb.sec.sub{border-color:#1b5e20}
@@ -432,6 +441,10 @@
         ══════════════════════════════════════════ */
 
         /* 動態星空粒子 keyframes */
+        @keyframes green-glow-pulse{
+          0%,100%{box-shadow:0 0 6px rgba(76,210,120,.6),0 0 14px rgba(76,210,120,.3),inset 0 0 6px rgba(76,210,120,.15)}
+          50%{box-shadow:0 0 12px rgba(76,210,120,.9),0 0 28px rgba(76,210,120,.5),inset 0 0 10px rgba(76,210,120,.25)}
+        }
         @keyframes nebula-drift{0%{transform:translate(0,0) scale(1);opacity:.7}50%{transform:translate(-8px,12px) scale(1.08);opacity:1}100%{transform:translate(0,0) scale(1);opacity:.7}}
         @keyframes nebula-drift2{0%{transform:translate(0,0) rotate(0deg);opacity:.5}50%{transform:translate(10px,-8px) rotate(180deg);opacity:.9}100%{transform:translate(0,0) rotate(360deg);opacity:.5}}
         @keyframes star-twinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
@@ -577,11 +590,14 @@
           background:rgba(100,70,200,.5);
           box-shadow:0 0 14px rgba(150,100,255,.5);
         }
+        [data-theme="nebula"] .nb.sub,
         [data-theme="nebula"] .nb.done{
-          background:rgba(40,160,100,.35);
-          border-color:rgba(60,200,120,.5);
+          background:rgba(30,160,80,.2);
+          border-color:#3dd68c;
           color:#a0ffcc;
-          box-shadow:0 0 10px rgba(40,200,100,.25);
+          box-shadow:0 0 10px rgba(60,220,120,.8),0 0 24px rgba(40,200,100,.4),inset 0 0 8px rgba(60,220,120,.2);
+          animation:green-glow-pulse 2s ease-in-out infinite;
+          transform:scale(1.08);
         }
 
         /* Modal 彈窗 */
@@ -1791,6 +1807,124 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
 // ══════════════════════════════════════════════════
 // ArchiveView — 學年歷史檔案室
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// ImportToArchive — 備份 JSON 匯入到檔案室
+// ══════════════════════════════════════════════════
+function ImportToArchive({ isNerv, selYear, onImported }) {
+  var useState = React.useState;
+  const [text, setText] = useState('');
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const cardStyle = {
+    background: isNerv ? 'rgba(255,102,0,.05)' : '#fff',
+    border: isNerv ? '1px solid rgba(255,102,0,.3)' : '1px solid #e8edf5',
+    borderRadius: 14,
+    padding: '16px',
+    marginTop: 12,
+  };
+
+  async function doImport() {
+    const raw = text.trim();
+    if (!raw) { setMsg('❌ 請先貼上 JSON'); return; }
+    setLoading(true);
+    setMsg('⏳ 匯入中…');
+    try {
+      const parsed = JSON.parse(raw);
+      let count = 0;
+      let firstYear = null;
+      const entries = Object.entries(parsed);
+
+      for (const [k, v] of entries) {
+        if (k.startsWith('day:2')) {
+          // 直接寫入 IDB
+          await new Promise((res, rej) => {
+            var req = indexedDB.open('hw5ren_db', 1);
+            req.onupgradeneeded = function(e) { e.target.result.createObjectStore('dayData'); };
+            req.onsuccess = function(e) {
+              var db = e.target.result;
+              var tx = db.transaction('dayData', 'readwrite');
+              tx.objectStore('dayData').put(v, k);
+              tx.oncomplete = res;
+              tx.onerror = rej;
+            };
+            req.onerror = rej;
+          });
+          // 同步到 localStorage
+          try {
+            var ds = k.replace('day:', '');
+            localStorage.setItem('hw5ren:' + ds, v);
+          } catch(ex) {}
+          count++;
+          if (!firstYear) {
+            var m = k.match(/day:(\d{4})-/);
+            if (m) firstYear = parseInt(m[1]);
+          }
+        }
+      }
+
+      if (count === 0) {
+        setMsg('⚠️ 找不到有效的 day: 資料，請確認 JSON 格式');
+      } else {
+        setMsg('✅ 成功匯入 ' + count + ' 天資料！');
+        setText('');
+        setOpen(false);
+        if (onImported) onImported(count, firstYear || selYear);
+      }
+    } catch(e) {
+      setMsg('❌ JSON 格式錯誤：' + String(e).slice(0, 80));
+    }
+    setLoading(false);
+    setTimeout(function() { setMsg(''); }, 6000);
+  }
+
+  return React.createElement("div", { style: cardStyle },
+    React.createElement("div", {
+      style: { display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' },
+      onClick: function() { setOpen(function(o) { return !o; }); }
+    },
+      React.createElement("div", { style:{ fontWeight:700, fontSize:14, color: isNerv?'#ff9944':'#1e3a5f' } },
+        isNerv ? "// IMPORT ARCHIVE DATA //" : "📥 匯入歷史備份"),
+      React.createElement("span", { style:{ fontSize:18, color:'#aaa' } }, open ? '▲' : '▼')
+    ),
+
+    open && React.createElement("div", { style:{ marginTop:12 } },
+      React.createElement("p", { style:{ fontSize:12, color:'#888', marginBottom:8, lineHeight:1.7 } },
+        "貼上之前用「備份」按鈕產生的 JSON 字串，即可將歷年資料匯入到檔案室統計中。"),
+      React.createElement("textarea", {
+        value: text,
+        onChange: function(e) { setText(e.target.value); },
+        placeholder: '貼上 JSON 字串...',
+        rows: 5,
+        style: {
+          width:'100%', padding:'10px', borderRadius:8, border: isNerv?'1px solid rgba(255,102,0,.3)':'1px solid #dde5ee',
+          background: isNerv?'rgba(0,0,0,.4)':'#f8faff', color: isNerv?'#ffa070':'#333',
+          fontSize:12, fontFamily:'monospace', resize:'vertical',
+          boxSizing:'border-box',
+        }
+      }),
+      msg && React.createElement("p", { style:{ fontSize:13, color: msg.startsWith('✅')?'#388e3c':msg.startsWith('⏳')?'#1976d2':'#c00', margin:'8px 0', fontWeight:700 } }, msg),
+      React.createElement("div", { style:{ display:'flex', gap:8, marginTop:8 } },
+        React.createElement("button", {
+          onClick: function() { setText(''); setMsg(''); },
+          style:{ padding:'8px 16px', borderRadius:8, border:'1px solid #dde', background:'#f0f0f0', cursor:'pointer', fontSize:13 }
+        }, "清除"),
+        React.createElement("button", {
+          onClick: doImport,
+          disabled: loading || !text.trim(),
+          style:{
+            padding:'8px 20px', borderRadius:8, border:'none', cursor:'pointer',
+            background: isNerv?'#ff6600':'#1e3a5f', color:'#fff', fontWeight:700, fontSize:13,
+            opacity: (loading || !text.trim()) ? 0.5 : 1,
+          }
+        }, loading ? '匯入中…' : '確認匯入')
+      )
+    )
+  );
+}
+
 function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecords, isNerv }) {
   var useState = React.useState, useEffect = React.useEffect;
   // yearRecords 是歷年學校/班級記錄，格式：[{year, school, className, driveFile, savedAt}]
@@ -2055,7 +2189,17 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
               )
             )
           )
-        )
+        ),
+
+        // ── 匯入備份到檔案室 ──────────────────────────────
+        React.createElement(ImportToArchive, {
+          isNerv: isNerv, selYear: selYear,
+          onImported: function(count, year) {
+            setSelYear(String(year));
+            setStats(null); // 重新載入統計
+          }
+        })
+      )
   );
 }
 
@@ -2359,7 +2503,8 @@ function App() {
             setDriveStatus('syncing');
             setStor(s => (Object.assign(Object.assign({}, s), { msg: '☁️ 從 Drive 載入…' })));
             try {
-                const snap = await loadDrive();
+                // 傳入學年和班級，才能找到正確的 Drive 檔案
+                const snap = await loadDrive(schoolYear, className);
                 if (snap && Object.keys(snap).length > 0) {
                     let c = 0;
                     for (const [k, v] of Object.entries(snap)) {
@@ -2374,7 +2519,8 @@ function App() {
                         }
                     }
                     setDriveStatus('ok');
-                    setStor({ state: 'ok', msg: '☁️ Drive 載入 ' + c + ' 天' });
+                    setStor({ state: 'ok', msg: '✅ Drive 還原 ' + c + ' 天資料' });
+                    await doLoadMonth(curYear, curMonth);
                     markSynced();
                 }
                 else {
