@@ -188,10 +188,10 @@
         [data-theme="nerv"] .nb{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:#ff8844;border-radius:0;font-family:"Share Tech Mono",monospace;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
         [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
-        [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
+       [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
 
         /* ========================================================
-           🌟 星雲主題 (nebula) 專屬作業紀錄按鈕完美升級修正版
+           🌟 星雲主題 (nebula) 專屬作業紀錄按鈕完美修復版（隔離 NERV 外殼）
            ======================================================== */
         @keyframes nebula-green-pulse {
           0%, 100% {
@@ -202,52 +202,73 @@
           }
         }
 
-        /* 修正 Bug：相容 React 渲染出來的 .nbsub 拼接名稱 */
-        [data-theme="nebula"] .nbsub,
-        [data-theme="nebula"] .nb.sub {
-          background: rgba(30,160,80,.25) !important;
-          border: 2px solid #3dd68c !important;
-          color: #a0ffcc !important;
-          animation: nebula-green-pulse 2s ease-in-out infinite !important;
-          transform: scale(1.08) !important;
-          transition: all 0.2s ease;
-          position: relative;
-          z-index: 5;
+        /* 1. 當主題是星雲時，徹底廢除 NERV 結構 (.ng) 的絕對定位與網格，讓它回歸一般正常的格子排列 */
+        [data-theme="nebula"] .ng {
+          position: static !important;
+          width: auto !important;
+          height: auto !important;
+          margin: 0 !important;
+          background: none !important;
+          border: none !important;
+          box-shadow: none !important;
+          clip-path: none !important;
+          display: inline-block !important;
         }
 
-        /* 修正 Bug：徹底打碎 NERV 六角形在星雲主題下的絕對定位重疊 */
+        /* 2. 重設星雲主題下的按鈕承載層 (.nw)，使其變成乾淨的垂直置中排列 */
         [data-theme="nebula"] .ng .nw {
           position: static !important;
           width: auto !important;
           height: auto !important;
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          margin: 6px;
+          display: inline-flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 8px !important;
         }
 
-        /* 確保星雲主題下的按鈕不會縮小變形，且維持圓鈕 */
+        /* 3. 確保星雲主題下的按鈕 (.nb) 變回完美的圓鈕，並且可以正常點擊 */
         [data-theme="nebula"] .nb {
           position: static !important;
-          width: 42px !important;
-          height: 42px !important;
+          width: 44px !important;
+          height: 44px !important;
           border-radius: 50% !important;
           clip-path: none !important;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
           font-family: inherit !important;
-          box-shadow: none;
+          background: #fff !important;
+          border: 2.5px solid #c0ccd8 !important;
+          color: #1e3a5f !important;
+          box-shadow: none !important;
+          transform: none !important;
+          transition: all 0.2s ease !important;
         }
 
-        /* 確保組長與秘書長的標籤正常浮現，並且可以被精準點擊 */
+        /* 4. 支援 React 生成的 .nbsub 或 .nb.sub 點擊選中狀態，亮起超酷綠光 */
+        [data-theme="nebula"] .nbsub,
+        [data-theme="nebula"] .nb.sub {
+          background: rgba(40,180,90,.15) !important;
+          border: 2.5px solid #3dd68c !important;
+          color: #1a8a4a !important;
+          animation: nebula-green-pulse 2s ease-in-out infinite !important;
+          transform: scale(1.08) !important;
+          z-index: 5 !important;
+        }
+
+        /* 5. 修正組長與秘書長職稱標籤 (.rt)，解除 NERV 的絕對壓制，乖乖排在按鈕下方 */
         [data-theme="nebula"] .rt {
           position: static !important;
           transform: none !important;
           font-size: 11px !important;
-          margin-top: 4px;
+          margin-top: 4px !important;
           display: block !important;
+          color: #6a8aaa !important;
+          background: none !important;
+          border: none !important;
+          padding: 0 !important;
+          width: auto !important;
         }
         
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
