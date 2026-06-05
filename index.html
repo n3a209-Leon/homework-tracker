@@ -1472,14 +1472,68 @@ async function saveDrive(snapshot) {
   if (driveFileId) {
     form.append('metadata', new Blob([JSON.stringify({name})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    return r.ok;
+    const r = await fetch(
+  "https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart",
+  {
+    method:'PATCH',
+    headers:{'Authorization':'Bearer '+accessToken},
+    body:form
+  }
+);
+
+if (r.ok) return true;
+
+if (r.status === 401) {
+
+  accessToken = null;
+
+  const ok = await window.refreshTokenSilently();
+
+  if (ok) {
+    return await saveDrive(snapshot);
+  }
+
+  safeRemove('hw5ren:tok');
+}
+
+return false;
   } else {
     form.append('metadata', new Blob([JSON.stringify({name,mimeType:'application/json'})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
-    return false;
+    const r = await fetch(
+  'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+  {
+    method:'POST',
+    headers:{'Authorization':'Bearer '+accessToken},
+    body:form
+  }
+);
+
+if (r.ok) {
+
+  const d = await r.json();
+
+  driveFileId = d.id;
+
+  return true;
+
+}
+
+if (r.status === 401) {
+
+  accessToken = null;
+
+  const ok = await window.refreshTokenSilently();
+
+  if (ok) {
+    return await saveDrive(snapshot);
+  }
+
+  safeRemove('hw5ren:tok');
+
+}
+
+return false;
   }
 }
 async function loadDrive(year, cls) {
