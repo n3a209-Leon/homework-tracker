@@ -2854,7 +2854,11 @@ function App() {
                 if (v)
                     snap[k] = v;
             }
+            console.log('開始同步到 Drive');
+
             const ok = await saveDrive(snap);
+
+            console.log('同步結果=', ok);
             if (ok) {
                 markSynced();
                 setDriveStatus('ok');
@@ -2863,10 +2867,14 @@ function App() {
             setDriveStatus('error');
             return 0;
         }
-        catch (_a) {
-            setDriveStatus('error');
-            return 0;
-        }
+        catch (e) {
+
+    console.error('同步失敗', e);
+
+    setDriveStatus('error');
+
+    return 0;
+}
     }
     // Header subtitle
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
