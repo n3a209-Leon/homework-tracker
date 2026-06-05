@@ -487,6 +487,13 @@
         [data-theme="nebula"] .table-wrapper{position:relative;z-index:1}
         [data-theme="nebula"] .nav-bar{position:relative;z-index:2}
         [data-theme="nebula"] .excel-bar{position:relative;z-index:1}
+        [data-theme="nebula"] .calendar{position:relative;z-index:1}
+        [data-theme="nebula"] .cal-grid{position:relative;z-index:1}
+        [data-theme="nebula"] .sum-wrap{position:relative;z-index:1}
+        [data-theme="nebula"] .ra{position:relative;z-index:1}
+        /* 確保 app 子元素全部在星空之上 */
+        [data-theme="nebula"] .app *{position:relative}
+        [data-theme="nebula"] .app::before,[data-theme="nebula"] .app::after{position:fixed;z-index:0}
         [data-theme="nebula"] header{
           position:relative;z-index:2;
           background:rgba(8,5,25,.85);
@@ -1783,28 +1790,39 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
 // ══════════════════════════════════════════════════
 // ArchiveView — 學年歷史檔案室
 // ══════════════════════════════════════════════════
-function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, isNerv }) {
+function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecords, isNerv }) {
   var useState = React.useState, useEffect = React.useEffect;
+  // yearRecords 是歷年學校/班級記錄，格式：[{year, school, className, driveFile, savedAt}]
   const [selYear, setSelYear] = useState(schoolYear || String(new Date().getFullYear()));
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [yearList, setYearList] = useState([]);
+  const [activeTab, setActiveTab] = useState('stats'); // 'stats' | 'roster'
 
-  // 取得所有有資料的學年
+  // 取得所有有資料的學年（從 IDB + yearRecords 合併）
   useEffect(() => {
     (async () => {
       try {
         const keys = await idbKeys();
         const years = new Set();
+        // 從 IDB 實際資料取年份
         keys.forEach(k => {
-          const m = k.match(/day:(\d{4})-/);
-          if (m) years.add(m[1]);
+          if (typeof k === 'string') {
+            const m = k.match(/^day:(\d{4})-/);
+            if (m) years.add(m[1]);
+          }
         });
-        if (schoolYear) years.add(schoolYear);
+        // 從 yearRecords 取歷年記錄
+        if (Array.isArray(yearRecords)) {
+          yearRecords.forEach(r => { if (r && r.year) years.add(String(r.year)); });
+        }
+        if (schoolYear) years.add(String(schoolYear));
         const arr = Array.from(years).sort().reverse();
-        setYearList(arr);
+        setYearList(arr.length > 0 ? arr : [String(schoolYear || new Date().getFullYear())]);
         if (arr.length > 0 && !arr.includes(selYear)) setSelYear(arr[0]);
-      } catch(e) {}
+      } catch(e) {
+        setYearList([String(schoolYear || new Date().getFullYear())]);
+      }
     })();
   }, []);
 
@@ -1815,7 +1833,10 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, isNerv })
     (async () => {
       try {
         const keys = await idbKeys();
-        const yearKeys = keys.filter(k => k.startsWith('day:' + selYear + '-'));
+        // key 格式：'day:2026-06-05'
+        const prefix = 'day:' + selYear + '-';
+        const yearKeys = keys.filter(k => typeof k === 'string' && k.startsWith(prefix));
+        console.log('[Archive] selYear='+selYear+' keys='+keys.length+' yearKeys='+yearKeys.length);
         const hwCount = {};      // 各作業繳交次數
         const absentMap = {};    // 各學生請假天數
         const groupSnapshots = {};  // 每月分組快照（從資料推算）
@@ -1882,7 +1903,39 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, isNerv })
     React.createElement("h2", { style: { fontSize:18, fontWeight:900, color: isNerv?'#ff6600':'#1e3a5f', marginBottom:16, letterSpacing: isNerv?3:0, fontFamily: isNerv?'Share Tech Mono,monospace':'inherit' } },
       isNerv ? "◈ HISTORICAL ARCHIVE" : "🗂 學年歷史檔案室"),
 
-    // 學年切換
+    // ── 歷年學校/班級記錄卡片 ──
+    yearRecords && yearRecords.length > 0 && React.createElement("div", { style:{marginBottom:16} },
+      React.createElement("div", { style:{fontWeight:700,fontSize:13,color:isNerv?'#ff9944':'#888',marginBottom:8,letterSpacing:isNerv?2:0} },
+        isNerv ? "// HISTORICAL RECORDS //" : "📚 歷年學校班級記錄"),
+      React.createElement("div", { style:{display:'flex',flexDirection:'column',gap:6} },
+        yearRecords.map((r,i) =>
+          React.createElement("div", { key:i,
+            onClick: () => setSelYear(String(r.year)),
+            style:{
+              display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'10px 14px', borderRadius:12, cursor:'pointer',
+              background: String(r.year)===selYear ? (isNerv?'rgba(255,102,0,.15)':'#eef2ff') : (isNerv?'rgba(255,255,255,.04)':'#f8faff'),
+              border: String(r.year)===selYear ? (isNerv?'1px solid rgba(255,102,0,.5)':'1px solid #c0c8ff') : (isNerv?'1px solid rgba(255,255,255,.08)':'1px solid #e8ecf8'),
+              transition:'all .15s',
+            }
+          },
+            React.createElement("div", null,
+              React.createElement("div", { style:{fontWeight:700,fontSize:14,color:isNerv?'#ffa070':'#1e3a5f'} },
+                r.year + " 年　" + (r.school||'') + "　" + (r.className||'')),
+              React.createElement("div", { style:{fontSize:11,color:'#aaa',marginTop:2} },
+                "備份：" + (r.driveFile||'-') + "　儲存於：" + (r.savedAt||'-'))
+            ),
+            React.createElement("div", { style:{
+              fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20,
+              background: String(r.year)===selYear ? (isNerv?'#ff6600':'#1e3a5f') : 'transparent',
+              color: String(r.year)===selYear ? '#fff' : '#aaa',
+            }}, String(r.year)===selYear ? '✓ 目前' : '查看')
+          )
+        )
+      )
+    ),
+
+    // 學年切換（簡易版，從 IDB 取）
     React.createElement("div", { style: { display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' } },
       (yearList.length > 0 ? yearList : [schoolYear]).map(y =>
         React.createElement("button", {
@@ -3413,7 +3466,7 @@ function App() {
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE })),
-        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, isNerv: isNerv }))));
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, yearRecords: yearRecords, isNerv: isNerv }))));
 }
 
     debugStep('RENDER START');
