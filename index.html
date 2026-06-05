@@ -11,6 +11,7 @@
 <title>作業繳交記錄</title>
 <style>
 
+
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
@@ -780,34 +781,28 @@
           .att-header{flex-direction:column;align-items:flex-start}
         }
       
+
 </style>
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
-// Fallback: if app doesn't start in 8 seconds, show diagnostic
-setTimeout(function() {
-  var root = document.getElementById('root');
-  if (root && root.innerHTML.indexOf('正在載入') !== -1) {
-    root.innerHTML = '<div style="padding:20px;font-size:13px;font-family:sans-serif;background:#fff">' +
-      '<b style="color:#c00">載入逾時診斷：</b><br>' +
-      'React: ' + (typeof React !== "undefined" ? React.version : "未載入") + '<br>' +
-      'ReactDOM: ' + (typeof ReactDOM !== "undefined" ? "OK" : "未載入") + '<br>' +
-      'Window load fired: ' + (window._loadFired ? "Yes" : "No") + '<br>' +
-      'App error: ' + (window._appError || "None") +
-      '</div>';
-  }
-}, 8000);
-</script>
-<script>
 window.onerror = function(msg,src,line,col,err) {
   document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+msg+'<br><b>位置：</b>'+(src||'')+':'+line+'<br><b>React:</b>'+(typeof React!="undefined"?React.version:"未載入")+'</div>';
   return true;
 };
+window.addEventListener('unhandledrejection', function(e) {
+  var root = document.getElementById('root');
+  if (root && root.innerHTML.indexOf('正在載入') !== -1) {
+    var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Promise error';
+    root.innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>Promise錯誤：</b><br>'+msg+'</div>';
+  }
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
 <script>
+
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
 function getDriveFilename(year, cls) {
   if (!year && !cls) return 'hw-5renren-ALL.json';
@@ -820,12 +815,16 @@ function loadGSI() {
     if (typeof google !== 'undefined') { res(); return; }
     const s = document.createElement('script');
     s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = res; s.onerror = res;
+    s.onload = res;
+    s.onerror = function() { console.warn("GSI failed"); res(); };
     document.head.appendChild(s);
   });
 }
 async function gSignIn() {
   await loadGSI();
+  if (typeof google === 'undefined' || !google.accounts) {
+    throw new Error('Google 登入服務無法載入，請確認網路連線後重試');
+  }
   return new Promise((res,rej) => {
     const client = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
@@ -885,10 +884,7 @@ window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
 </script>
 <script>
-window._loadFired = true;
-window.addEventListener('load', function() {
-  try {
-  var useState=React.useState, useEffect=React.useEffect, useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
+// ── Part 1: Constants + Helpers ──
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -1265,7 +1261,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     const nerv = isNerv;
     // 全班最大座號（自動偵測或預設40）
     const maxSeat = 40;
-    const allUsed = draft.flatMap(g => g.members);
+    const allUsed = draft.reduce(function(acc,g){return acc.concat(g.members);}, []);
     function toggleSeat(idx, n) {
         setDraft(prev => {
             const next = JSON.parse(JSON.stringify(prev));
@@ -1471,6 +1467,13 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                     React.createElement("button", { onClick: () => { setClearModal(false); setClearDel(""); setClearMsg(""); }, style: { flex: 1, padding: "10px 0", border: "2px solid #dde5ee", borderRadius: nerv ? 2 : 12, background: "#fff", color: "#8a9db5", fontSize: 14, fontWeight: 700, cursor: "pointer" } }, "\u53D6\u6D88"),
                     React.createElement("button", { onClick: doClear, disabled: clearDel !== "DEL", style: { flex: 1, padding: "10px 0", border: "none", borderRadius: nerv ? 2 : 12, background: clearDel === "DEL" ? "#e53935" : "#aaa", color: "#fff", fontSize: 14, fontWeight: 700, cursor: clearDel === "DEL" ? "pointer" : "not-allowed" } }, nerv ? "PURGE" : "確認清除")))))));
 }
+</script>
+<script>
+// ── Part 2: App Component + Render ──
+window.addEventListener('load', function() {
+  var useState=React.useState, useEffect=React.useEffect,
+      useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
+  try {
 function App() {
     var _a, _b, _c, _d, _e;
     const [view, setView] = useState("month");
@@ -1478,7 +1481,7 @@ function App() {
     const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
-    const ALL_MEMBERS = [...new Set(groups.flatMap(g => g.members))].sort((a, b) => a - b);
+    const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
     function saveGroups(g) {
         setGroups(g);
         localStorage.setItem("hw5ren:groups", JSON.stringify(g));
@@ -2089,8 +2092,9 @@ function App() {
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
-                    setStor({ state: "saving", msg: "🔑 登入中..." });
-                    gSignIn().then(() => setAuthed(true)).catch((e) => setStor({ state: "error", msg: "登入失敗" }));
+                    if (typeof google !== "undefined") {
+                        gSignIn().then(() => setAuthed(true)).catch(() => setStor({ state: "error", msg: "登入失敗" }));
+                    }
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
@@ -2109,9 +2113,6 @@ function App() {
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setShowHistory(true), title: "歷史學年",
-                    style: { background: yearRecords.length > 0 ? "rgba(255,193,7,.25)" : "rgba(255,255,255,.15)", padding: "4px 8px" } },
-                    "📂"),
                 React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
@@ -2626,68 +2627,13 @@ function App() {
                         React.createElement("div", { style: { fontSize: 15, fontWeight: 700 } }, t.name),
                         React.createElement("div", { style: { fontSize: 11, opacity: .6, marginTop: 2 } }, t.desc)),
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
-        
-        showHistory && React.createElement("div", { onClick: () => setShowHistory(false),
-            style: { position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,.5)" } },
-            React.createElement("div", { onClick: e => e.stopPropagation(),
-                style: { position: "absolute", bottom: 0, left: 0, right: 0,
-                    background: theme === "nerv" ? "#120400" : theme === "nebula" ? "#0a0c20" : "#fff",
-                    borderRadius: "20px 20px 0 0", padding: "20px 0 40px",
-                    boxShadow: "0 -8px 40px rgba(0,0,0,.3)", maxHeight: "80vh", overflowY: "auto" } },
-                React.createElement("div", { style: { width: 40, height: 4, borderRadius: 2,
-                    background: "rgba(128,128,128,.3)", margin: "0 auto 16px" } }),
-                React.createElement("h2", { style: { textAlign: "center", fontSize: 16, fontWeight: 900,
-                    color: theme === "nerv" ? "#ff6600" : theme === "nebula" ? "#c8b0ff" : "#1e3a5f",
-                    marginBottom: 8 } }, "📂 歷史學年紀錄"),
-                React.createElement("p", { style: { textAlign: "center", fontSize: 12,
-                    color: theme === "nerv" ? "rgba(255,102,0,.5)" : "#aab8cc", marginBottom: 16 } },
-                    "點選學年可切換查閱該年資料"),
-                yearRecords.length === 0
-                    ? React.createElement("p", { style: { textAlign: "center", color: "#aab8cc",
-                        fontSize: 13, padding: "20px 0" } }, "尚無歷史紀錄\n設定完成後自動建立")
-                    : React.createElement("div", { style: { padding: "0 16px" } },
-                        yearRecords.map((rec, i) => {
-                            const isActive = rec.year === schoolYear && rec.className === className;
-                            return React.createElement("div", { key: i,
-                                onClick: () => {
-                                    setSchoolYear(rec.year); localStorage.setItem("hw5ren:year", rec.year);
-                                    setSchoolName(rec.school); localStorage.setItem("hw5ren:school", rec.school);
-                                    setClassName(rec.className); localStorage.setItem("hw5ren:className", rec.className);
-                                    setShowHistory(false);
-                                    setStor(s => ({...s, msg: "☁️ 切換至 " + rec.year + "年 " + rec.className}));
-                                },
-                                style: { padding: "12px 16px", borderRadius: 12, marginBottom: 8,
-                                    border: isActive
-                                        ? "2px solid " + (theme === "nerv" ? "#ff6600" : "#1e3a5f")
-                                        : "1px solid " + (theme === "nerv" ? "rgba(255,102,0,.3)" : "#eef2f7"),
-                                    background: isActive
-                                        ? (theme === "nerv" ? "rgba(255,102,0,.15)" : "#e8f0fe")
-                                        : "transparent",
-                                    cursor: "pointer" } },
-                                React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
-                                    React.createElement("span", { style: { fontSize: 15, fontWeight: 900,
-                                        color: theme === "nerv" ? "#ffaa44" : "#1e3a5f" } },
-                                        rec.year + "年 " + rec.school + " " + rec.className),
-                                    isActive && React.createElement("span", { style: { fontSize: 11,
-                                        background: "#1e3a5f", color: "#fff", padding: "1px 6px", borderRadius: 10 } }, "目前")),
-                                React.createElement("div", { style: { fontSize: 11, color: "#aab8cc", marginTop: 4 } },
-                                    "Drive: " + rec.driveFile)
-                            );
-                        })),
-                React.createElement("div", { style: { padding: "0 16px" } },
-                    React.createElement("button", { onClick: () => setShowHistory(false),
-                        style: { width: "100%", padding: 12, background: "transparent",
-                            border: "1px solid #dde5ee", borderRadius: 10, cursor: "pointer",
-                            fontSize: 14, color: "#8a9db5", marginTop: 8 } }, "關閉"))
-            )
-        ),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); localStorage.setItem("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); localStorage.setItem("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); localStorage.setItem("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
 
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
   } catch(e) {
-    window._appError = e.message; document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+(e.stack||'').slice(0,400)+'</div>';
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+e.message+'<br><br>'+(e.stack||'').slice(0,400)+'</div>';
   }
 });
 </script>
