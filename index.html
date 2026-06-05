@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <!-- status-bar-style moved below theme-color -->
 <meta name="apple-mobile-web-app-title" content="作業記錄">
@@ -27,7 +27,7 @@
           cursor:pointer;
         }
         /* PWA safe area (iPhone notch/home indicator) */
-        body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+        body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
         header{padding-top:max(14px,env(safe-area-inset-top))}
         body,html{background:#f0f4f8;min-height:100%;-webkit-tap-highlight-color:transparent}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
@@ -835,7 +835,17 @@ try {
   _isPWA = window.navigator.standalone === true ||
            window.matchMedia('(display-mode: standalone)').matches;
 } catch(e) {}
-if (_isPWA) { debugStep('PWA STANDALONE MODE'); }
+if (_isPWA) {
+  debugStep('PWA STANDALONE MODE');
+  // PWA 模式：確保 html/body 完全覆蓋，不留任何偏移
+  try {
+    document.documentElement.style.cssText = 'height:100%;overflow:hidden';
+    document.body.style.cssText = (document.body.style.cssText || '') +
+      ';position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch';
+    // 強制觸發重排
+    void document.body.offsetHeight;
+  } catch(ex) {}
+}
 
 // App 渲染完成旗標
 window._appReady = false;
@@ -3013,13 +3023,28 @@ setTimeout(function(){
 // PWA Touch Passthrough：確保所有按鈕在 PWA 模式下可點擊
 (function() {
   try {
-    if (!window.navigator.standalone && !window.matchMedia('(display-mode:standalone)').matches) return;
-    // standalone 模式下，對所有 interactive 元素加強 touch
+    var isPWA = window.navigator.standalone === true ||
+                window.matchMedia('(display-mode:standalone)').matches;
+    if (!isPWA) return;
+    // 消除 300ms 延遲和觸碰偏移
     document.addEventListener('touchstart', function(){}, {passive:true});
-    // 防止 300ms click delay
+    // 加入全域 touch-action 和 cursor:pointer
     var style = document.createElement('style');
-    style.textContent = '* { touch-action: manipulation !important; }';
+    style.textContent = [
+      '* { touch-action: manipulation !important; -webkit-tap-highlight-color: transparent !important; }',
+      'button, [onclick], a, input, select, textarea { cursor: pointer !important; }',
+      // PWA 模式下確保 body 不因 status bar 偏移
+      '@supports (padding-top: env(safe-area-inset-top)) {',
+      '  body { padding-top: env(safe-area-inset-top) !important; }',
+      '}'
+    ].join('');
     document.head.appendChild(style);
+    // 修正：確保 root div 的 pointer-events 正常
+    var root = document.getElementById('root');
+    if (root) {
+      root.style.pointerEvents = 'auto';
+      root.style.webkitUserSelect = 'auto';
+    }
   } catch(e) {}
 })();
 </script>
