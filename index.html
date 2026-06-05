@@ -855,10 +855,30 @@ function _rej(e) {
   try {
     var r = 'Promise rejected';
     try { r = e.reason ? (e.reason.message || String(e.reason)) : r; } catch(x) {}
-    document.body.innerHTML =
-      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
-      'white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">' +
-      'PROMISE ERROR\n\n' + r + '</pre>';
+    // 只在 App 還未渲染時才覆蓋 body（載入中階段）
+    var root = document.getElementById('root');
+    var isLoading = root && (
+      root.innerHTML.indexOf('載入') !== -1 ||
+      root.innerHTML.indexOf('loading') !== -1 ||
+      root.innerHTML.length < 100
+    );
+    if (isLoading) {
+      // App 未載入，顯示錯誤
+      document.body.innerHTML =
+        '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
+        'white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">' +
+        'PROMISE ERROR\n\n' + r + '</pre>';
+    } else {
+      // App 已載入，只在紅條顯示，不破壞 App
+      debugStep('PROMISE ERR: ' + String(r).slice(0, 50));
+      // 3 秒後自動清除紅條
+      setTimeout(function() {
+        try {
+          var el = document.getElementById('safari-debug');
+          if (el) el.style.display = 'none';
+        } catch(ex) {}
+      }, 3000);
+    }
   } catch(x) {}
 }
 window.onunhandledrejection = _rej;
