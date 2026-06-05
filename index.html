@@ -12,6 +12,7 @@
 <style>
 
 
+
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
@@ -782,11 +783,13 @@
         }
       
 
+
 </style>
 </head>
 <body>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
+
 window.onerror = function(msg,src,line,col,err) {
   document.getElementById('root').innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+msg+'<br><b>位置：</b>'+(src||'')+':'+line+'<br><b>React:</b>'+(typeof React!="undefined"?React.version:"未載入")+'</div>';
   return true;
@@ -798,10 +801,19 @@ window.addEventListener('unhandledrejection', function(e) {
     root.innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>Promise錯誤：</b><br>'+msg+'</div>';
   }
 });
+
+window.addEventListener('unhandledrejection', function(e) {
+  var root = document.getElementById('root');
+  if (root && root.innerHTML.indexOf('正在載入') !== -1) {
+    var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Promise error';
+    root.innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>Promise錯誤：</b><br>'+msg+'</div>';
+  }
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
 <script>
+
 
 const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
 function getDriveFilename(year, cls) {
@@ -882,9 +894,10 @@ window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
 window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
+
 </script>
 <script>
-// ── Part 1: Constants + Helpers ──
+// ── Part 1: Constants + Helper Functions ──
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -1261,7 +1274,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     const nerv = isNerv;
     // 全班最大座號（自動偵測或預設40）
     const maxSeat = 40;
-    const allUsed = draft.reduce(function(acc,g){return acc.concat(g.members);}, []);
+    const allUsed = draft.flatMap(g => g.members);
     function toggleSeat(idx, n) {
         setDraft(prev => {
             const next = JSON.parse(JSON.stringify(prev));
@@ -1481,7 +1494,7 @@ function App() {
     const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
-    const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
+    const ALL_MEMBERS = [...new Set(groups.flatMap(g => g.members))].sort((a, b) => a - b);
     function saveGroups(g) {
         setGroups(g);
         localStorage.setItem("hw5ren:groups", JSON.stringify(g));
