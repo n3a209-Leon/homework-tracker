@@ -2871,13 +2871,19 @@ function App() {
     try { _es = e && e.stack ? String(e.stack).slice(0,400) : ''; } catch(ex) {}
     var _root = document.getElementById('root') || document.body;
     try {
-      _root.innerHTML =
-        '<div style="padding:24px;font-size:14px;color:#c00;background:#fff;min-height:100vh;font-family:monospace;word-break:break-all">' +
-        '<b>APP CATCH ERROR</b><br><br>' + _em + '<br><br>' +
-        '<small>' + _es + '</small><br><br>' +
-        '<button onclick="try{localStorage.removeItem('hw5ren:tok');}catch(ex){}location.reload()" ' +
-        'style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">' +
-        'Reset &amp; Reload</button></div>';
+      var _div = document.createElement('div');
+      _div.style.cssText = 'padding:24px;font-size:14px;color:#c00;background:#fff;min-height:100vh;font-family:monospace;word-break:break-all';
+      _div.innerHTML = '<b>APP CATCH ERROR</b><br><br>' + _em + '<br><br><small>' + _es + '</small><br><br>';
+      var _btn = document.createElement('button');
+      _btn.textContent = 'Reset & Reload';
+      _btn.style.cssText = 'padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer';
+      _btn.onclick = function() {
+        try { localStorage.removeItem('hw5ren:tok'); } catch(ex) {}
+        location.reload();
+      };
+      _div.appendChild(_btn);
+      _root.innerHTML = '';
+      _root.appendChild(_div);
     } catch(ex2) {}
   }
 });
