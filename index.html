@@ -837,7 +837,23 @@ try {
 } catch(e) {}
 if (_isPWA) { debugStep('PWA STANDALONE MODE'); }
 
+// App 渲染完成旗標
+window._appReady = false;
+
 window.onerror = function(msg, url, line, col, err) {
+  // Safari 分享/背景化會觸發 Script error. 0:0，直接忽略
+  if (!msg || (String(msg) === 'Script error.' && !line && !col)) return true;
+  // App 已渲染時，只在 debug bar 顯示，不破壞畫面
+  if (window._appReady) {
+    try { debugStep('ERR:' + String(msg).slice(0,40)); } catch(ex) {}
+    setTimeout(function() {
+      try {
+        var el = document.getElementById('safari-debug');
+        if (el) el.style.display = 'none';
+      } catch(ex) {}
+    }, 3000);
+    return true;
+  }
   try {
     var s = (err && err.stack) ? String(err.stack).slice(0,400) : '';
     var h = '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
@@ -1765,6 +1781,7 @@ function App() {
     // Render complete marker（mount 後）
     useEffect(function() {
         debugStep('RENDER COMPLETE');
+        try { window._appReady = true; } catch(e) {}
     }, []);
     const [view, setView] = useState("month");
     const [groups, setGroups] = useState(() => {
@@ -2951,6 +2968,7 @@ function App() {
     debugStep('RENDER START');
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
     debugStep('RENDER COMPLETE (sync)');
+    window._appReady = true; // 標記 App 已渲染，錯誤不再覆蓋 body
   } catch(e) {
     try { debugStep('APP CATCH: ' + String(e && e.message ? e.message : e).slice(0,60)); } catch(ex) {}
     try { document.body.style.background = '#f0f4f8'; } catch(ex) {}
