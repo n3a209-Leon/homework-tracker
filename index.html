@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- status-bar-style moved below theme-color -->
 <meta name="apple-mobile-web-app-title" content="作業記錄">
 <meta name="theme-color" content="#1e3a5f">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <!-- apple-touch-icon injected by JS -->
 <title>作業繳交記錄</title>
 <style>
@@ -16,6 +18,17 @@
 
         /* Google Fonts loaded via <link> below for Safari compatibility */
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        /* PWA standalone 模式 touch 修正 */
+        html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+        body{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        button,td,[class*="btn"],[class*="cell"],[class*="row"],[class*="nb"],[class*="gc"],[class*="hwc"]{
+          touch-action:manipulation;
+          -webkit-touch-callout:none;
+          cursor:pointer;
+        }
+        /* PWA safe area (iPhone notch/home indicator) */
+        body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+        header{padding-top:max(14px,env(safe-area-inset-top))}
         body,html{background:#f0f4f8;min-height:100%;-webkit-tap-highlight-color:transparent}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
 
@@ -816,6 +829,14 @@ function debugStep(step) {
 }
 debugStep('JS START');
 
+// PWA standalone 模式偵測
+var _isPWA = false;
+try {
+  _isPWA = window.navigator.standalone === true ||
+           window.matchMedia('(display-mode: standalone)').matches;
+} catch(e) {}
+if (_isPWA) { debugStep('PWA STANDALONE MODE'); }
+
 window.onerror = function(msg, url, line, col, err) {
   try {
     var s = (err && err.stack) ? String(err.stack).slice(0,400) : '';
@@ -981,7 +1002,7 @@ debugStep('GOOGLE API READY');
   debugStep('WINDOW LOAD FIRED');
 
   // ── 確認 React/ReactDOM 已載入 ──────────────────────────────
-  debugStep('CHECKING REACT');
+  debugStep('CHECKING REACT - isPWA:' + (_isPWA ? 'YES' : 'NO'));
   if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
     debugStep('REACT NOT FOUND - ABORT');
     document.getElementById('root').innerHTML =
@@ -2905,6 +2926,20 @@ setTimeout(function(){
     document.head.appendChild(l);
   }catch(e){}
 }, 100);
+</script>
+<script>
+// PWA Touch Passthrough：確保所有按鈕在 PWA 模式下可點擊
+(function() {
+  try {
+    if (!window.navigator.standalone && !window.matchMedia('(display-mode:standalone)').matches) return;
+    // standalone 模式下，對所有 interactive 元素加強 touch
+    document.addEventListener('touchstart', function(){}, {passive:true});
+    // 防止 300ms click delay
+    var style = document.createElement('style');
+    style.textContent = '* { touch-action: manipulation !important; }';
+    document.head.appendChild(style);
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>
