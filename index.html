@@ -67,7 +67,24 @@
 
         main{max-width:960px;margin:20px auto;padding:0 14px}
         .loading{text-align:center;color:#6a8aaa;padding:30px;font-size:14px}
-
+/* 🌟 專屬星雲主題按鈕升級代碼 🌟 */
+    @keyframes green-glow-pulse{
+      0%,100%{box-shadow:0 0 6px rgba(76,210,120,.6),0 0 14px rgba(76,210,120,.3),inset 0 0 6px rgba(76,210,120,.15)}
+      50%{box-shadow:0 0 12px rgba(76,210,120,.9),0 0 28px rgba(76,210,120,.5),inset 0 0 10px rgba(76,210,120,.25)}
+    }
+    
+    [data-theme="nebula"] .nb.sub,
+    [data-theme="nebula"] .nb.done{
+      background:rgba(30,160,80,.2) !important;
+      border:2.5px solid #3dd68c !important;
+      color:#a0ffcc !important;
+      box-shadow:0 0 10px rgba(60,220,120,.8),0 0 24px rgba(40,200,100,.4),inset 0 0 8px rgba(60,220,120,.2) !important;
+      animation:green-glow-pulse 2s ease-in-out infinite !important;
+      transform:scale(1.08) !important;
+      clip-path: none !important;      /* 確保星雲維持圓形不被 NERV 的六角形蓋掉 */
+      border-radius: 50% !important;   /* 確保星雲維持完美的圓鈕 */
+    }
+        
         /* ── 雲端同步列 ── */
         .excel-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 0 12px;flex-wrap:wrap}
         .excel-btn{display:inline-flex;align-items:center;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;border:none;transition:opacity .15s;white-space:nowrap}
