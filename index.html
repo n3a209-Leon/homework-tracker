@@ -887,8 +887,8 @@ window.getDriveFilename = getDriveFilename;
 <script>
 window._loadFired = true;
 window.addEventListener('load', function() {
-  const {useState,useEffect,useCallback,useRef,useMemo} = React;
   try {
+  var useState=React.useState, useEffect=React.useEffect, useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
