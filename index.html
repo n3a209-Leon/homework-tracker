@@ -202,7 +202,7 @@
           }
         }
 
-        /* 1. 當外層不是 NERV 模式時，徹底拆除點名跳窗內 NERV 六角形外殼 (.ng) 的所有定位與重疊 */
+        /* 1. 當外層「不是」NERV 模式時，徹底拆除點名跳窗內 NERV 六角形外殼 (.ng) 的所有定位與重疊 */
         body:not([data-theme="nerv"]) .modal .ng {
           position: static !important;
           width: auto !important;
@@ -215,7 +215,7 @@
           display: inline-block !important;
         }
 
-        /* 2. 當外層不是 NERV 模式時，重設跳窗內按鈕承載層 (.nw)，維持直立置中排版 */
+        /* 2. 當外層「不是」NERV 模式時，重設跳窗內按鈕承載層 (.nw)，維持直立置中排版 */
         body:not([data-theme="nerv"]) .modal .ng .nw {
           position: static !important;
           width: auto !important;
@@ -227,10 +227,8 @@
           padding: 6px !important;
         }
 
-        /* 3. 解決點擊變小Bug：強制在一般/星雲模式下，所有按鈕（組員、組長、秘書長）未點擊與點擊後一律是「完美標準圓圈」 */
+        /* 3. 解決點擊變小Bug：強制在一般/星雲模式下，所有按鈕（組員、組長、秘書長）未點擊一律是「完美標準圓圈」 */
         body:not([data-theme="nerv"]) .modal .nb,
-        body:not([data-theme="nerv"]) .modal .nbsub,
-        body:not([data-theme="nerv"]) .modal .nb.sub,
         body:not([data-theme="nerv"]) .modal .nb.ldr,
         body:not([data-theme="nerv"]) .modal .nb.sec {
           position: static !important;
@@ -250,19 +248,25 @@
           transition: all 0.2s ease !important;
         }
 
-        /* 4. 當點擊選中時，保持完美圓圈並發出「幽幽綠光」呼吸燈（同時綁定 React 渲染的 .nbsub 與 .nb.sub） */
+        /* 4. 精準捕捉點擊選中：當按鈕被選中（變成 .nbsub、.nb.sub 或幹部拼接名），保持圓圈放大並亮起「幽幽綠光」 */
         body:not([data-theme="nerv"]) .modal .nbsub,
         body:not([data-theme="nerv"]) .modal .nb.sub,
         body:not([data-theme="nerv"]) .modal .nbsub.ldr,
-        body:not([data-theme="nerv"]) .modal .nbsub.sec {
+        body:not([data-theme="nerv"]) .modal .nbsub.sec,
+        body:not([data-theme="nerv"]) .modal .nb.sub.ldr,
+        body:not([data-theme="nerv"]) .modal .nb.sub.sec {
           background: rgba(61,214,140,.12) !important;
           border: 2.5px solid #3dd68c !important;
           color: #1a8a4a !important;
-          border-radius: 50% !important; /* 點擊後也強力鎖定圓圈，絕不縮小 */
+          border-radius: 50% !important; /* 強力確保點擊後絕對是圓圈，不縮小不變形 */
           animation: modal-green-pulse 2s ease-in-out infinite !important;
           transform: scale(1.08) !important;
           z-index: 5 !important;
           clip-path: none !important;
+          position: static !important;
+          width: 44px !important;
+          height: 44px !important;
+          display: flex !important;
         }
 
         /* 5. 職稱文字（組長、秘書長標籤）解除 NERV 原本的高權重定位壓制，乖乖直立排在圓圈下方 */
