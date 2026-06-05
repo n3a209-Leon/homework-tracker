@@ -2866,18 +2866,18 @@ function App() {
     try { debugStep('APP CATCH: ' + String(e && e.message ? e.message : e).slice(0,60)); } catch(ex) {}
     try { document.body.style.background = '#f0f4f8'; } catch(ex) {}
     var _em = '';
-    try { _em = (e && (e.message || String(e))) || '未知錯誤'; } catch(ex) { _em = '未知錯誤'; }
+    try { _em = String(e && e.message ? e.message : e) || 'unknown error'; } catch(ex) { _em = 'unknown'; }
     var _es = '';
     try { _es = e && e.stack ? String(e.stack).slice(0,400) : ''; } catch(ex) {}
     var _root = document.getElementById('root') || document.body;
     try {
       _root.innerHTML =
-        '<div style="padding:24px 20px;font-size:14px;color:#c00;background:#fff;word-break:break-all;min-height:100vh;font-family:monospace">' +
-        '<b style="font-size:16px">APP CATCH ERROR</b><br><br>' + _em + '<br><br>' +
-        '<small style="color:#888">' + _es + '</small><br><br>' +
-        '<button onclick="try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" ' +
-        'style="margin-top:8px;padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">清除登入狀態並重新整理</button>' +
-        '</div>';
+        '<div style="padding:24px;font-size:14px;color:#c00;background:#fff;min-height:100vh;font-family:monospace;word-break:break-all">' +
+        '<b>APP CATCH ERROR</b><br><br>' + _em + '<br><br>' +
+        '<small>' + _es + '</small><br><br>' +
+        '<button onclick="try{localStorage.removeItem('hw5ren:tok');}catch(ex){}location.reload()" ' +
+        'style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">' +
+        'Reset &amp; Reload</button></div>';
     } catch(ex2) {}
   }
 });
