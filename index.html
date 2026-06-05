@@ -14,7 +14,7 @@
 
 
 
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
+        /* Google Fonts loaded via <link> below for Safari compatibility */
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         body,html{background:#f0f4f8;min-height:100%;-webkit-tap-highlight-color:transparent}
         .app{min-height:100vh;background:#f0f4f8;font-family:'Noto Sans TC',sans-serif;color:#1a2332;transition:background .3s,color .3s}
@@ -792,28 +792,111 @@
 
 
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
 </head>
 <body>
+<div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px">HTML LOADED</div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
+// ══ Safari Runtime Debug System ════════════════════════════════
+function debugStep(step) {
+  try { console.log('[DEBUG]', step); } catch(e) {}
+  try { console.error('[STEP]', step); } catch(e) {} // 紅色，Safari 更容易看到
+  try {
+    var el = document.getElementById('safari-debug');
+    if (el) {
+      el.innerText = step;
+      // 根據步驟改顏色
+      if (step.indexOf('FAIL') !== -1 || step.indexOf('ERROR') !== -1 || step.indexOf('NOT') !== -1) {
+        el.style.background = '#8B0000';
+      } else if (step.indexOf('COMPLETE') !== -1 || step.indexOf('READY') !== -1) {
+        el.style.background = '#006400';
+      } else {
+        el.style.background = '#c00';
+      }
+    }
+  } catch(e) {}
+}
 
+debugStep('JS START');
 
-window.onerror = function(msg,src,line,col,err) {
-  var root = document.getElementById('root');
-  if (root) root.innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>錯誤：</b><br>'+msg+'<br><b>位置：</b>'+(src||'')+':'+line+'<br><b>React:</b>'+(typeof React!="undefined"?React.version:"未載入")+'<br><br><button onclick="localStorage.removeItem(\'hw5ren:tok\');location.reload()" style="margin-top:12px;padding:8px 16px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">清除登入狀態並重新整理</button></div>';
+// ══ 超強 window.onerror ════════════════════════════════════════
+window.onerror = function(msg, url, line, col, error) {
+  try {
+    var stack = (error && error.stack) ? String(error.stack).slice(0,600) : '';
+    document.body.innerHTML =
+      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;background:#1a0000;color:#ff8888;overflow:auto;margin:0">'
+      + 'SAFARI ERROR
+
+'
+      + String(msg||'') + '
+
+'
+      + String(url||'') + '
+'
+      + String(line||0) + ':' + String(col||0)
+      + (stack ? '
+
+' + stack : '')
+      + '
+
+<a href="javascript:try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" style="color:#88aaff">清除 Token 並重新整理</a>'
+      + '</pre>';
+    try { document.body.style.cssText = 'background:#1a0000!important;display:block!important'; } catch(e) {}
+  } catch(e2) {}
   return true;
 };
-window.addEventListener('unhandledrejection', function(e) {
-  var root = document.getElementById('root');
-  if (root && root.innerHTML.indexOf('正在載入') !== -1) {
-    var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Promise error';
-    root.innerHTML = '<div style="padding:20px;font-size:13px;color:#c00;background:#fff;word-break:break-all"><b>Promise錯誤：</b><br>'+msg+'<br><br><button onclick="localStorage.removeItem(\'hw5ren:tok\');location.reload()" style="margin-top:8px;padding:8px 16px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">清除登入狀態並重新整理</button></div>';
-  }
-});
+
+// ══ Promise 攔截（雙重掛載，相容 Safari）══════════════════════
+function _handleRejection(e) {
+  try {
+    var reason = '';
+    try { reason = e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected'; } catch(ex) { reason = 'unknown'; }
+    document.body.innerHTML =
+      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">'
+      + 'PROMISE ERROR
+
+' + reason
+      + '
+
+<a href="javascript:try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" style="color:#88aaff">清除 Token 並重新整理</a>'
+      + '</pre>';
+  } catch(ex) {}
+}
+window.onunhandledrejection = _handleRejection;
+try { window.addEventListener('unhandledrejection', _handleRejection); } catch(e) {}
+
+// ══ body/root visibility 保底 fallback ═════════════════════════
+setTimeout(function() {
+  try {
+    document.body.style.display = '';
+    document.body.style.visibility = 'visible';
+    document.body.style.opacity = '1';
+    var root = document.getElementById('root');
+    if (root) {
+      root.style.display = '';
+      root.style.visibility = 'visible';
+      root.style.opacity = '1';
+    }
+  } catch(e) {}
+}, 1000);
+
+debugStep('JS START OK');
 </script>
-<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+<script>debugStep('CDN LOADING');</script>
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"
+  crossorigin="anonymous"
+  onload="debugStep('REACT FOUND')"
+  onerror="debugStep('REACT CDN FAILED - trying unpkg');var s=document.createElement('script');s.src='https://unpkg.com/react@17.0.2/umd/react.production.min.js';s.crossOrigin='anonymous';s.onload=function(){debugStep('REACT FOUND via unpkg')};document.head.appendChild(s)"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"
+  crossorigin="anonymous"
+  onload="debugStep('REACTDOM FOUND')"
+  onerror="debugStep('REACTDOM CDN FAILED - trying unpkg');var s=document.createElement('script');s.src='https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js';s.crossOrigin='anonymous';s.onload=function(){debugStep('REACTDOM FOUND via unpkg')};document.head.appendChild(s)"></script>
 <script>
+debugStep('GOOGLE API START');
 // ── Safe localStorage wrapper（Safari Private/Storage-full 防護）──────────────
 var _lsOk = (function() {
   try { localStorage.setItem('__t__','1'); localStorage.removeItem('__t__'); return true; }
@@ -921,39 +1004,74 @@ window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
 window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
+debugStep('GOOGLE API READY');
 
 
 </script>
 <script>window.addEventListener('load', function() {
-  // ── _dbgMark: Step 1 = React Loaded, Step 2 = ReactDOM Loaded ──
-  if (window._dbgMark) { window._dbgMark(1); }
+  debugStep('WINDOW LOAD FIRED');
 
-  // ── safeLS alias（從 window._safeLS 取得，或用直接 localStorage）──
-  var _sl = window._safeLS || {
-    get: function(k){ try{return _sl.get(k);}catch(e){return null;} },
-    set: function(k,v){ try{localStorage.setItem(k,v);}catch(e){} },
-    remove: function(k){ try{localStorage.removeItem(k);}catch(e){} },
-    length: function(){ try{return _sl.length();}catch(e){return 0;} },
-    key: function(i){ try{return _sl.key(i);}catch(e){return null;} }
-  };
+  // ── 確認 React/ReactDOM 已載入 ──────────────────────────────
+  if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+    debugStep('REACT NOT FOUND - ABORT');
+    document.getElementById('root').innerHTML =
+      '<div style="padding:24px;font-size:15px;font-family:monospace;color:#c00;background:#fff;min-height:100vh">'
+      + '<b>❌ React 載入失敗</b><br><br>'
+      + 'React: ' + (typeof React) + '<br>'
+      + 'ReactDOM: ' + (typeof ReactDOM) + '<br><br>'
+      + '可能原因：jsDelivr CDN 被封鎖或網路問題<br><br>'
+      + '<button onclick="location.reload()" style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">重新整理</button>'
+      + '</div>';
+    return;
+  }
+  debugStep('REACT FOUND');
 
-  // ── safeJSON: 避免 JSON.parse 崩潰 ──
+  // ── safeLS: 修正版（無遞迴）──────────────────────────────────────
+  var _sl = window._safeLS || (function() {
+    // 直接使用 localStorage，不透過 _sl 自身
+    var _ls = null;
+    try { _ls = window.localStorage; } catch(e) {}
+    return {
+      get:    function(k)  { try { return _ls ? _ls.getItem(k)    : null; } catch(e){ return null; } },
+      set:    function(k,v){ try { if(_ls) _ls.setItem(k, v);              } catch(e){} },
+      remove: function(k)  { try { if(_ls) _ls.removeItem(k);             } catch(e){} },
+      length: function()   { try { return _ls ? _ls.length : 0;           } catch(e){ return 0; } },
+      key:    function(i)  { try { return _ls ? _ls.key(i) : null;        } catch(e){ return null; } }
+    };
+  })();
+
+  // ── safeJSON ──────────────────────────────────────────────────────
   function safeJSON(str, fallback) {
+    if (str === null || str === undefined) return (fallback !== undefined ? fallback : null);
     try { return JSON.parse(str); }
-    catch(e) { return fallback !== undefined ? fallback : null; }
+    catch(e) { return (fallback !== undefined ? fallback : null); }
   }
 
-  // ── IDB guard: 若 indexedDB 不存在則 fallback 到純 localStorage ──
+  // ── safeGet / safeSet / safeRemove ──────────────────────────────
+  function safeGet(key, fallback) {
+    var v = _sl.get(key);
+    return (v === null || v === undefined) ? (fallback !== undefined ? fallback : '') : v;
+  }
+  function safeSet(key, val) { _sl.set(key, val); }
+  function safeRemove(key) { _sl.remove(key); }
+
+  // ── safeJSONParse ──────────────────────────────────────────────────
+  function safeJSONParse(v, fallback) {
+    return safeJSON(v, fallback !== undefined ? fallback : null);
+  }
+
+  // ── IDB guard ──────────────────────────────────────────────────────
   var _idbAvailable = (function() {
     try { return typeof indexedDB !== 'undefined' && indexedDB !== null; }
     catch(e) { return false; }
   })();
 
-  if (window._dbgMark) { window._dbgMark(2); }
+  debugStep('REACTDOM FOUND');
 
   var useState=React.useState, useEffect=React.useEffect,
       useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
   try {
+debugStep('GOOGLE API READY');
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -964,7 +1082,7 @@ const DEFAULT_GROUPS = [
 ];
 function loadGroups() {
     try {
-        const s = _sl.get("hw5ren:groups");
+        const s = safeGet("hw5ren:groups");
         if (s)
             return JSON.parse(s);
     }
@@ -995,8 +1113,9 @@ const DB_NAME = "hw5ren_db";
 const DB_STORE = "dayData";
 let _db = null;
 function openDB() {
+    debugStep('INDEXEDDB START');
     // Safari guard: 若 IDB 不可用直接 reject（會被上層 catch 處理）
-    if (!_idbAvailable) return Promise.reject(new Error("IDB not available"));
+    if (!_idbAvailable) { debugStep('INDEXEDDB UNSUPPORTED'); return Promise.reject(new Error("IDB not available")); }
     // 若 _db 存在且連線未關閉，直接回傳
     if (_db) {
         try {
@@ -1011,7 +1130,7 @@ function openDB() {
         try {
             const req = indexedDB.open(DB_NAME, 1);
             req.onupgradeneeded = e => { try { e.target.result.createObjectStore(DB_STORE); } catch(ex){} };
-            req.onsuccess = e => { _db = e.target.result; resolve(_db); };
+            req.onsuccess = e => { _db = e.target.result; debugStep('INDEXEDDB READY'); resolve(_db); };
             req.onerror = e => reject(e.target.error);
             // Safari 有時在 Private Browse 下不會觸發 onsuccess/onerror
             setTimeout(() => { if (!_db) reject(new Error("IDB timeout")); }, 5000);
@@ -1144,7 +1263,7 @@ async function loadDay(dateStr) {
     // 2. localStorage 備援
     if (!raw) {
         try {
-            raw = _sl.get("hw5ren:"+dateStr);
+            raw = safeGet("hw5ren:"+dateStr);
         }
         catch (_b) { }
     }
@@ -1588,16 +1707,17 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                     React.createElement("button", { onClick: doClear, disabled: clearDel !== "DEL", style: { flex: 1, padding: "10px 0", border: "none", borderRadius: nerv ? 2 : 12, background: clearDel === "DEL" ? "#e53935" : "#aaa", color: "#fff", fontSize: 14, fontWeight: 700, cursor: clearDel === "DEL" ? "pointer" : "not-allowed" } }, nerv ? "PURGE" : "確認清除")))))));
 }
 function App() {
+    debugStep('APP START');
     var _a, _b, _c, _d, _e;
-    // Step 6: App Render Complete（在 mount 後標記）
+    // Render complete marker（mount 後）
     useEffect(function() {
-        if (window._dbgMark) window._dbgMark(6);
+        debugStep('RENDER COMPLETE');
     }, []);
     const [view, setView] = useState("month");
     const [groups, setGroups] = useState(() => loadGroups());
-    const [className, setClassName] = useState(() => _sl.get("hw5ren:className") || "");
-    const [schoolName, setSchoolName] = useState(() => _sl.get("hw5ren:school") || "");
-    const [schoolYear, setSchoolYear] = useState(() => _sl.get("hw5ren:year") || String(new Date().getFullYear()));
+    const [className, setClassName] = useState(() => safeGet("hw5ren:className") || "");
+    const [schoolName, setSchoolName] = useState(() => safeGet("hw5ren:school") || "");
+    const [schoolYear, setSchoolYear] = useState(() => safeGet("hw5ren:year") || String(new Date().getFullYear()));
     const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
     function saveGroups(g) {
         setGroups(g);
@@ -1615,10 +1735,11 @@ function App() {
     const [counselDate, setCounselDate] = useState(today());
     const [counselRecords, setCounselRecords] = useState([]); // 當日輔導記錄
     const [loading, setLoading] = useState(false);
-    const [theme, setTheme] = useState(() => _sl.get("hw5ren:theme") || "default");
+    const [theme, setTheme] = useState(() => safeGet("hw5ren:theme") || "default");
     const [showThemeMenu, setShowThemeMenu] = useState(false);
+    debugStep('APP STATE INIT');
     const [yearRecords, setYearRecords] = useState(() => { try {
-        return safeJSON(_sl.get('hw5ren:years'), []);
+        return safeJSON(safeGet('hw5ren:years'), []);
     }
     catch (_a) {
         return [];
@@ -1632,9 +1753,10 @@ function App() {
     const isNerv = theme === "nerv";
     const isNebula = theme === "nebula";
     // ── Drive / Auth ──
+    debugStep('APP STATE INIT');
     const [authed, setAuthed] = useState(() => {
         // 只有 token 存在且看起來合法才認為已登入，避免過期 token 造成白屏
-        const tok = _sl.get('hw5ren:tok');
+        const tok = safeGet('hw5ren:tok');
         return !!(tok && tok.length > 20);
     });
     const [driveStatus, setDriveStatus] = useState('offline');
@@ -1711,7 +1833,7 @@ function App() {
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
     // ── 備份狀態 ──
     const todayStr = today();
-    const [lastSyncTime, setLastSyncTime] = useState(() => _sl.get("hw5ren:lastSync") || "");
+    const [lastSyncTime, setLastSyncTime] = useState(() => safeGet("hw5ren:lastSync") || "");
     function getDriveFilename(year, cls) {
         if (!year && !cls)
             return 'hw-5renren-ALL.json';
@@ -1740,6 +1862,7 @@ function App() {
     const [stor, setStor] = useState({ state: "init", msg: "初始化中…", detail: "" });
     // ── Check storage on mount ──
     useEffect(() => {
+        debugStep('APP EFFECT INIT');
         (async () => {
             setStor({ state: "checking", msg: "🔍 初始化儲存…", detail: "" });
             // 測試 IDB 是否可用
@@ -1775,7 +1898,7 @@ function App() {
                 let rescued = 0;
                 for (const k of lsDays) {
                     const ds = k.replace(LS_PREFIX, "");
-                    const v = _sl.get(k);
+                    const v = safeGet(k);
                     if (v) {
                         try {
                             await idbSet("day:"+ds, v);
@@ -1963,9 +2086,10 @@ function App() {
         });
     }
     // ── Custom HW memory ──
+    debugStep('APP STATE INIT');
     const [customHW, setCustomHW] = useState(() => {
         try {
-            return safeJSON(_sl.get("hw5ren:customHW"), []);
+            return safeJSON(safeGet("hw5ren:customHW"), []);
         }
         catch (_a) {
             return [];
@@ -2359,7 +2483,7 @@ function App() {
                         if (idbOk && idbKeys_.length === 0 && lsKeys.length > 0) {
                             for (const k of lsKeys) {
                                 const ds = k.replace("hw5ren:", "");
-                                const v = _sl.get(k);
+                                const v = safeGet(k);
                                 if (v)
                                     try {
                                         await idbSet("day:"+ds, v);
@@ -2544,7 +2668,7 @@ function App() {
                         // 確保包含今日最新資料
                         let raw = await idbGet("day:"+selDate);
                         if (!raw)
-                            raw = _sl.get("hw5ren:"+selDate);
+                            raw = safeGet("hw5ren:"+selDate);
                         const snapshot = {};
                         for (const k of allKeys) {
                             const v = await idbGet(k);
@@ -2764,8 +2888,9 @@ function App() {
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
 }
 
-    if (window._dbgMark) window._dbgMark(5); // Step 5: App Render Start
+    debugStep('RENDER START');
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    debugStep('RENDER COMPLETE (sync)');
   } catch(e) {
     // 確保 body 可見（Safari black-translucent 防護）
     try { document.body.style.background = '#f0f4f8'; } catch(ex) {}
