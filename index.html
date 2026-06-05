@@ -452,7 +452,7 @@
           content:'';
           position:fixed;
           inset:0;
-          z-index:0;
+          z-index:-1;
           background:
             radial-gradient(ellipse 80% 60% at 20% 30%, rgba(80,40,180,.35) 0%, transparent 65%),
             radial-gradient(ellipse 60% 80% at 80% 70%, rgba(20,80,200,.3) 0%, transparent 60%),
@@ -470,7 +470,7 @@
           content:'✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦';
           position:fixed;
           inset:0;
-          z-index:0;
+          z-index:-1;
           font-size:10px;
           line-height:3.5;
           letter-spacing:22px;
@@ -483,17 +483,11 @@
 
         /* 所有內容在星空之上 */
         [data-theme="nebula"] .app > *{position:relative;z-index:1}
-        [data-theme="nebula"] main{position:relative;z-index:1}
-        [data-theme="nebula"] .table-wrapper{position:relative;z-index:1}
-        [data-theme="nebula"] .nav-bar{position:relative;z-index:2}
-        [data-theme="nebula"] .excel-bar{position:relative;z-index:1}
-        [data-theme="nebula"] .calendar{position:relative;z-index:1}
-        [data-theme="nebula"] .cal-grid{position:relative;z-index:1}
-        [data-theme="nebula"] .sum-wrap{position:relative;z-index:1}
-        [data-theme="nebula"] .ra{position:relative;z-index:1}
-        /* 確保 app 子元素全部在星空之上 */
-        [data-theme="nebula"] .app *{position:relative}
-        [data-theme="nebula"] .app::before,[data-theme="nebula"] .app::after{position:fixed;z-index:0}
+        /* main 內容區不需要 z-index（靠 isolation 隔離星雲層）*/
+        /* 確保星雲層不蓋住內容 — 移除全域 position:relative 改用 isolation */
+        [data-theme="nebula"] .app{isolation:isolate}
+        [data-theme="nebula"] header{isolation:isolate}
+        [data-theme="nebula"] main{isolation:isolate}
         [data-theme="nebula"] header{
           position:relative;z-index:2;
           background:rgba(8,5,25,.85);
@@ -628,6 +622,13 @@
 
         /* stor-bar */
         [data-theme="nebula"] .stor-bar{border-left:3px solid rgba(120,90,220,.7)}
+
+        /* ArchiveView — 星空模式下要有明確背景 */
+        [data-theme="nebula"] .archive-wrap{
+          background:rgba(6,4,20,.88);
+          min-height:60vh;
+          padding:4px 0 40px;
+        }
 
         /* table 作業記錄區 */
         [data-theme="nebula"] .table-wrapper{
@@ -1898,17 +1899,28 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
     marginBottom: 12,
   };
 
-  return React.createElement("div", { style: { padding:'16px 12px', maxWidth:500, margin:'0 auto' } },
+  // 星空模式下加 archive-wrap class 確保有背景
+  const wrapStyle = { padding:'16px 12px', maxWidth:500, margin:'0 auto' };
+  if (isNerv) {
+    // NERV 模式不需要特別處理
+  }
+  return React.createElement("div", { className:"archive-wrap", style: wrapStyle },
     // 標題
     React.createElement("h2", { style: { fontSize:18, fontWeight:900, color: isNerv?'#ff6600':'#1e3a5f', marginBottom:16, letterSpacing: isNerv?3:0, fontFamily: isNerv?'Share Tech Mono,monospace':'inherit' } },
       isNerv ? "◈ HISTORICAL ARCHIVE" : "🗂 學年歷史檔案室"),
 
     // ── 歷年學校/班級記錄卡片 ──
-    yearRecords && yearRecords.length > 0 && React.createElement("div", { style:{marginBottom:16} },
+    React.createElement("div", { style:{marginBottom:16} },
       React.createElement("div", { style:{fontWeight:700,fontSize:13,color:isNerv?'#ff9944':'#888',marginBottom:8,letterSpacing:isNerv?2:0} },
         isNerv ? "// HISTORICAL RECORDS //" : "📚 歷年學校班級記錄"),
       React.createElement("div", { style:{display:'flex',flexDirection:'column',gap:6} },
-        yearRecords.map((r,i) =>
+        (yearRecords && yearRecords.length > 0 ? yearRecords : [{
+          year: schoolYear || new Date().getFullYear(),
+          school: '（目前學年）',
+          className: className || '',
+          driveFile: '-',
+          savedAt: '-'
+        }]).map((r,i) =>
           React.createElement("div", { key:i,
             onClick: () => setSelYear(String(r.year)),
             style:{
