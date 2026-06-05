@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head><body style="margin:0;background:#111;color:#eee;font-family:sans-serif">
+<div id="r" style="padding:20px;font-size:16px">⏳ Chunk 3/4 測試中...</div>
+<script>
+window.onerror=function(msg,src,line){
+  document.getElementById('r').innerHTML='<div style="color:#f88;padding:20px">❌ Chunk 3 解析錯誤<br>'+msg+'<br>行:'+line+'</div>';
+  return true;
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+<script>
+window.addEventListener('load',function(){
+  try{
+    var useState=React.useState,useEffect=React.useEffect,useCallback=React.useCallback,useRef=React.useRef,useMemo=React.useMemo;
+    }
+    const saveCurrent = useCallback(async (newRows, newAtt, newExempt) => {
+        const rows = newRows !== null && newRows !== void 0 ? newRows : dayRowsRef.current;
+        const att = newAtt !== null && newAtt !== void 0 ? newAtt : dayAttRef.current;
+        const exempt = newExempt !== null && newExempt !== void 0 ? newExempt : dayExemptRef.current;
+        setStor(s => (Object.assign(Object.assign({}, s), { state: "saving", msg: "💾 儲存中…" })));
+        const date = selDateRef.current;
+        const res = await saveDay(date, rows, att, exempt);
+        setMonthDays(prev => (Object.assign(Object.assign({}, prev), { [date]: { rows, attendance: att, exempt } })));
+        setStor({ state: "saved",
+            msg: res.source === "idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
+            detail: date });
+        setTimeout(() => setStor(s => s.state === "saved"
+            ? { state: "ok", msg: res.source === "idb" ? "📦 IDB 正常" : "💾 本機儲存", detail: "" }
+            : s), 2000);
+        // 3秒後自動同步到 Drive（背景執行，不影響操作）
+        scheduleAutoSync();
+    }, [authed]);
+    function updRows(fn) {
+        setDayRows(prev => {
+            const next = fn(prev);
+            pushHistory(next, dayAtt, dayExempt);
+            saveCurrent(next, dayAtt, dayExempt);
+            return next;
+        });
+    }
+    function updAtt(fn) {
+        setDayAtt(prev => {
+            const next = fn(prev);
+            pushHistory(dayRows, next, dayExempt);
+            saveCurrent(dayRows, next, dayExempt);
+            return next;
+        });
+    }
+    function updExempt(fn) {
+        setDayExempt(prev => {
+            const next = fn(prev);
+            pushHistory(dayRows, dayAtt, next);
+            saveCurrent(dayRows, dayAtt, next);
+            return next;
+        });
+    }
+    // ── Custom HW memory ──
+    const [customHW, setCustomHW] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem("hw5ren:customHW") || "[]");
+        }
+        catch (_a) {
+            return [];
+        }
+    });
+    function saveCustomHW(list) {
+        setCustomHW(list);
+        localStorage.setItem("hw5ren:customHW", JSON.stringify(list));
+    }
+    function addToCustomHW(name) {
+        // 不加入已存在於預設或自訂的
+        if (PRESET_HW.includes(name))
+            return;
+        if (customHW.includes(name))
+            return;
+        saveCustomHW([name, ...customHW].slice(0, 20)); // 最多記20個
+    }
+    function handleConfirmInput() {
+        const name = inputText.trim();
+        if (!name) {
+            closeModal();
+            return;
+        }
+        // 記憶自訂輸入
+        addToCustomHW(name);
+        if (modal.gid !== null) {
+            confirmInput(name);
+        }
+        else {
+            updRows(p => { const n = [...p]; n[modal.ri] = Object.assign(Object.assign({}, n[modal.ri]), { hwName: name }); return n; });
+            closeModal();
+        }
+    }
+    // ── Modal state ──
+    const [modal, setModal] = useState(null);
+    const [inputText, setInputText] = useState("");
+    const [pendingHw, setPendingHw] = useState("");
+    const [marked, setMarked] = useState(new Set());
+    // ── Attendance modal ──
+    const [attModal, setAttModal] = useState(null);
+    // ── Exempt modal ──
+    const [exemptModal, setExemptModal] = useState(null); // { hwName } | null — used for inline expand
+    function openExemptModal(hwName) { setExemptModal({ hwName }); }
+    function closeExemptModal() { setExemptModal(null); } // { leaveType: "personal"|"sick" } | null
+    function openAttModal(leaveType) {
+        setAttModal({ leaveType });
+    }
+    function closeAttModal() { setAttModal(null); }
+    function toggleAttMember(leaveType, num) {
+        updAtt(prev => {
+            const personal = new Set(prev.personal);
+            const sick = new Set(prev.sick);
+            const pub = new Set(prev.public);
+            const alreadyThis = (leaveType === "personal" && personal.has(num)) ||
+                (leaveType === "sick" && sick.has(num)) ||
+                (leaveType === "public" && pub.has(num));
+            // clear from all
+            personal.delete(num);
+            sick.delete(num);
+            pub.delete(num);
+            // if not already this type, set it
+            if (!alreadyThis) {
+                if (leaveType === "personal")
+                    personal.add(num);
+                else if (leaveType === "sick")
+                    sick.add(num);
+                else if (leaveType === "public")
+                    pub.add(num);
+            }
+            return { personal, sick, public: pub };
+        });
+    }
+    function openCell(ri, gid) {
+        var _a;
+        const hw = (_a = dayRows[ri]) === null || _a === void 0 ? void 0 : _a.hwName;
+        if (!hw) {
+            setModal({ ri, gid, phase: "input" });
+            setInputText("");
+            setPendingHw("");
+        }
+        else
+            openMark(ri, gid, hw);
+    }
+    function openMark(ri, gid, hw) {
+        var _a, _b, _c;
+        setMarked(new Set((_c = (_b = (_a = dayRows[ri]) === null || _a === void 0 ? void 0 : _a.groupData) === null || _b === void 0 ? void 0 : _b[gid]) !== null && _c !== void 0 ? _c : []));
+        setModal({ ri, gid, phase: "mark", hw });
+    }
+    function confirmInput(text) {
+        const name = text.trim();
+        if (!name)
+            return;
+        updRows(prev => {
+            var _a;
+            const n = [...prev];
+            n[modal.ri] = { hwName: name, groupData: ((_a = n[modal.ri]) === null || _a === void 0 ? void 0 : _a.groupData) || {} };
+            return n;
+        });
+        openMark(modal.ri, modal.gid, name);
+    }
+    function confirmMark() {
+        updRows(prev => {
+            const n = [...prev], r = Object.assign({}, n[modal.ri]);
+            r.groupData = Object.assign(Object.assign({}, r.groupData), { [modal.gid]: new Set(marked) });
+            n[modal.ri] = r;
+            return n;
+        });
+        setModal(m => (Object.assign(Object.assign({}, m), { phase: "result" })));
+    }
+    function closeModal() { setModal(null); setMarked(new Set()); }
+    function addRow() {
+        if (dayRows.length >= MAX_ROWS)
+            return;
+        updRows(p => [...p, { hwName: "", groupData: {} }]);
+    }
+    function delRow(i) { updRows(p => p.filter((_, j) => j !== i)); }
+    function rowStatus(ri, gid) {
+        var _a, _b, _c;
+        const row = dayRows[ri];
+        if (!row || !row.hwName)
+            return "empty";
+        const g = groups.find(g => g.id === gid);
+        const recorded = Object.prototype.hasOwnProperty.call(row.groupData || {}, gid);
+        const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
+        const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
+        if (!recorded)
+            return "untouched";
+        if (done.size === 0 && exemptSet.size === 0)
+            return "allabsent";
+        // count members not done and not exempt
+        const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
+        if (realMissing.length === 0)
+            return "complete";
+        return "partial";
+    }
+    function getMissing(ri, gid) {
+        var _a, _b, _c;
+        const row = dayRows[ri];
+        if (!row)
+            return [];
+        const g = groups.find(g => g.id === gid);
+        const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
+        const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
+        return g.members.filter(m => !done.has(m) && !exemptSet.has(m));
+    }
+    function getExemptInGroup(ri, gid) {
+        var _a, _b, _c;
+        const row = dayRows[ri];
+        if (!row || !row.hwName)
+            return [];
+        const g = groups.find(g => g.id === gid);
+        const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
+        const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
+        return g.members.filter(m => !done.has(m) && exemptSet.has(m));
+    }
+    const resMissing = (modal === null || modal === void 0 ? void 0 : modal.phase) === "result" ? getMissing(modal.ri, modal.gid) : [];
+    const resGroup = groups.find(g => g.id === (modal === null || modal === void 0 ? void 0 : modal.gid));
+    const [importMsg, setImportMsg] = useState("");
+    const [backupJson, setBackupJson] = useState("");
+    const [showBackup, setShowBackup] = useState(false);
+    const [showImport, setShowImport] = useState(false);
+    const [importText, setImportText] = useState("");
+    // ── Month navigation ──
+    function prevMonth() {
+        if (curMonth === 0) {
+            setCurYear(y => y - 1);
+            setCurMonth(11);
+        }
+        else
+            setCurMonth(m => m - 1);
+    }
+    function nextMonth() {
+        if (curMonth === 11) {
+            setCurYear(y => y + 1);
+            setCurMonth(0);
+        }
+        else
+            setCurMonth(m => m + 1);
+    }
+    // ── Month calendar grid ──
+    function CalendarCell({ dateStr, d }) {
+        var _a, _b, _c, _d;
+        const entry = monthDays[dateStr] || { rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() } };
+        const rows = entry.rows || [];
+        const att = entry.attendance || { personal: new Set(), sick: new Set(), public: new Set() };
+        const { filled, allDone } = daySummary(rows);
+        const isToday = dateStr === today();
+        const hasSome = filled > 0;
+        const allComplete = hasSome && allDone === filled;
+        const partial = hasSome && !allComplete;
+        const absentCount = (((_a = att.personal) === null || _a === void 0 ? void 0 : _a.size) || 0) + (((_b = att.sick) === null || _b === void 0 ? void 0 : _b.size) || 0) + (((_c = att.public) === null || _c === void 0 ? void 0 : _c.size) || 0);
+        const hasCounsel = !!((_d = counselMonth[dateStr]) === null || _d === void 0 ? void 0 : _d.length);
+        return (React.createElement("div", { className: "cal-cell"+(isToday?" is-today":"")+(allComplete?" is-complete":"")+(partial?" is-partial":""), onClick: () => openDay(dateStr) },
+            React.createElement("span", { className: "cal-day" }, d),
+            hasSome && (React.createElement("div", { className: "cal-dots" }, rows.filter(r => r.hwName).map((r, i) => {
+                const gTotal = groups.reduce((s, g) => s + g.members.length, 0);
+                const gDone = groups.reduce((s, g) => { var _a, _b; return s + (((_b = (_a = r.groupData) === null || _a === void 0 ? void 0 : _a[g.id]) === null || _b === void 0 ? void 0 : _b.size) || 0); }, 0);
+                const pct = gTotal ? gDone / gTotal : 0;
+                return React.createElement("span", { key: i, className: "cal-dot", style: { background: pct === 1 ? "#4caf80" : pct > 0 ? "#ffa726" : "#dde5ee" } });
+            }))),
+            allComplete && React.createElement("span", { className: "cal-ok" }, "\u2713"),
+            absentCount > 0 && React.createElement("span", { className: "cal-absent" },
+                absentCount,
+                "\u8ACB"),
+            hasCounsel && (React.createElement("span", { className: "cal-counsel", title: "\u6709\u8F14\u5C0E\u7D00\u9304", onClick: e => { e.stopPropagation(); openCounsel(dateStr); } }, isNerv ? "◈" : "💬"))));
+    }
+    // ── NERV Intro Animation ──
+    const [intro, setIntro] = useState(() => {
+        // Only show intro once per session in NERV mode
+        return false; // will be triggered by theme switch
+    });
+    const [introPhase, setIntroPhase] = useState(0);
+    const introLines = [
+        "NERV MAGI SYSTEM — INITIALIZING...",
+        "PILOT INTERFACE CONNECTED",
+        "LCL PRESSURE: NOMINAL",
+        "A10 NERVE SYNC: 94.3%",
+        "ENTRY PLUG SEALED",
+        "UMBILICAL CABLE DISCONNECTED",
+        "EVANGELION UNIT-05REN — LAUNCH",
+    ];
+    function startIntro() {
+        setIntro(true);
+        setIntroPhase(0);
+        let p = 0;
+        const iv = setInterval(() => {
+            p++;
+            setIntroPhase(p);
+            if (p >= introLines.length + 2) {
+                clearInterval(iv);
+                setTimeout(() => setIntro(false), 600);
+            }
+        }, 420);
+    }
+    function handleThemeToggle() { setShowThemeMenu(v => !v); }
+    function setThemeAndSave(t) {
+        localStorage.setItem('hw5ren:theme', t);
+        setTheme(t);
+        setShowThemeMenu(false);
+        if (t === 'nerv')
+            startIntro();
+    }
+    // ── Format selDate nicely ──
+    function fmtDate(ds) {
+        if (!ds)
+            return "";
+        const [y, m, d] = ds.split("-");
+        const wd = new Date(+y, +m - 1, +d).getDay();
+        return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
+    }
+    if (!authed) {
+        return (React.createElement("div", { className: "app", "data-theme": theme, style: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: isNerv ? "#050200" : "linear-gradient(160deg,#1e3a5f,#2d5a8e)", padding: "40px 24px" } },
+            React.createElement("div", { style: { fontSize: 64, marginBottom: 16 } }, isNerv ? "⬡" : "📋"),
+            React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
+            React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
+            React.createElement("button", { onClick: () => {
+                    setStor({ state: "saving", msg: "🔑 登入中..." });
+                    gSignIn().then(() => setAuthed(true)).catch((e) => setStor({ state: "error", msg: "登入失敗" }));
+                }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
+                React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
+                isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
+            React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Google Drive")));
+    }
+    return (React.createElement("div", { className: "app", "data-theme": theme },
+        React.createElement("header", null,
+            React.createElement("div", { className: "hi" },
+                React.createElement("span", { className: "ti" }, isNerv ? "⬡" : "📋"),
+                React.createElement("h1", null, isNerv ? React.createElement(React.Fragment, null,
+                    React.createElement("em", null, "NERV"),
+                    " ",
+                    React.createElement("span", { className: "nerv-slash" }, "//"),
+                    " ",
+                    React.createElement("em", null, "\u4F5C\u696D\u7E73\u4EA4\u30B7\u30B9\u30C6\u30E0")) : "作業繳交紀錄"),
+                React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
+                React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
+                React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
+                React.createElement("button", { className: "theme-btn", onClick: () => setShowHistory(true), title: "歷史學年",
+                    style: { background: yearRecords.length > 0 ? "rgba(255,193,7,.25)" : "rgba(255,255,255,.15)", padding: "4px 8px" } },
+                    "📂"),
+                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
+            intro && (React.createElement("div", { className: "nerv-intro" },
+                React.createElement("div", { className: "nerv-intro-inner" },
+                    React.createElement("div", { className: "nerv-hex-ring" },
+                        React.createElement("div", { className: "nerv-hex-logo" }, "\u2B21")),
+                    React.createElement("div", { className: "nerv-intro-title" }, "NERV"),
+                    React.createElement("div", { className: "nerv-intro-sub" }, "GOD'S IN HIS HEAVEN \u2014 ALL'S RIGHT WITH THE WORLD"),
+                    React.createElement("div", { className: "nerv-intro-lines" }, introLines.map((line, i) => (React.createElement("div", { key: i, className: "nerv-intro-line"+(i<introPhase?" visible":"")+(i===introPhase-1?" active":"") },
+                        React.createElement("span", { className: "nerv-line-prefix" }, ">>"),
+                        " ",
+                        line,
+                        i === introPhase - 1 && React.createElement("span", { className: "nerv-cursor" }, "\u2588"))))),
+                    introPhase >= introLines.length && (React.createElement("div", { className: "nerv-launch-text" }, "// SYSTEM READY //"))))),
+            React.createElement("div", { className: "stor-bar stor-"+stor.state },
+                React.createElement("span", { className: "stor-msg" }, stor.msg),
+                stor.detail && React.createElement("span", { className: "stor-detail" }, stor.detail),
+                React.createElement("span", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 5, fontSize: 11, opacity: .8 } },
+                    React.createElement("span", { style: { width: 6, height: 6, borderRadius: "50%", display: "inline-block",
+                            background: driveStatus === "ok" ? "#4caf80" : driveStatus === "syncing" ? "#ffaa00" : "#888",
+                            boxShadow: driveStatus === "syncing" ? "0 0 4px #ffaa00" : driveStatus === "ok" ? "0 0 4px #4caf80" : "none",
+                            animation: driveStatus === "syncing" ? "pulse .8s infinite" : "none"
+                        } }),
+                    React.createElement("span", null, driveStatus === "ok" ? "Drive ✓" : driveStatus === "syncing" ? "同步中…" : driveStatus === "error" ? "Drive ✗" : "Drive"))),
+            React.createElement("div", { className: "backup-warn"+(isNerv?" backup-warn-nerv":""), style: {
+                    background: driveStatus === "ok"
+                        ? (isNerv ? "#001a00" : "#f0faf4")
+                        : driveStatus === "syncing"
+                            ? (isNerv ? "#1a1000" : "#fff9f0")
+                            : driveStatus === "error"
+                                ? (isNerv ? "#1a0000" : "#fff5f5")
+                                : (isNerv ? "#0a0a0a" : "#f5f5f5"),
+                    borderLeft: isNerv ? "none" : ("4px solid " + (driveStatus === "ok" ? "#4caf80" :
+                        driveStatus === "syncing" ? "#ffaa00" :
+                            driveStatus === "error" ? "#f44336" : "#aaa")),
+                    borderTop: isNerv ? ("1px solid " + (driveStatus === "ok" ? "#00cc55" :
+                        driveStatus === "syncing" ? "#ffaa00" :
+                            driveStatus === "error" ? "#ff0000" : "#333")) : undefined,
+                    borderBottom: isNerv ? ("1px solid " + (driveStatus === "ok" ? "#00cc55" :
+                        driveStatus === "syncing" ? "#ffaa00" :
+                            driveStatus === "error" ? "#ff0000" : "#333")) : undefined,
+                } },
+                React.createElement("span", { className: "backup-warn-text", style: {
+                        color: isNerv
+                            ? (driveStatus === "ok" ? "#00ff66" : driveStatus === "syncing" ? "#ffaa00" : driveStatus === "error" ? "#ff0000" : "#888")
+                            : (driveStatus === "ok" ? "#2e7d32" : driveStatus === "syncing" ? "#e65100" : driveStatus === "error" ? "#c62828" : "#888"),
+                        textShadow: isNerv
+                            ? (driveStatus === "ok" ? "0 0 8px rgba(0,255,100,.8)" : driveStatus === "syncing" ? "0 0 8px rgba(255,170,0,.8)" : driveStatus === "error" ? "0 0 8px rgba(255,0,0,.8)" : "none")
+                            : "none",
+                        animation: driveStatus === "syncing"
+                            ? "marquee 8s linear infinite, alert-pulse .6s ease-in-out infinite"
+                            : "marquee 18s linear infinite",
+                    } },
+                    driveStatus === "ok" && (isNerv
+                        ? "✦ DRIVE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED // ✦ DRIVE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED //"
+                        : "✅ Drive 同步完成　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存　✅ Drive 同步完成　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存"),
+                    driveStatus === "syncing" && (isNerv
+                        ? "⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 // ⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 //"
+                        : "⏳ 正在同步到 Drive…　請稍候　⏳ 正在同步到 Drive…　請稍候"),
+                    driveStatus === "error" && (isNerv
+                        ? "⚠ DRIVE SYNC FAILED // 請檢查網路連線 // 資料已儲存於本機 // ⚠ DRIVE SYNC FAILED // 請檢查網路連線 //"
+                        : "⚠️ Drive 同步失敗　請檢查網路連線　資料已儲存於本機　⚠️ Drive 同步失敗　請檢查網路連線"),
+                    driveStatus === "offline" && (isNerv
+                        ? "◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 // ◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 //"
+                        : "🔌 Drive 未連線　資料儲存於本機　登入後自動同步　🔌 Drive 未連線　資料儲存於本機"))),
+            React.createElement("div", { className: "nav-bar" },
+                (view === "day" || view === "settings" || counselView) && (React.createElement("button", { className: "back-btn", onClick: () => { setView("month"); setCounselView(false); } }, isNerv ? "⬡ HOME" : "🏠")),
+                view === "day" && (React.createElement("button", { className: "back-btn", onClick: () => setView("month") }, isNerv ? "◀ RETURN" : "← 月曆")),
+                React.createElement("button", { className: "nav-btn", onClick: prevMonth }, "\u2039"),
+                React.createElement("span", { className: "month-label" }, isNerv
+                    ? React.createElement(React.Fragment, null,
+                        React.createElement("span", { className: "nerv-yr" }, curYear),
+                        React.createElement("span", { className: "nerv-dot" }, "\u00B7"),
+                        React.createElement("span", { className: "nerv-mo" }, String(curMonth + 1).padStart(2, "0")))
+                    : curYear+" 年 "+(curMonth+1)+" 月"),
+                React.createElement("button", { className: "nav-btn", onClick: nextMonth }, "\u203A"),
+                view === "day" && React.createElement(React.Fragment, null,
+                    React.createElement("span", { className: "date-label" }, isNerv
+                        ? React.createElement(React.Fragment, null,
+                            React.createElement("span", { className: "nerv-warn" }, "\u26A0"),
+                            " ",
+                            fmtDate(selDate).replace("（", "[").replace("）", "]"))
+                        : fmtDate(selDate)),
+                    React.createElement("div", { className: "undo-btns" },
+                        React.createElement("button", { className: "undo-btn", onClick: undo, disabled: !canUndo, title: "\u4E0A\u4E00\u6B65" }, isNerv ? "◁" : "↩"),
+                        React.createElement("button", { className: "undo-btn", onClick: redo, disabled: !canRedo, title: "\u4E0B\u4E00\u6B65" }, isNerv ? "▷" : "↪")))),
+            React.createElement("div", { className: "excel-bar" },
+                importMsg && React.createElement("span", { className: "import-msg" }, importMsg),
+                React.createElement("button", { className: "excel-btn diag-btn", onClick: async () => {
+                        setImportMsg("🔍 掃描中…");
+                        let idbOk = false, idbKeys_ = [], lsKeys = [];
+                        try {
+                            await idbSet("__diagtest__", "1");
+                            const v = await idbGet("__diagtest__");
+                            idbOk = v === "1";
+                            idbKeys_ = (await idbKeys()).filter(k => k.startsWith("day:2"));
+                        }
+                        catch (e) {
+                            idbOk = false;
+                        }
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const k = localStorage.key(i);
+                            if (k === null || k === void 0 ? void 0 : k.startsWith("hw5ren:2"))
+                                lsKeys.push(k);
+                        }
+                        setImportMsg("IDB:"+(idbOk?"✅":"❌")+" 資料"+idbKeys_.length+"天 | LS:"+lsKeys.length+"天 | 共"+(idbKeys_.length+lsKeys.length)+"天");
+                        // 若 IDB 有資料但頁面空白，強制重載月份
+                        if (idbKeys_.length > 0) {
+                            await doLoadMonth(curYear, curMonth);
+                        }
+                        // 若 IDB 空但 LS 有資料，搶救
+                        if (idbOk && idbKeys_.length === 0 && lsKeys.length > 0) {
+                            for (const k of lsKeys) {
+                                const ds = k.replace("hw5ren:", "");
+                                const v = localStorage.getItem(k);
+                                if (v)
+                                    try {
+                                        await idbSet("day:"+ds, v);
+                                    }
+                                    catch (_a) { }
+                            }
+                            await doLoadMonth(curYear, curMonth);
+                            setImportMsg("✅ 已從本機搶救 "+lsKeys.length+" 天！");
+                        }
+                        setTimeout(() => setImportMsg(""), 8000);
+                    } }, "\uD83D\uDD0D \u8A3A\u65B7"),
+                React.createElement("button", { className: "excel-btn backup-btn", onClick: async () => {
+    document.getElementById('r').innerHTML='<div style="color:#8f8;padding:20px">✅ Chunk 3/4 通過 (L903-1353)</div>';
+  }catch(e){
+    document.getElementById('r').innerHTML='<div style="color:#f88;padding:20px">❌ Chunk 3 執行錯誤<br>'+e.message+'<br>'+(e.stack||'').slice(0,200)+'</div>';
+  }
+});
+</script>
+</body></html>
