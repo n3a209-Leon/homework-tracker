@@ -188,22 +188,24 @@
         [data-theme="nerv"] .nb{background:rgba(255,102,0,.06);border:1px solid rgba(255,102,0,.3);color:#ff8844;border-radius:0;font-family:"Share Tech Mono",monospace;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)}
         [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
-       [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
+      [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
 
         /* ========================================================
-           🌟 全模式通用：作業紀錄面板「全圓圈 + 幽幽藍光」完美修正版
+           🌟 終極全模式通用：作業點名面板「全圓圈 + 幽幽藍光」完美修正版
            ======================================================== */
         @keyframes global-blue-pulse {
           0%, 100% {
-            box-shadow: 0 0 8px rgba(0,140,255,.6), 0 0 16px rgba(0,140,255,.2), inset 0 0 6px rgba(0,140,255,.15);
+            box-shadow: 0 0 8px rgba(0,140,255,.7), 0 0 16px rgba(0,140,255,.3), inset 0 0 6px rgba(0,140,255,.2);
           }
           50% {
-            box-shadow: 0 0 16px rgba(0,140,255,.9), 0 0 32px rgba(0,140,255,.5), inset 0 0 12px rgba(0,140,255,.3);
+            box-shadow: 0 0 16px rgba(0,140,255,1), 0 0 32px rgba(0,140,255,.6), inset 0 0 12px rgba(0,140,255,.4);
           }
         }
 
-        /* 1. 彈出面板中，徹底拆除 NERV 外殼 (.ng) 的絕對定位與網格（所有主題通用） */
-        .modal .ng {
+        /* 1. 徹底廢除點名彈出面板內 NERV 外殼 (.ng) 的絕對定位、背景與六角形裁切（常規/星雲/NERV全主題通用） */
+        .modal .ng,
+        [data-theme="nerv"] .modal .ng,
+        [data-theme="nebula"] .modal .ng {
           position: static !important;
           width: auto !important;
           height: auto !important;
@@ -215,8 +217,10 @@
           display: inline-block !important;
         }
 
-        /* 2. 重設面板內按鈕承載層 (.nw)，維持垂直置中排版 */
-        .modal .ng .nw {
+        /* 2. 重設面板內按鈕承載層 (.nw)，使其變成乾淨的垂直置中排列 */
+        .modal .ng .nw,
+        [data-theme="nerv"] .modal .ng .nw,
+        [data-theme="nebula"] .modal .ng .nw {
           position: static !important;
           width: auto !important;
           height: auto !important;
@@ -227,15 +231,19 @@
           padding: 8px !important;
         }
 
-        /* 3. 強制所有主題（常規、星雲、NERV）在彈出面板內的【組員、組長、秘書長】皆為完美圓圈 */
+        /* 3. 強制所有主題、所有職稱（組員、組長、秘書長）在未點擊時「通通都是完美的圓圈」 */
         .modal .nb,
         .modal .nb.ldr,
-        .modal .nb.sec {
+        .modal .nb.sec,
+        [data-theme="nerv"] .modal .nb,
+        [data-theme="nerv"] .modal .nb.ldr,
+        [data-theme="nerv"] .modal .nb.sec,
+        [data-theme="nebula"] .modal .nb {
           position: static !important;
           width: 44px !important;
           height: 44px !important;
-          border-radius: 50% !important; /* 強制 100% 是圓圈 */
-          clip-path: none !important;     /* 拔除 NERV 六角形裁切 */
+          border-radius: 50% !important; /* 強制 100% 完美圓圈 */
+          clip-path: none !important;     /* 徹底拔除 NERV 的六角形裁切 */
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -248,20 +256,27 @@
           transition: all 0.2s ease !important;
         }
 
-        /* 4. 當點擊選中（支援 React 生成的 .nbsub 或 .nb.sub），保持圓圈並發出【幽幽藍光】 */
+        /* 4. 重點修正：精準捕捉點擊選中狀態（同時綁定 .nbsub 與 .nb.sub），保持完美圓圈並亮起幽幽藍光 */
         .modal .nbsub,
-        .modal .nb.sub {
-          background: rgba(0,110,255,.1) !important;
+        .modal .nb.sub,
+        [data-theme="nerv"] .modal .nbsub,
+        [data-theme="nerv"] .modal .nb.sub,
+        [data-theme="nebula"] .modal .nbsub,
+        [data-theme="nebula"] .modal .nb.sub {
+          background: rgba(0,110,255,.12) !important;
           border: 2.5px solid #0088ff !important;
           color: #0055cc !important;
-          border-radius: 50% !important; /* 強力鎖定圓圈狀態 */
+          border-radius: 50% !important; /* 再次強力鎖定，點了也絕對維持圓圈狀態 */
           animation: global-blue-pulse 2s ease-in-out infinite !important;
           transform: scale(1.08) !important;
           z-index: 5 !important;
+          clip-path: none !important;
         }
 
-        /* 5. 職稱標籤（組長、秘書長文字）解除 NERV 絕對壓制，乖乖垂直排在圓圈下方 */
-        .modal .rt {
+        /* 5. 職稱標籤（組長、秘書長文字）解除 NERV 絕對定位的壓制，乖乖直立排在圓圈下方 */
+        .modal .rt,
+        [data-theme="nerv"] .modal .rt,
+        [data-theme="nebula"] .modal .rt {
           position: static !important;
           transform: none !important;
           font-size: 11px !important;
