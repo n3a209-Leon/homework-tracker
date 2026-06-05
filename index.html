@@ -876,15 +876,58 @@ setTimeout(function() {
 
 debugStep('JS START OK');
 </script>
-<script>debugStep('CDN LOADING');</script>
-<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"
-  crossorigin="anonymous"
-  onload="debugStep('REACT FOUND')"
-  onerror="debugStep('REACT CDN FAILED - trying unpkg');var s=document.createElement('script');s.src='https://unpkg.com/react@17.0.2/umd/react.production.min.js';s.crossOrigin='anonymous';s.onload=function(){debugStep('REACT FOUND via unpkg')};document.head.appendChild(s)"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"
-  crossorigin="anonymous"
-  onload="debugStep('REACTDOM FOUND')"
-  onerror="debugStep('REACTDOM CDN FAILED - trying unpkg');var s=document.createElement('script');s.src='https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js';s.crossOrigin='anonymous';s.onload=function(){debugStep('REACTDOM FOUND via unpkg')};document.head.appendChild(s)"></script>
+<script>
+debugStep('CDN LOADING');
+
+// PWA 模式下 CDN 載入策略
+(function() {
+  var cdns = [
+    'https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js',
+    'https://unpkg.com/react@17.0.2/umd/react.production.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js'
+  ];
+  var domCdns = [
+    'https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js',
+    'https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js'
+  ];
+
+  function loadScript(urls, idx, onSuccess, onFail) {
+    if (idx >= urls.length) { onFail(); return; }
+    var s = document.createElement('script');
+    s.src = urls[idx];
+    s.crossOrigin = 'anonymous';
+    s.onload = function() { onSuccess(); };
+    s.onerror = function() {
+      debugStep('CDN ' + idx + ' FAILED: ' + urls[idx].split('/')[2]);
+      loadScript(urls, idx + 1, onSuccess, onFail);
+    };
+    document.head.appendChild(s);
+  }
+
+  // 先載 React，成功後才載 ReactDOM
+  loadScript(cdns, 0, function() {
+    debugStep('REACT FOUND');
+    loadScript(domCdns, 0, function() {
+      debugStep('REACTDOM FOUND');
+    }, function() {
+      debugStep('REACTDOM ALL CDN FAILED');
+      document.getElementById('root').innerHTML =
+        '<div style="padding:24px;font-size:14px;font-family:monospace;background:#fff;min-height:100vh">' +
+        '<b>ReactDOM 載入失敗</b><br><br>請檢查網路連線後重試<br><br>' +
+        '<button onclick="location.reload()" style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">重試</button>' +
+        '</div>';
+    });
+  }, function() {
+    debugStep('REACT ALL CDN FAILED');
+    document.getElementById('root').innerHTML =
+      '<div style="padding:24px;font-size:14px;font-family:monospace;background:#fff;min-height:100vh">' +
+      '<b>React 載入失敗</b><br><br>請檢查網路連線後重試<br><br>' +
+      '<button onclick="location.reload()" style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">重試</button>' +
+      '</div>';
+  });
+})();
+</script>
 <script>
 try { debugStep('GOOGLE API START'); } catch(e) {}
 // ── Safe localStorage wrapper（Safari Private/Storage-full 防護）──────────────
@@ -1002,20 +1045,40 @@ debugStep('GOOGLE API READY');
   debugStep('WINDOW LOAD FIRED');
 
   // ── 確認 React/ReactDOM 已載入 ──────────────────────────────
-  debugStep('CHECKING REACT - isPWA:' + (_isPWA ? 'YES' : 'NO'));
-  if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-    debugStep('REACT NOT FOUND - ABORT');
-    document.getElementById('root').innerHTML =
-      '<div style="padding:24px;font-size:15px;font-family:monospace;color:#c00;background:#fff;min-height:100vh">'
-      + '<b>❌ React 載入失敗</b><br><br>'
-      + 'React: ' + (typeof React) + '<br>'
-      + 'ReactDOM: ' + (typeof ReactDOM) + '<br><br>'
-      + '可能原因：jsDelivr CDN 被封鎖或網路問題<br><br>'
-      + '<button onclick="location.reload()" style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">重新整理</button>'
-      + '</div>';
-    return;
+  var _isPWAStr = _isPWA ? 'YES' : 'NO';
+  debugStep('CHECKING REACT isPWA=' + _isPWAStr);
+
+  // 等待 React 動態載入（最多 10 秒）
+  function waitForReact(attempts) {
+    if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
+      debugStep('REACT READY');
+      startApp();
+      return;
+    }
+    if (attempts <= 0) {
+      debugStep('REACT TIMEOUT');
+      var root = document.getElementById('root');
+      if (root) {
+        root.innerHTML =
+          '<div style="padding:24px;font-size:14px;font-family:sans-serif;background:#fff;min-height:100vh">' +
+          '<b style="color:#c00">React 載入失敗</b><br><br>' +
+          'isPWA: ' + _isPWAStr + '<br>' +
+          'React: ' + (typeof React) + '<br>' +
+          'ReactDOM: ' + (typeof ReactDOM) + '<br><br>' +
+          ((_isPWA)
+            ? '<b>PWA 模式提示：</b><br>請刪除主畫面的 App 圖示，<br>用 Safari 瀏覽器重新開啟網址後再加到主畫面。<br><br>'
+            : '請確認網路連線後重試。<br><br>') +
+          '<button onclick="location.reload()" style="padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">重試</button>' +
+          '</div>';
+      }
+      return;
+    }
+    setTimeout(function() { waitForReact(attempts - 1); }, 500);
   }
-  debugStep('REACT FOUND');
+
+  // 把原本的 App 啟動邏輯包成函數
+  function startApp() {
+  debugStep('APP BOOT START');
 
   // ── safeLS: 修正版（無遞迴）──────────────────────────────────────
   var _sl = window._safeLS || (function() {
@@ -2914,6 +2977,9 @@ function App() {
       _root.appendChild(_div);
     } catch(ex2) {}
   }
+  } // end startApp
+
+  waitForReact(20); // 等最多 10 秒（20 × 500ms）
 });
 </script>
 <script>
