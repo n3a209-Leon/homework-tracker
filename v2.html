@@ -1,0 +1,28 @@
+直接在常用應用程式中試用 AI 功能 … 使用 Gemini 生成草稿及潤飾內容，並體驗採用 Google 新一代 AI 技術的 Gemini Pro
+1
+100%
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head><body>
+<div id="r" style="padding:40px;font-size:20px;font-family:sans-serif;color:red">載入中...</div>
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+<script>
+window.addEventListener('load', function() {
+  try {
+    ReactDOM.render(
+      React.createElement('div', {style:{color:'#7fff7f',fontSize:20,padding:40,background:'#1a3a1a',minHeight:'100vh'}},
+        '✅ React ' + React.version + ' 正常！',
+        React.createElement('br'),
+        'Safari + CDN 都 OK'
+      ),
+      document.getElementById('r')
+    );
+  } catch(e) {
+    document.getElementById('r').innerHTML = '❌ 錯誤：' + e.message;
+  }
+});
+</script>
+</body></html>
