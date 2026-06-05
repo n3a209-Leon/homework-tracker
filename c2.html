@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head><body style="margin:0;background:#111;color:#eee;font-family:sans-serif">
+<div id="r" style="padding:20px;font-size:16px">⏳ Chunk 2/4 測試中...</div>
+<script>
+window.onerror=function(msg,src,line){
+  document.getElementById('r').innerHTML='<div style="color:#f88;padding:20px">❌ Chunk 2 解析錯誤<br>'+msg+'<br>行:'+line+'</div>';
+  return true;
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+<script>
+window.addEventListener('load',function(){
+  try{
+    var useState=React.useState,useEffect=React.useEffect,useCallback=React.useCallback,useRef=React.useRef,useMemo=React.useMemo;
+            setClearMsg("✅ 已清除！");
+            setTimeout(() => { setClearModal(false); setClearDel(""); setClearMsg(""); onClose(); }, 1500);
+        }
+        catch (e) {
+            setClearMsg("❌ 清除失敗：" + String(e));
+        }
+    }
+    // Styles
+    const panel = nerv
+        ? { background: "#080200", border: "1px solid #ff6600", borderRadius: 4, padding: 16, marginBottom: 16 }
+        : { background: "#fff", borderRadius: 16, padding: 16, marginBottom: 16, boxShadow: "0 4px 20px rgba(0,0,0,.08)" };
+    const lbl = nerv
+        ? { color: "#ff6600", fontFamily: "Share Tech Mono,monospace", fontSize: 11, letterSpacing: 2, marginBottom: 8, display: "block" }
+        : { fontSize: 12, fontWeight: 700, color: "#6a8aaa", letterSpacing: 1, marginBottom: 8, display: "block" };
+    const inp = nerv
+        ? { width: "100%", padding: "8px 10px", background: "rgba(255,102,0,.06)", border: "1px solid rgba(255,102,0,.4)", color: "#ff8844", borderRadius: 2, fontSize: 14, fontFamily: "Share Tech Mono,monospace", boxSizing: "border-box" }
+        : { width: "100%", padding: "8px 12px", border: "2px solid #dde5ee", borderRadius: 10, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", outline: "none" };
+    return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1 } },
+        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 16 } },
+            React.createElement("button", { onClick: onClose, style: { background: nerv ? "rgba(255,102,0,.1)" : "rgba(30,58,95,.1)", border: "none", color: nerv ? "#ff6600" : "#1e3a5f", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "◀ RETURN" : "← 返回"),
+            React.createElement("span", { style: { fontSize: 18, fontWeight: 900, color: nerv ? "#ff6600" : "#1e3a5f", flex: 1 } }, nerv ? "⚙ SYSTEM CONFIG" : "⚙️ 班級設定")),
+        React.createElement("div", { style: panel },
+            React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f", marginBottom: 14 } }, nerv ? "// CLASS INFO //" : "班級資訊"),
+            React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "學校名稱"),
+            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftSchool, onChange: e => setDraftSchool(e.target.value), placeholder: "\u4F8B\uFF1A\u5927\u7532\u570B\u5C0F", maxLength: 20 }),
+            React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "班級名稱"),
+            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftClass, onChange: e => setDraftClass(e.target.value), placeholder: "\u4F8B\uFF1A\u4E94\u5E74\u58EC\u73ED\u3001\u516D\u5E742\u73ED", maxLength: 20 }),
+            React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "學年（西元年）"),
+            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 4 }), value: draftYear, onChange: e => setDraftYear(e.target.value), placeholder: "\u4F8B\uFF1A2026", maxLength: 4, type: "number" }),
+            (draftYear || draftSchool || draftClass) && (React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#8a9db5", marginTop: 10 } },
+                nerv ? "// 預覽：" : "預覽：",
+                React.createElement("span", { style: { fontWeight: 700, color: nerv ? "#ffaa44" : "#1e3a5f" } }, [draftYear && draftYear+"年", draftSchool, draftClass].filter(Boolean).join(" "))))),
+        draft.map((g, idx) => (React.createElement("div", { key: idx, style: panel },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
+                React.createElement("span", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } }, nerv ? "[UNIT-0"+g.id+"]" : "第 "+g.id+" 組"),
+                React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+                    React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#aab8cc" } },
+                        g.members.length,
+                        " \u4EBA"),
+                    draft.length > 2 && (React.createElement("button", { onClick: () => removeGroup(idx), style: { background: "rgba(229,57,53,.15)", border: "1px solid #e53935", color: "#e53935", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 12, fontWeight: 700 } }, nerv ? "× DEL" : "× 刪組")))),
+            React.createElement("label", { style: lbl }, nerv ? "// GROUP NAME //" : "組別名稱"),
+            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 14 }), value: g.label, onChange: e => updateGroup(idx, "label", e.target.value) }),
+            React.createElement("label", { style: lbl },
+                nerv ? "// SELECT MEMBER SEATS //" : "座號點選",
+                React.createElement("span", { style: { fontSize: 10, fontWeight: 400, marginLeft: 8, color: nerv ? "rgba(255,102,0,.5)" : "#bbb" } }, nerv ? "// 橙=本組 灰=其他組" : "橘色=本組 灰色=其他組已選")),
+            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 5, marginBottom: 14 } }, Array.from({ length: maxSeat }, (_, i) => i + 1).map(n => {
+                const inThis = g.members.includes(n);
+                const inOther = !inThis && allUsed.includes(n);
+                const isLeader = g.leader === n;
+                const isSec = g.secretary === n;
+                return (React.createElement("button", { key: n, onClick: () => !inOther && toggleSeat(idx, n), style: {
+                        padding: "6px 0",
+                        fontSize: 12,
+                        fontWeight: inThis ? 800 : 400,
+                        border: isLeader ? "2.5px solid #e53935" : isSec ? "2.5px dashed #ff9800" : "1.5px solid",
+                        borderColor: inThis ? (isLeader ? "#e53935" : isSec ? "#ff9800" : nerv ? "#ff6600" : "#1e3a5f") : "#ddd",
+                        borderRadius: nerv ? 2 : 8,
+                        background: inThis ? (nerv ? "rgba(255,102,0,.25)" : "#e8f0fe") : inOther ? "#f0f0f0" : "#fff",
+                        color: inThis ? (nerv ? "#ff6600" : "#1e3a5f") : inOther ? "#bbb" : "#aaa",
+                        cursor: inOther ? "not-allowed" : "pointer",
+                        position: "relative",
+                        transition: "all .1s",
+                        fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit",
+                    } },
+                    n,
+                    isLeader && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#e53935", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u9577"),
+                    isSec && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#ff9800", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u79D8")));
+            })),
+            React.createElement("div", { style: { display: "flex", gap: 12 } },
+                React.createElement("div", { style: { flex: 1 } },
+                    React.createElement("label", { style: lbl }, nerv ? "// LEADER //" : "組長"),
+                    React.createElement("select", { style: inp, value: g.leader, onChange: e => updateGroup(idx, "leader", parseInt(e.target.value)) },
+                        React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
+                        g.members.map(n => React.createElement("option", { key: n, value: n },
+                            n,
+                            " \u865F")))),
+                React.createElement("div", { style: { flex: 1 } },
+                    React.createElement("label", { style: lbl }, nerv ? "// SECRETARY //" : "秘書"),
+                    React.createElement("select", { style: inp, value: g.secretary, onChange: e => updateGroup(idx, "secretary", parseInt(e.target.value)) },
+                        React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
+                        g.members.map(n => React.createElement("option", { key: n, value: n },
+                            n,
+                            " \u865F")))))))),
+        draft.length < 8 && (React.createElement("button", { onClick: addGroup, style: { display: "block", width: "100%", padding: 12, marginBottom: 16,
+                background: nerv ? "rgba(255,102,0,.06)" : "#eef4ff",
+                border: nerv ? "1px dashed rgba(255,102,0,.4)" : "2px dashed #c3d8ff",
+                color: nerv ? "#ff6600" : "#1e3a5f",
+                borderRadius: nerv ? 4 : 12, cursor: "pointer", fontSize: 14, fontWeight: 700 } }, nerv ? "+ ADD UNIT" : "+ 新增組別")),
+        React.createElement("div", { style: Object.assign(Object.assign({}, panel), { border: nerv ? "1px solid rgba(255,0,0,.5)" : "2px solid #ffcdd2", background: nerv ? "rgba(255,0,0,.05)" : "#fff9f9", marginBottom: 16 }) },
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: "#e53935", marginBottom: 8 } }, nerv ? "⚠ DANGER ZONE // 清除歷史資料" : "⚠️ 清除歷史紀錄"),
+            React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,100,100,.6)" : "#aab8cc", marginBottom: 14, lineHeight: 1.6 } }, nerv
+                ? "// 清除後無法復原 // 適合學年結束後使用"
+                : "清除後無法復原，請確認已備份。適合學年結束後使用。"),
+            React.createElement("button", { onClick: () => setClearModal(true), style: { padding: "10px 20px", background: "#e53935", border: "none", color: "#fff", borderRadius: nerv ? 2 : 10, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "⚠ PURGE DATA" : "清除所有紀錄")),
+        React.createElement("button", { onClick: doSave, style: {
+                display: "block", width: "100%", padding: 16,
+                background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f",
+                border: nerv ? "1px solid #ff6600" : "none",
+                color: nerv ? "#ff6600" : "#fff",
+                borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900,
+                boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)",
+                letterSpacing: nerv ? 4 : 1,
+                fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit",
+                transition: "background .3s", marginBottom: 32
+            } }, saved ? (nerv ? "✅ CONFIG SAVED" : "✅ 已儲存！") : (nerv ? "// SAVE CONFIG //" : "儲存設定")),
+        clearModal && (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 } },
+            React.createElement("div", { style: { background: nerv ? "#0a0100" : "#fff", border: nerv ? "2px solid #ff0000" : "none", borderRadius: nerv ? 4 : 20, padding: 28, width: 320, maxWidth: "92vw", boxShadow: "0 20px 60px rgba(0,0,0,.4)" } },
+                React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: "#e53935", marginBottom: 8 } }, nerv ? "⚠ CONFIRM DATA PURGE" : "⚠️ 確認清除"),
+                React.createElement("div", { style: { marginBottom: 16 } },
+                    React.createElement("label", { style: Object.assign(Object.assign({}, lbl), { marginBottom: 4 }) }, "\u73ED\u7D1A\u540D\u7A31"),
+                    React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 8 }), value: clearInput.className, onChange: e => setClearInput(p => (Object.assign(Object.assign({}, p), { className: e.target.value }))), placeholder: "\u4F8B\uFF1A\u4E94\u5E74\u58EC\u73ED" }),
+                    React.createElement("div", { style: { display: "flex", gap: 8 } },
+                        React.createElement("div", { style: { flex: 1 } },
+                            React.createElement("label", { style: Object.assign(Object.assign({}, lbl), { marginBottom: 4 }) }, "\u8D77\u59CB\u5B78\u5E74"),
+                            React.createElement("input", { style: inp, type: "number", value: clearInput.yearFrom, onChange: e => setClearInput(p => (Object.assign(Object.assign({}, p), { yearFrom: parseInt(e.target.value) }))) })),
+                        React.createElement("div", { style: { display: "flex", alignItems: "flex-end", paddingBottom: 10, color: nerv ? "#ff6600" : "#aaa" } }, "\u2014"),
+                        React.createElement("div", { style: { flex: 1 } },
+                            React.createElement("label", { style: Object.assign(Object.assign({}, lbl), { marginBottom: 4 }) }, "\u7D50\u675F\u5B78\u5E74"),
+                            React.createElement("input", { style: inp, type: "number", value: clearInput.yearTo, onChange: e => setClearInput(p => (Object.assign(Object.assign({}, p), { yearTo: parseInt(e.target.value) }))) })))),
+                React.createElement("div", { style: { background: nerv ? "rgba(255,0,0,.1)" : "#fff5f5", border: nerv ? "1px solid rgba(255,0,0,.3)" : "1px solid #ffcdd2", borderRadius: 8, padding: "10px 14px", marginBottom: 16 } },
+                    React.createElement("p", { style: { fontSize: 13, color: nerv ? "#ff4444" : "#c62828", fontWeight: 700, marginBottom: 4 } }, "\u5373\u5C07\u6E05\u9664\uFF1A"),
+                    React.createElement("p", { style: { fontSize: 14, color: nerv ? "#ff6666" : "#e53935", fontWeight: 900 } },
+                        clearInput.className,
+                        " ",
+                        clearInput.yearFrom,
+                        "\uFF0D",
+                        clearInput.yearTo,
+                        " \u5B78\u5E74\u5EA6")),
+                React.createElement("label", { style: Object.assign(Object.assign({}, lbl), { color: "#e53935" }) }, nerv ? "// 輸入 DEL 確認 //" : "輸入 DEL 確認刪除"),
+                React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 8, border: "2px solid #e53935", letterSpacing: 4, fontWeight: 900, fontSize: 16, textAlign: "center" }), value: clearDel, onChange: e => setClearDel(e.target.value.toUpperCase()), placeholder: "DEL", maxLength: 3 }),
+                clearMsg && React.createElement("p", { style: { fontSize: 12, color: clearMsg.startsWith("✅") ? "#4caf80" : "#e53935", marginBottom: 8, textAlign: "center" } }, clearMsg),
+                React.createElement("div", { style: { display: "flex", gap: 8 } },
+                    React.createElement("button", { onClick: () => { setClearModal(false); setClearDel(""); setClearMsg(""); }, style: { flex: 1, padding: "10px 0", border: "2px solid #dde5ee", borderRadius: nerv ? 2 : 12, background: "#fff", color: "#8a9db5", fontSize: 14, fontWeight: 700, cursor: "pointer" } }, "\u53D6\u6D88"),
+                    React.createElement("button", { onClick: doClear, disabled: clearDel !== "DEL", style: { flex: 1, padding: "10px 0", border: "none", borderRadius: nerv ? 2 : 12, background: clearDel === "DEL" ? "#e53935" : "#aaa", color: "#fff", fontSize: 14, fontWeight: 700, cursor: clearDel === "DEL" ? "pointer" : "not-allowed" } }, nerv ? "PURGE" : "確認清除")))))));
+}
+function App() {
+    var _a, _b, _c, _d, _e;
+    const [view, setView] = useState("month");
+    const [groups, setGroups] = useState(() => loadGroups());
+    const [className, setClassName] = useState(() => localStorage.getItem("hw5ren:className") || "");
+    const [schoolName, setSchoolName] = useState(() => localStorage.getItem("hw5ren:school") || "");
+    const [schoolYear, setSchoolYear] = useState(() => localStorage.getItem("hw5ren:year") || String(new Date().getFullYear()));
+    const ALL_MEMBERS = [...new Set(groups.flatMap(g => g.members))].sort((a, b) => a - b);
+    function saveGroups(g) {
+        setGroups(g);
+        localStorage.setItem("hw5ren:groups", JSON.stringify(g));
+    }
+    const [curYear, setCurYear] = useState(() => new Date().getFullYear());
+    const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
+    const [selDate, setSelDate] = useState(today);
+    const [dayRows, setDayRows] = useState([]);
+    const [dayAtt, setDayAtt] = useState({ personal: new Set(), sick: new Set(), public: new Set() });
+    const [dayExempt, setDayExempt] = useState({}); // { [hwName]: Set<number> }
+    const [monthDays, setMonthDays] = useState({});
+    const [counselMonth, setCounselMonth] = useState({}); // { "YYYY-MM-DD": [...records] }
+    const [counselView, setCounselView] = useState(false); // 輔導頁面開啟狀態
+    const [counselDate, setCounselDate] = useState(today());
+    const [counselRecords, setCounselRecords] = useState([]); // 當日輔導記錄
+    const [loading, setLoading] = useState(false);
+    const [theme, setTheme] = useState(() => localStorage.getItem("hw5ren:theme") || "default");
+    const [showThemeMenu, setShowThemeMenu] = useState(false);
+    const [yearRecords, setYearRecords] = useState(() => { try {
+        return JSON.parse(localStorage.getItem('hw5ren:years') || '[]');
+    }
+    catch (_a) {
+        return [];
+    } });
+    const [showHistory, setShowHistory] = useState(false);
+    const THEMES = [
+        { id: 'default', icon: '☀️', name: '一般模式', desc: '清爽藍白配色' },
+        { id: 'nebula', icon: '🌌', name: '星雲模式', desc: '天馬座星雲・深邃宇宙' },
+        { id: 'nerv', icon: '⬡', name: 'NERV模式', desc: '新世紀福音戰士' },
+    ];
+    const isNerv = theme === "nerv";
+    const isNebula = theme === "nebula";
+    // ── Drive / Auth ──
+    const [authed, setAuthed] = useState(!!localStorage.getItem('hw5ren:tok'));
+    const [driveStatus, setDriveStatus] = useState('offline');
+    useEffect(() => {
+        if (!authed)
+            return;
+        (async () => {
+            setDriveStatus('syncing');
+            setStor(s => (Object.assign(Object.assign({}, s), { msg: '☁️ 從 Drive 載入…' })));
+            try {
+                const snap = await loadDrive();
+                if (snap && Object.keys(snap).length > 0) {
+                    let c = 0;
+                    for (const [k, v] of Object.entries(snap)) {
+                        if (k.startsWith('day:2')) {
+                            const ds = k.replace('day:', '');
+                            await idbSet('day:' + ds, v);
+                            try {
+                                localStorage.setItem('hw5ren:' + ds, v);
+                            }
+                            catch (_a) { }
+                            c++;
+                        }
+                    }
+                    setDriveStatus('ok');
+                    setStor({ state: 'ok', msg: '☁️ Drive 載入 ' + c + ' 天' });
+                    markSynced();
+                }
+                else {
+                    setDriveStatus('ok');
+                    setStor({ state: 'ok', msg: '✅ Drive 就緒' });
+                }
+            }
+            catch (e) {
+                setDriveStatus('error');
+                setStor({ state: 'ok', msg: '⚠️ 本機模式' });
+            }
+            // 不重複呼叫 doLoadMonth，由 curYear/curMonth useEffect 負責
+        })();
+    }, [authed]);
+    async function doSync() {
+        setDriveStatus('syncing');
+        try {
+            const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
+            const snap = {};
+            for (const k of keys) {
+                const v = await idbGet(k);
+                if (v)
+                    snap[k] = v;
+            }
+            const ok = await saveDrive(snap);
+            if (ok) {
+                markSynced();
+                setDriveStatus('ok');
+                return keys.length;
+            }
+            setDriveStatus('error');
+            return 0;
+        }
+        catch (_a) {
+            setDriveStatus('error');
+            return 0;
+        }
+    }
+    // Header subtitle
+    const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
+    // ── 備份狀態 ──
+    const todayStr = today();
+    const [lastSyncTime, setLastSyncTime] = useState(() => localStorage.getItem("hw5ren:lastSync") || "");
+    function getDriveFilename(year, cls) {
+        if (!year && !cls)
+            return 'hw-5renren-ALL.json';
+        const safe = (cls || '').replace(/\s/g, '').slice(0, 10);
+        return "hw-"+(year||"unknown")+"-"+(safe||"class")+".json";
+    }
+    function saveYearRecord(year, school, cls) {
+        if (!year && !cls)
+            return;
+        const key = year+"-"+school+"-"+cls;
+        setYearRecords(prev => {
+            const filtered = prev.filter(r => r.year+"-"+r.school+"-"+r.className !== key);
+            const rec = { year, school, className: cls, driveFile: getDriveFilename(year, cls), savedAt: new Date().toLocaleDateString('zh-TW') };
+            const updated = [rec, ...filtered].slice(0, 20);
+            localStorage.setItem('hw5ren:years', JSON.stringify(updated));
+            return updated;
+        });
+    }
+    function markSynced() {
+        const now = new Date();
+        const ts = (now.getMonth()+1)+"/"+now.getDate()+" "+String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+        localStorage.setItem("hw5ren:lastSync", ts);
+        setLastSyncTime(ts);
+    }
+    // state: "init"|"checking"|"ok"|"error"|"saving"|"saved"
+    const [stor, setStor] = useState({ state: "init", msg: "初始化中…", detail: "" });
+    // ── Check storage on mount ──
+    useEffect(() => {
+        (async () => {
+            setStor({ state: "checking", msg: "🔍 初始化儲存…", detail: "" });
+            // 測試 IDB 是否可用
+            let idbOk = false;
+            try {
+                await idbSet("__test__", "ping");
+                const v = await idbGet("__test__");
+                idbOk = (v === "ping");
+            }
+            catch (e) {
+                setStor({ state: "error", msg: "❌ IndexedDB 無法使用", detail: String(e) });
+                return;
+            }
+            if (!idbOk) {
+                setStor({ state: "error", msg: "❌ IndexedDB 讀寫測試失敗", detail: "" });
+                return;
+            }
+            // 列出 IDB 裡所有資料天數
+            let idbDays = [];
+            try {
+                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+            }
+            catch (_a) { }
+            // 列出 localStorage 資料天數
+            const lsDays = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k === null || k === void 0 ? void 0 : k.startsWith(LS_PREFIX+"2"))
+                    lsDays.push(k);
+            }
+            // 若 IDB 空但 localStorage 有 → 自動搶救
+            if (idbDays.length === 0 && lsDays.length > 0) {
+                let rescued = 0;
+                for (const k of lsDays) {
+                    const ds = k.replace(LS_PREFIX, "");
+                    const v = localStorage.getItem(k);
+                    if (v) {
+                        try {
+                            await idbSet("day:"+ds, v);
+                            rescued++;
+                        }
+                        catch (_b) { }
+                    }
+                }
+                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+                setStor({ state: "ok", msg: "✅ 已搶救 "+rescued+" 天資料到 IDB", detail: "IDB: "+idbDays.length+" 天" });
+                return;
+            }
+            setStor({
+                state: "ok",
+                msg: "📦 IDB 正常 — "+idbDays.length+" 天資料",
+                detail: idbDays.length > 0
+                    ? "最近: "+idbDays.map(function(k){return k.replace("day:","");}).sort().slice(-3).join(", ")
+                    : "尚無資料，請開始登記"
+            });
+        })();
+    }, []);
+    // ── Load month ──
+    useEffect(() => { doLoadMonth(curYear, curMonth); }, [curYear, curMonth]);
+    async function doLoadMonth(y, m) {
+        setLoading(true);
+        const [entries, counselEntries] = await Promise.all([
+            loadMonth(y, m),
+            loadCounselMonth(y, m)
+        ]);
+        setMonthDays(entries);
+        setCounselMonth(counselEntries);
+        setLoading(false);
+    }
+    async function openCounsel(ds) {
+        const recs = await loadCounsel(ds);
+        setCounselRecords(recs);
+        setCounselDate(ds);
+        setCounselView(true);
+    }
+    async function saveCounselRecord(records) {
+        await saveCounsel(counselDate, records);
+        setCounselRecords(records);
+        setCounselMonth(prev => {
+            const next = Object.assign({}, prev);
+            if (records.length > 0)
+                next[counselDate] = records;
+            else
+                delete next[counselDate];
+            return next;
+        });
+        scheduleAutoSync();
+    }
+    async function openDay(ds) {
+        setLoading(true);
+        const res = await loadDay(ds);
+        const initRows = res.rows.length ? res.rows : [{ hwName: "", groupData: {} }];
+        setDayRows(initRows);
+        setDayAtt(res.attendance);
+        setDayExempt(res.exempt || {});
+        setSelDate(ds);
+        setView("day");
+        setLoading(false);
+        setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+        setHistoryIdx(0);
+    }
+    // ── Undo / Redo history ──
+    const [history, setHistory] = useState([]); // [{ rows, att }, ...]
+    const [historyIdx, setHistoryIdx] = useState(0); // current position
+    const MAX_HISTORY = 30;
+    function pushHistory(rows, att, exempt) {
+        setHistory(prev => {
+            const base = prev.slice(0, historyIdx + 1);
+            const next = [...base, { rows, att, exempt }].slice(-MAX_HISTORY);
+            return next;
+        });
+        setHistoryIdx(prev => Math.min(prev + 1, MAX_HISTORY - 1));
+    }
+    function undo() {
+        if (historyIdx <= 0)
+            return;
+        const idx = historyIdx - 1;
+        const snap = history[idx];
+        if (!snap)
+            return;
+        setDayRows(snap.rows);
+        setDayAtt(snap.att);
+        setDayExempt(snap.exempt || {});
+        setHistoryIdx(idx);
+        saveCurrent(snap.rows, snap.att, snap.exempt || {});
+    }
+    function redo() {
+        if (historyIdx >= history.length - 1)
+            return;
+        const idx = historyIdx + 1;
+        const snap = history[idx];
+        if (!snap)
+            return;
+        setDayRows(snap.rows);
+        setDayAtt(snap.att);
+        setDayExempt(snap.exempt || {});
+        setHistoryIdx(idx);
+        saveCurrent(snap.rows, snap.att, snap.exempt || {});
+    }
+    const canUndo = historyIdx > 0;
+    const canRedo = historyIdx < history.length - 1;
+    const selDateRef = useRef(today());
+    useEffect(() => { selDateRef.current = selDate; }, [selDate]);
+    const dayExemptRef = useRef({});
+    useEffect(() => { dayExemptRef.current = dayExempt; }, [dayExempt]);
+    const dayAttRef = useRef({ personal: new Set(), sick: new Set(), public: new Set() });
+    useEffect(() => { dayAttRef.current = dayAtt; }, [dayAtt]);
+    const dayRowsRef = useRef([]);
+    useEffect(() => { dayRowsRef.current = dayRows; }, [dayRows]);
+    // ── 自動同步 Timer（debounce 3秒）──
+    const autoSyncTimer = useRef(null);
+    function scheduleAutoSync() {
+        if (!authed)
+            return;
+        if (autoSyncTimer.current)
+            clearTimeout(autoSyncTimer.current);
+        autoSyncTimer.current = setTimeout(async () => {
+            try {
+                const allIdbKeys = await idbKeys();
+                const keys = allIdbKeys.filter(k => k.startsWith("day:2") || k.startsWith("counsel:"));
+                const snap = {};
+                for (const k of keys) {
+                    const v = await idbGet(k);
+                    if (v)
+                        snap[k] = v;
+                }
+                const ok = await saveDrive(snap);
+                if (ok) {
+                    setDriveStatus("ok");
+                    markSynced();
+                }
+                else {
+                    setDriveStatus("error");
+                }
+            }
+            catch (_a) {
+                setDriveStatus("error");
+            }
+        }, 3000);
+    document.getElementById('r').innerHTML='<div style="color:#8f8;padding:20px">✅ Chunk 2/4 通過 (L452-902)</div>';
+  }catch(e){
+    document.getElementById('r').innerHTML='<div style="color:#f88;padding:20px">❌ Chunk 2 執行錯誤<br>'+e.message+'<br>'+(e.stack||'').slice(0,200)+'</div>';
+  }
+});
+</script>
+</body></html>
