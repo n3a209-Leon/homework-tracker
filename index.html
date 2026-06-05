@@ -100,6 +100,7 @@
         [data-theme="nerv"] header::after{content:"NERV MAGI SYSTEM // AUTHORIZED ACCESS ONLY // CLASS-05REN";position:absolute;bottom:2px;left:0;font-size:9px;color:rgba(255,102,0,.3);letter-spacing:2px;white-space:nowrap;padding:0 20px;font-family:"Share Tech Mono",monospace}
         [data-theme="nerv"] h1{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.9),0 0 30px rgba(255,102,0,.4);letter-spacing:5px;font-family:"Share Tech Mono",monospace;font-size:17px}
         [data-theme="nerv"] .sub{color:#ff4400;letter-spacing:4px;font-size:10px;opacity:.8}
+        
         [data-theme="nerv"] .ti{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.8)}
         [data-theme="nerv"] .theme-btn{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.5);border-radius:2px;letter-spacing:1px;font-size:11px;box-shadow:0 0 8px rgba(255,102,0,.2)}
         [data-theme="nerv"] .stor-bar{border-left:3px solid #ff6600;background:rgba(255,102,0,.05)!important;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
@@ -231,67 +232,129 @@
           justify-content: center !important;
         }
 
-        /* 3. 未點擊狀態：全面通殺 React 拼出來的 nb, nbldr, nbsec 類名，強制回歸完美大圓圈 */
-        body:not([data-theme="nerv"]) .mo .ng button.nb,
-        body:not([data-theme="nerv"]) .mo .ng button.nbldr,
-        body:not([data-theme="nerv"]) .mo .ng button.nbsec {
-          position: static !important;
-          width: 44px !important;
-          height: 44px !important;
-          border-radius: 50% !important; /* 確保 100% 圓圈 */
-          clip-path: none !important;     /* 消除六角形裁切 */
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          background: #fff !important;
-          border: 2.5px solid #c0ccd8 !important;
-          color: #1e3a5f !important;
-          box-shadow: none !important;
-          transform: none !important;
-          font-family: inherit !important;
-          font-size: 14px !important;
-          font-weight: 700 !important;
-          transition: all 0.2s ease !important;
-        }
+        /* =========================================================
+3. 未點擊狀態：全員統一圓圈
+========================================================= */
 
-        /* 4. 已點擊狀態：全面通殺 React 拼出來的 nbsub, nbsubldr, nbsubsec 類名，保持圓圈並發出幽幽綠光 */
-        body:not([data-theme="nerv"]) .mo .ng button.nbsub,
-        body:not([data-theme="nerv"]) .mo .ng button.nbsubldr,
-        body:not([data-theme="nerv"]) .mo .ng button.nbsubsec {
-          position: static !important;
-          width: 44px !important;
-          height: 44px !important;
-          border-radius: 50% !important; /* 確保點擊後依然是完美圓圈，不縮小不變形 */
-          clip-path: none !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          background: rgba(61,214,140,.12) !important;
-          border: 2.5px solid #3dd68c !important;
-          color: #1a8a4a !important;
-          animation: modal-green-pulse 2s ease-in-out infinite !important; /* 漂亮的幽幽綠光 */
-          transform: scale(1.08) !important; /* 微微放大 */
-          font-family: inherit !important;
-          font-size: 14px !important;
-          font-weight: 700 !important;
-          z-index: 5 !important;
-        }
+body:not([data-theme="nerv"]) .mo .ng button.nb,
+body:not([data-theme="nerv"]) .mo .ng button.nbldr,
+body:not([data-theme="nerv"]) .mo .ng button.nbsec,
+body:not([data-theme="nerv"]) .mo .ng button[class*="nb"]{
 
-        /* 5. 職稱文字（組長/秘書長標籤）：解除 NERV 絕對定位的干擾，乖乖直立排在圓圈下方不遮擋點擊 */
-        body:not([data-theme="nerv"]) .mo .ng .rt {
-          position: absolute !important;
-          bottom: -16px !important; /* 恰好貼在圓圈正下方 */
-          left: 50% !important;
-          transform: translateX(-50%) !important;
-          font-size: 10px !important;
-          white-space: nowrap !important;
-          color: #6a8aaa !important;
-          background: none !important;
-          border: none !important;
-          padding: 0 !important;
-          width: auto !important;
-          height: auto !important;
-        }
+position: static !important;
+
+width: 46px !important;
+height: 46px !important;
+
+min-width: 46px !important;
+min-height: 46px !important;
+
+max-width: 46px !important;
+max-height: 46px !important;
+
+aspect-ratio: 1 / 1 !important;
+flex-shrink: 0 !important;
+
+border-radius: 999px !important;
+clip-path: none !important;
+
+display: flex !important;
+align-items: center !important;
+justify-content: center !important;
+
+background: #fff !important;
+border: 2.5px solid #c0ccd8 !important;
+color: #1e3a5f !important;
+
+box-shadow: none !important;
+transform: none !important;
+
+font-size: 14px !important;
+font-weight: 700 !important;
+
+transition: all .2s ease !important;
+}
+
+/* =========================================================
+4. 點擊後：保持圓圈 + 幽幽綠光
+========================================================= */
+
+body:not([data-theme="nerv"]) .mo .ng button.nbsub,
+body:not([data-theme="nerv"]) .mo .ng button.nbsubldr,
+body:not([data-theme="nerv"]) .mo .ng button.nbsubsec,
+body:not([data-theme="nerv"]) .mo .ng button[class*="nbsub"]{
+
+position: static !important;
+
+width: 46px !important;
+height: 46px !important;
+
+min-width: 46px !important;
+min-height: 46px !important;
+
+max-width: 46px !important;
+max-height: 46px !important;
+
+aspect-ratio: 1 / 1 !important;
+flex-shrink: 0 !important;
+
+border-radius: 999px !important;
+clip-path: none !important;
+
+display: flex !important;
+align-items: center !important;
+justify-content: center !important;
+
+background: rgba(61,214,140,.12) !important;
+border: 2.5px solid #3dd68c !important;
+color: #1a8a4a !important;
+
+transform: scale(1.08) !important;
+
+animation: modal-green-pulse 2s ease-in-out infinite !important;
+
+box-shadow:
+0 0 10px rgba(61,214,140,.7),
+0 0 22px rgba(61,214,140,.45),
+0 0 40px rgba(61,214,140,.25);
+
+font-size: 14px !important;
+font-weight: 700 !important;
+
+z-index: 5 !important;
+}
+
+/* =========================================================
+5. 組長／秘書長標籤
+========================================================= */
+
+body:not([data-theme="nerv"]) .mo .ng .rt{
+
+position: static !important;
+transform: none !important;
+
+display: block !important;
+
+margin-top: 6px !important;
+
+text-align: center !important;
+
+pointer-events: none !important;
+
+font-size: 11px !important;
+font-weight: 700 !important;
+
+white-space: nowrap !important;
+
+color: #6a8aaa !important;
+
+background: none !important;
+border: none !important;
+padding: 0 !important;
+
+width: auto !important;
+height: auto !important;
+}
         
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
         [data-theme="nerv"] .nb.sec{background:rgba(255,200,0,.1);box-shadow:0 0 8px rgba(255,200,0,.3)}
