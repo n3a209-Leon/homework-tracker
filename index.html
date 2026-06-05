@@ -801,86 +801,56 @@
 <div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px">HTML LOADED</div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
-// ══ Safari Runtime Debug System ════════════════════════════════
 function debugStep(step) {
   try { console.log('[DEBUG]', step); } catch(e) {}
-  try { console.error('[STEP]', step); } catch(e) {} // 紅色，Safari 更容易看到
+  try { console.error('[STEP]', step); } catch(e) {}
   try {
     var el = document.getElementById('safari-debug');
     if (el) {
       el.innerText = step;
-      // 根據步驟改顏色
-      if (step.indexOf('FAIL') !== -1 || step.indexOf('ERROR') !== -1 || step.indexOf('NOT') !== -1) {
-        el.style.background = '#8B0000';
-      } else if (step.indexOf('COMPLETE') !== -1 || step.indexOf('READY') !== -1) {
-        el.style.background = '#006400';
-      } else {
-        el.style.background = '#c00';
-      }
+      el.style.background =
+        (step.indexOf('FAIL')>-1||step.indexOf('ERROR')>-1||step.indexOf('NOT FOUND')>-1) ? '#8B0000' :
+        (step.indexOf('COMPLETE')>-1||step.indexOf('READY')>-1||step.indexOf('OK')>-1)    ? '#006400' :
+        '#c00';
     }
   } catch(e) {}
 }
-
 debugStep('JS START');
 
-// ══ 超強 window.onerror ════════════════════════════════════════
-window.onerror = function(msg, url, line, col, error) {
+window.onerror = function(msg, url, line, col, err) {
   try {
-    var stack = (error && error.stack) ? String(error.stack).slice(0,600) : '';
-    document.body.innerHTML =
-      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;background:#1a0000;color:#ff8888;overflow:auto;margin:0">'
-      + 'SAFARI ERROR
-
-'
-      + String(msg||'') + '
-
-'
-      + String(url||'') + '
-'
-      + String(line||0) + ':' + String(col||0)
-      + (stack ? '
-
-' + stack : '')
-      + '
-
-<a href="javascript:try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" style="color:#88aaff">清除 Token 並重新整理</a>'
-      + '</pre>';
-    try { document.body.style.cssText = 'background:#1a0000!important;display:block!important'; } catch(e) {}
+    var s = (err && err.stack) ? String(err.stack).slice(0,400) : '';
+    var h = '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
+            'white-space:pre-wrap;background:#1a0000;color:#ff8888;overflow:auto;margin:0">' +
+            'SAFARI ERROR\n\n' + String(msg||'') + '\n\n' + String(url||'') +
+            '\n' + String(line||0) + ':' + String(col||0) +
+            (s ? '\n\n'+s : '') + '</pre>';
+    document.body.innerHTML = h;
+    document.body.style.cssText = 'display:block!important;background:#1a0000!important';
   } catch(e2) {}
   return true;
 };
 
-// ══ Promise 攔截（雙重掛載，相容 Safari）══════════════════════
-function _handleRejection(e) {
+function _rej(e) {
   try {
-    var reason = '';
-    try { reason = e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected'; } catch(ex) { reason = 'unknown'; }
+    var r = 'Promise rejected';
+    try { r = e.reason ? (e.reason.message || String(e.reason)) : r; } catch(x) {}
     document.body.innerHTML =
-      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">'
-      + 'PROMISE ERROR
-
-' + reason
-      + '
-
-<a href="javascript:try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" style="color:#88aaff">清除 Token 並重新整理</a>'
-      + '</pre>';
-  } catch(ex) {}
+      '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
+      'white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">' +
+      'PROMISE ERROR\n\n' + r + '</pre>';
+  } catch(x) {}
 }
-window.onunhandledrejection = _handleRejection;
-try { window.addEventListener('unhandledrejection', _handleRejection); } catch(e) {}
+window.onunhandledrejection = _rej;
+try { window.addEventListener('unhandledrejection', _rej); } catch(e) {}
 
-// ══ body/root visibility 保底 fallback ═════════════════════════
 setTimeout(function() {
   try {
     document.body.style.display = '';
     document.body.style.visibility = 'visible';
     document.body.style.opacity = '1';
-    var root = document.getElementById('root');
-    if (root) {
-      root.style.display = '';
-      root.style.visibility = 'visible';
-      root.style.opacity = '1';
-    }
+    var r = document.getElementById('root');
+    if (r) { r.style.display=''; r.style.visibility='visible'; r.style.opacity='1'; }
   } catch(e) {}
 }, 1000);
 
@@ -896,7 +866,7 @@ debugStep('JS START OK');
   onload="debugStep('REACTDOM FOUND')"
   onerror="debugStep('REACTDOM CDN FAILED - trying unpkg');var s=document.createElement('script');s.src='https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js';s.crossOrigin='anonymous';s.onload=function(){debugStep('REACTDOM FOUND via unpkg')};document.head.appendChild(s)"></script>
 <script>
-debugStep('GOOGLE API START');
+try { debugStep('GOOGLE API START'); } catch(e) {}
 // ── Safe localStorage wrapper（Safari Private/Storage-full 防護）──────────────
 var _lsOk = (function() {
   try { localStorage.setItem('__t__','1'); localStorage.removeItem('__t__'); return true; }
@@ -1012,6 +982,7 @@ debugStep('GOOGLE API READY');
   debugStep('WINDOW LOAD FIRED');
 
   // ── 確認 React/ReactDOM 已載入 ──────────────────────────────
+  debugStep('CHECKING REACT');
   if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
     debugStep('REACT NOT FOUND - ABORT');
     document.getElementById('root').innerHTML =
@@ -1071,7 +1042,7 @@ debugStep('GOOGLE API READY');
   var useState=React.useState, useEffect=React.useEffect,
       useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
   try {
-debugStep('GOOGLE API READY');
+debugStep('APP TRY START');
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -2892,15 +2863,21 @@ function App() {
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
     debugStep('RENDER COMPLETE (sync)');
   } catch(e) {
-    // 確保 body 可見（Safari black-translucent 防護）
+    try { debugStep('APP CATCH: ' + String(e && e.message ? e.message : e).slice(0,60)); } catch(ex) {}
     try { document.body.style.background = '#f0f4f8'; } catch(ex) {}
     var _em = '';
     try { _em = (e && (e.message || String(e))) || '未知錯誤'; } catch(ex) { _em = '未知錯誤'; }
     var _es = '';
-    try { _es = e && e.stack ? e.stack.slice(0,400) : ''; } catch(ex) {}
+    try { _es = e && e.stack ? String(e.stack).slice(0,400) : ''; } catch(ex) {}
     var _root = document.getElementById('root') || document.body;
     try {
-      _root.innerHTML = '<div style="padding:24px 20px;font-size:13px;color:#c00;background:#fff;word-break:break-all;min-height:100vh;font-family:sans-serif"><b style=\'font-size:15px\'>App 啟動錯誤</b><br><br>'+_em+'<br><br><small style=\'color:#888\'>'+_es+'</small><br><br><button onclick=\'try{localStorage.removeItem(\"hw5ren:tok\");}catch(e){}location.reload()\' style=\'margin-top:8px;padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:sans-serif\'>清除登入狀態並重新整理</button></div>';
+      _root.innerHTML =
+        '<div style="padding:24px 20px;font-size:14px;color:#c00;background:#fff;word-break:break-all;min-height:100vh;font-family:monospace">' +
+        '<b style="font-size:16px">APP CATCH ERROR</b><br><br>' + _em + '<br><br>' +
+        '<small style="color:#888">' + _es + '</small><br><br>' +
+        '<button onclick="try{localStorage.removeItem('hw5ren:tok');}catch(e){}location.reload()" ' +
+        'style="margin-top:8px;padding:10px 20px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">清除登入狀態並重新整理</button>' +
+        '</div>';
     } catch(ex2) {}
   }
 });
