@@ -798,7 +798,7 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
 </head>
 <body>
-<div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px">HTML LOADED</div>
+<div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px;display:none">HTML LOADED</div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
 function debugStep(step) {
@@ -807,11 +807,10 @@ function debugStep(step) {
   try {
     var el = document.getElementById('safari-debug');
     if (el) {
+      var isError = step.indexOf('FAIL')>-1 || step.indexOf('ERROR')>-1 || step.indexOf('NOT FOUND')>-1;
       el.innerText = step;
-      el.style.background =
-        (step.indexOf('FAIL')>-1||step.indexOf('ERROR')>-1||step.indexOf('NOT FOUND')>-1) ? '#8B0000' :
-        (step.indexOf('COMPLETE')>-1||step.indexOf('READY')>-1||step.indexOf('OK')>-1)    ? '#006400' :
-        '#c00';
+      el.style.background = isError ? '#8B0000' : '#006400';
+      el.style.display = isError ? 'block' : 'none'; // 只有錯誤才顯示
     }
   } catch(e) {}
 }
