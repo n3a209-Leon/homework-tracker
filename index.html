@@ -483,6 +483,10 @@
 
         /* 所有內容在星空之上 */
         [data-theme="nebula"] .app > *{position:relative;z-index:1}
+        [data-theme="nebula"] main{position:relative;z-index:1}
+        [data-theme="nebula"] .table-wrapper{position:relative;z-index:1}
+        [data-theme="nebula"] .nav-bar{position:relative;z-index:2}
+        [data-theme="nebula"] .excel-bar{position:relative;z-index:1}
         [data-theme="nebula"] header{
           position:relative;z-index:2;
           background:rgba(8,5,25,.85);
@@ -599,6 +603,17 @@
 
         /* 出勤狀況卡片 */
         [data-theme="nebula"] .att-type-btn{border-radius:8px;backdrop-filter:blur(4px)}
+        /* 出勤狀況區塊 */
+        [data-theme="nebula"] .att-section,
+        [data-theme="nebula"] .attendance-section,
+        [data-theme="nebula"] [class*="att-wrap"],
+        [data-theme="nebula"] [class*="att-card"]{
+          background:rgba(8,5,25,.75) !important;
+          border:1px solid rgba(100,70,220,.3) !important;
+          border-radius:14px;
+          backdrop-filter:blur(10px);
+          -webkit-backdrop-filter:blur(10px);
+        }
 
         /* summary 標籤 */
         [data-theme="nebula"] .sum-tag{background:rgba(60,40,120,.5);color:#c0b0ff;border:1px solid rgba(120,90,200,.3)}
@@ -606,6 +621,41 @@
 
         /* stor-bar */
         [data-theme="nebula"] .stor-bar{border-left:3px solid rgba(120,90,220,.7)}
+
+        /* table 作業記錄區 */
+        [data-theme="nebula"] .table-wrapper{
+          background:rgba(8,5,25,.75);
+          border-radius:14px;
+          border:1px solid rgba(100,70,220,.3);
+          backdrop-filter:blur(10px);
+          -webkit-backdrop-filter:blur(10px);
+          overflow:hidden;
+          margin-bottom:12px;
+        }
+        [data-theme="nebula"] table{background:transparent}
+        [data-theme="nebula"] thead tr{background:rgba(60,30,120,.5)}
+        [data-theme="nebula"] thead th{color:rgba(180,150,255,.85);border-bottom:1px solid rgba(100,70,200,.4);font-size:12px}
+        [data-theme="nebula"] tbody tr{border-bottom:1px solid rgba(80,50,160,.2)}
+        [data-theme="nebula"] tbody tr:hover{background:rgba(80,50,160,.15)}
+        [data-theme="nebula"] .hwc{color:#c8b8ff}
+        [data-theme="nebula"] .gc{color:#a0b8ff}
+        [data-theme="nebula"] .gc.s-complete{background:rgba(40,160,80,.15)}
+        [data-theme="nebula"] .gc.s-partial{background:rgba(255,160,40,.1)}
+        [data-theme="nebula"] .ar td{color:rgba(150,120,255,.6)}
+        [data-theme="nebula"] .db{color:rgba(180,100,255,.6)}
+
+        /* 出勤卡片 */
+        [data-theme="nebula"] .att-card,
+        [data-theme="nebula"] [class*="att-"]{position:relative;z-index:1}
+
+        /* exempt panel */
+        [data-theme="nebula"] .exempt-panel{
+          background:rgba(8,5,25,.75);
+          border:1px solid rgba(100,70,220,.3);
+          border-radius:14px;
+          backdrop-filter:blur(10px);
+          -webkit-backdrop-filter:blur(10px);
+        }
 
         /* 滾動條 */
         [data-theme="nebula"] ::-webkit-scrollbar{width:4px}
