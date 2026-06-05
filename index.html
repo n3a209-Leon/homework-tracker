@@ -425,15 +425,192 @@
         .nb.att-other{opacity:.75}
 
         /* ── NEBULA 星雲主題 ── */
-        [data-theme="nebula"]{background:#060818;color:#c8d8ff}
-        [data-theme="nebula"] header{background:rgba(10,5,30,.98);border-bottom:1px solid rgba(150,100,255,.3)}
-        [data-theme="nebula"] h1{color:#d4b8ff}
-        [data-theme="nebula"] .theme-btn{background:rgba(150,100,255,.15);border:1px solid rgba(150,100,255,.4);color:#c8b0ff}
-        [data-theme="nebula"] .back-btn{background:rgba(150,100,255,.1);border:1px solid rgba(150,100,255,.35);color:#c8b0ff;border-radius:6px}
-        [data-theme="nebula"] .calendar{background:#0a0520;border:1px solid rgba(150,100,255,.3)}
-        [data-theme="nebula"] .cal-day{color:#a080ff}
-        [data-theme="nebula"] .mo{background:#0a0c20;border:1px solid rgba(150,100,255,.4);border-radius:16px}
-        [data-theme="nebula"] .bk{background:linear-gradient(135deg,#5030a0,#4060c0);color:#fff}
+
+        /* ══════════════════════════════════════════
+           NEBULA THEME — Deep Space Edition
+           藍紫星雲 + 動態粒子 + 毛玻璃卡片
+        ══════════════════════════════════════════ */
+
+        /* 動態星空粒子 keyframes */
+        @keyframes nebula-drift{0%{transform:translate(0,0) scale(1);opacity:.7}50%{transform:translate(-8px,12px) scale(1.08);opacity:1}100%{transform:translate(0,0) scale(1);opacity:.7}}
+        @keyframes nebula-drift2{0%{transform:translate(0,0) rotate(0deg);opacity:.5}50%{transform:translate(10px,-8px) rotate(180deg);opacity:.9}100%{transform:translate(0,0) rotate(360deg);opacity:.5}}
+        @keyframes star-twinkle{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
+        @keyframes nebula-glow{0%,100%{box-shadow:0 0 20px rgba(120,80,255,.3),0 0 40px rgba(60,120,255,.15)}50%{box-shadow:0 0 35px rgba(150,100,255,.5),0 0 70px rgba(80,140,255,.25)}}
+        @keyframes aurora{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes float-star{0%{transform:translateY(0px)}50%{transform:translateY(-6px)}100%{transform:translateY(0px)}}
+
+        /* 根容器：深空背景 */
+        [data-theme="nebula"]{
+          background:#04050f;
+          color:#d0e8ff;
+          position:relative;
+          min-height:100vh;
+        }
+
+        /* 星空背景層（偽元素實作動態星雲） */
+        [data-theme="nebula"]::before{
+          content:'';
+          position:fixed;
+          inset:0;
+          z-index:0;
+          background:
+            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(80,40,180,.35) 0%, transparent 65%),
+            radial-gradient(ellipse 60% 80% at 80% 70%, rgba(20,80,200,.3) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 50% at 50% 10%, rgba(160,60,220,.2) 0%, transparent 55%),
+            radial-gradient(ellipse 90% 40% at 10% 90%, rgba(30,100,180,.25) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 70% at 90% 20%, rgba(100,40,200,.2) 0%, transparent 55%),
+            linear-gradient(135deg, #04050f 0%, #070a1a 40%, #060818 70%, #050410 100%);
+          background-size:200% 200%;
+          animation:aurora 18s ease infinite;
+          pointer-events:none;
+        }
+
+        /* 星點層 */
+        [data-theme="nebula"]::after{
+          content:'✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦';
+          position:fixed;
+          inset:0;
+          z-index:0;
+          font-size:10px;
+          line-height:3.5;
+          letter-spacing:22px;
+          color:rgba(200,180,255,.25);
+          word-break:break-all;
+          overflow:hidden;
+          animation:nebula-drift 12s ease-in-out infinite;
+          pointer-events:none;
+        }
+
+        /* 所有內容在星空之上 */
+        [data-theme="nebula"] .app > *{position:relative;z-index:1}
+        [data-theme="nebula"] header{
+          position:relative;z-index:2;
+          background:rgba(8,5,25,.85);
+          border-bottom:1px solid rgba(120,80,255,.4);
+          backdrop-filter:blur(16px);
+          -webkit-backdrop-filter:blur(16px);
+          animation:nebula-glow 4s ease-in-out infinite;
+        }
+        [data-theme="nebula"] h1{
+          color:#d4b8ff;
+          text-shadow:0 0 12px rgba(180,140,255,.6),0 0 25px rgba(120,80,255,.3);
+        }
+
+        /* 卡片：毛玻璃效果 */
+        [data-theme="nebula"] .stor-bar,
+        [data-theme="nebula"] .calendar,
+        [data-theme="nebula"] .sum-wrap,
+        [data-theme="nebula"] .day-view-card,
+        [data-theme="nebula"] .ra{
+          background:rgba(10,8,30,.7) !important;
+          border:1px solid rgba(120,80,255,.35) !important;
+          border-radius:14px;
+          backdrop-filter:blur(12px);
+          -webkit-backdrop-filter:blur(12px);
+          box-shadow:0 4px 24px rgba(80,40,180,.2), inset 0 1px 0 rgba(150,100,255,.15);
+        }
+
+        /* 月曆 */
+        [data-theme="nebula"] .calendar{background:rgba(6,4,22,.75) !important;border:1px solid rgba(100,70,220,.3) !important}
+        [data-theme="nebula"] .cal-day{color:#b090ff;text-shadow:0 0 6px rgba(150,100,255,.4)}
+        [data-theme="nebula"] .cal-cell.today .cal-day{
+          background:rgba(100,60,220,.8);
+          box-shadow:0 0 12px rgba(120,80,255,.6);
+          color:#fff;
+        }
+        [data-theme="nebula"] .cal-dot{background:rgba(160,120,255,.8);box-shadow:0 0 4px rgba(150,100,255,.6)}
+
+        /* 按鈕：發光邊框 */
+        [data-theme="nebula"] .theme-btn{
+          background:rgba(100,60,200,.2);
+          border:1px solid rgba(150,100,255,.5);
+          color:#c8b0ff;
+          box-shadow:0 0 8px rgba(120,80,255,.2);
+          transition:all .2s;
+        }
+        [data-theme="nebula"] .theme-btn:hover{
+          background:rgba(120,80,220,.35);
+          box-shadow:0 0 16px rgba(150,100,255,.5);
+        }
+        [data-theme="nebula"] .back-btn{background:rgba(100,60,200,.15);border:1px solid rgba(150,100,255,.4);color:#c8b0ff;border-radius:6px}
+        [data-theme="nebula"] .nav-btn{background:rgba(80,50,160,.2);border:1px solid rgba(120,80,220,.35);color:#b0a0ff}
+        [data-theme="nebula"] .bk{
+          background:linear-gradient(135deg,rgba(80,40,180,.9),rgba(40,80,200,.9));
+          border:1px solid rgba(150,120,255,.6);
+          color:#fff;
+          box-shadow:0 4px 16px rgba(80,40,200,.4),0 0 20px rgba(100,60,220,.2);
+          text-shadow:0 0 8px rgba(200,180,255,.5);
+        }
+        [data-theme="nebula"] .excel-btn{
+          background:rgba(60,40,140,.6);
+          border:1px solid rgba(120,80,220,.4);
+          color:#c0b0ff;
+          box-shadow:0 2px 8px rgba(60,30,150,.3);
+        }
+        [data-theme="nebula"] .day-backup-btn{
+          background:linear-gradient(135deg,rgba(60,40,160,.85),rgba(30,70,180,.85));
+          border:1px solid rgba(120,100,255,.5);
+          box-shadow:0 4px 20px rgba(60,30,180,.4);
+          color:#e0d8ff;
+        }
+
+        /* 表格和行 */
+        [data-theme="nebula"] .ar{background:rgba(8,5,20,.6) !important;border-radius:10px}
+        [data-theme="nebula"] .ar th{color:rgba(180,150,255,.7);border-bottom:1px solid rgba(100,70,200,.3)}
+        [data-theme="nebula"] .ar td{color:#c0d0ff;border-color:rgba(80,60,180,.2)}
+        [data-theme="nebula"] .hwc{color:#c0b8ff}
+
+        /* 名字按鈕（六角形） */
+        [data-theme="nebula"] .nb{
+          background:rgba(60,40,120,.4);
+          border:1px solid rgba(120,90,220,.45);
+          color:#d0c0ff;
+          box-shadow:0 0 6px rgba(100,70,200,.2);
+          transition:all .2s;
+        }
+        [data-theme="nebula"] .nb:hover{
+          background:rgba(100,70,200,.5);
+          box-shadow:0 0 14px rgba(150,100,255,.5);
+        }
+        [data-theme="nebula"] .nb.done{
+          background:rgba(40,160,100,.35);
+          border-color:rgba(60,200,120,.5);
+          color:#a0ffcc;
+          box-shadow:0 0 10px rgba(40,200,100,.25);
+        }
+
+        /* Modal 彈窗 */
+        [data-theme="nebula"] .ov{background:rgba(2,2,15,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+        [data-theme="nebula"] .mo{
+          background:rgba(8,5,28,.92);
+          border:1px solid rgba(130,90,255,.45);
+          border-radius:20px;
+          backdrop-filter:blur(20px);
+          -webkit-backdrop-filter:blur(20px);
+          box-shadow:0 8px 40px rgba(80,40,200,.4),inset 0 1px 0 rgba(180,140,255,.15);
+        }
+        [data-theme="nebula"] .mt{color:#d4b8ff;text-shadow:0 0 10px rgba(180,140,255,.5);border-bottom:1px solid rgba(120,80,255,.3);padding-bottom:10px}
+
+        /* 設定頁 */
+        [data-theme="nebula"] .pb2{background:rgba(60,40,130,.5);border:1px solid rgba(120,90,210,.4);color:#c8b8ff}
+        [data-theme="nebula"] .pb2.act{background:rgba(100,60,200,.7);border-color:rgba(160,120,255,.7);box-shadow:0 0 12px rgba(130,90,255,.4)}
+        [data-theme="nebula"] .hi2{background:rgba(6,4,18,.8);border:1px solid rgba(120,80,220,.4);color:#d0c8ff}
+        [data-theme="nebula"] .bc{background:rgba(40,30,80,.5);border:1px solid rgba(100,70,180,.4);color:#a090cc}
+
+        /* 出勤狀況卡片 */
+        [data-theme="nebula"] .att-type-btn{border-radius:8px;backdrop-filter:blur(4px)}
+
+        /* summary 標籤 */
+        [data-theme="nebula"] .sum-tag{background:rgba(60,40,120,.5);color:#c0b0ff;border:1px solid rgba(120,90,200,.3)}
+        [data-theme="nebula"] .sum-date{color:#a090e0}
+
+        /* stor-bar */
+        [data-theme="nebula"] .stor-bar{border-left:3px solid rgba(120,90,220,.7)}
+
+        /* 滾動條 */
+        [data-theme="nebula"] ::-webkit-scrollbar{width:4px}
+        [data-theme="nebula"] ::-webkit-scrollbar-track{background:rgba(10,5,30,.5)}
+        [data-theme="nebula"] ::-webkit-scrollbar-thumb{background:rgba(120,80,220,.5);border-radius:4px}
         /* ── NERV UNIT NUMBER DISPLAY ── */
         @keyframes unit-flicker{
           0%,90%,100%{opacity:1;text-shadow:0 0 10px rgba(255,102,0,.8),0 0 30px rgba(255,102,0,.3)}
@@ -1552,6 +1729,221 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
             } }, nerv ? "// SAVE LOG //" : "儲存輔導紀錄")));
 }
 // ── Settings View Component ───────────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════
+// ArchiveView — 學年歷史檔案室
+// ══════════════════════════════════════════════════
+function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, isNerv }) {
+  var useState = React.useState, useEffect = React.useEffect;
+  const [selYear, setSelYear] = useState(schoolYear || String(new Date().getFullYear()));
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [yearList, setYearList] = useState([]);
+
+  // 取得所有有資料的學年
+  useEffect(() => {
+    (async () => {
+      try {
+        const keys = await idbKeys();
+        const years = new Set();
+        keys.forEach(k => {
+          const m = k.match(/day:(\d{4})-/);
+          if (m) years.add(m[1]);
+        });
+        if (schoolYear) years.add(schoolYear);
+        const arr = Array.from(years).sort().reverse();
+        setYearList(arr);
+        if (arr.length > 0 && !arr.includes(selYear)) setSelYear(arr[0]);
+      } catch(e) {}
+    })();
+  }, []);
+
+  // 載入選定學年的統計
+  useEffect(() => {
+    if (!selYear) return;
+    setLoading(true);
+    (async () => {
+      try {
+        const keys = await idbKeys();
+        const yearKeys = keys.filter(k => k.startsWith('day:' + selYear + '-'));
+        const hwCount = {};      // 各作業繳交次數
+        const absentMap = {};    // 各學生請假天數
+        const groupSnapshots = {};  // 每月分組快照（從資料推算）
+        let totalDays = 0;
+        let totalAbsent = 0;
+
+        for (const k of yearKeys) {
+          const data = await idbGet(k);
+          if (!data) continue;
+          totalDays++;
+          let parsed;
+          try { parsed = typeof data === 'string' ? JSON.parse(data) : data; } catch(e) { continue; }
+
+          // 統計作業
+          if (parsed.rows) {
+            parsed.rows.forEach(row => {
+              if (row.hwName) {
+                hwCount[row.hwName] = (hwCount[row.hwName] || 0) + 1;
+              }
+            });
+          }
+          // 統計請假
+          if (parsed.att) {
+            Object.entries(parsed.att).forEach(([name, type]) => {
+              if (!absentMap[name]) absentMap[name] = { total:0, sick:0, personal:0, official:0 };
+              absentMap[name].total++;
+              if (type === 'sick') absentMap[name].sick++;
+              else if (type === 'personal') absentMap[name].personal++;
+              else if (type === 'official') absentMap[name].official++;
+              totalAbsent++;
+            });
+          }
+        }
+
+        // 排序：作業出現次數由高到低
+        const topHW = Object.entries(hwCount)
+          .sort((a,b) => b[1]-a[1])
+          .slice(0, 10);
+
+        // 請假最多的前5名
+        const topAbsent = Object.entries(absentMap)
+          .sort((a,b) => b[1].total - a[1].total)
+          .slice(0, 5);
+
+        setStats({ totalDays, totalAbsent, topHW, topAbsent, hwCount, absentMap });
+        setLoading(false);
+      } catch(e) {
+        setLoading(false);
+      }
+    })();
+  }, [selYear]);
+
+  const accent = isNerv ? '#ff6600' : '#1e3a5f';
+  const cardStyle = {
+    background: isNerv ? 'rgba(255,102,0,.05)' : '#fff',
+    border: isNerv ? '1px solid rgba(255,102,0,.3)' : '1px solid #e8edf5',
+    borderRadius: 14,
+    padding: '16px',
+    marginBottom: 12,
+  };
+
+  return React.createElement("div", { style: { padding:'16px 12px', maxWidth:500, margin:'0 auto' } },
+    // 標題
+    React.createElement("h2", { style: { fontSize:18, fontWeight:900, color: isNerv?'#ff6600':'#1e3a5f', marginBottom:16, letterSpacing: isNerv?3:0, fontFamily: isNerv?'Share Tech Mono,monospace':'inherit' } },
+      isNerv ? "◈ HISTORICAL ARCHIVE" : "🗂 學年歷史檔案室"),
+
+    // 學年切換
+    React.createElement("div", { style: { display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' } },
+      (yearList.length > 0 ? yearList : [schoolYear]).map(y =>
+        React.createElement("button", {
+          key: y,
+          onClick: () => setSelYear(y),
+          style: {
+            padding:'8px 18px', borderRadius:20, border:'none', cursor:'pointer',
+            fontWeight:700, fontSize:14,
+            background: selYear===y ? (isNerv?'#ff6600':'#1e3a5f') : (isNerv?'rgba(255,102,0,.1)':'#eef2f8'),
+            color: selYear===y ? '#fff' : (isNerv?'rgba(255,102,0,.7)':'#555'),
+            boxShadow: selYear===y ? '0 2px 8px rgba(0,0,0,.2)' : 'none',
+          }
+        }, y + " 年")
+      )
+    ),
+
+    // 分組名單
+    React.createElement("div", { style: cardStyle },
+      React.createElement("div", { style: { fontWeight:700, fontSize:14, color: isNerv?'#ff9944':'#1e3a5f', marginBottom:10, letterSpacing: isNerv?2:0 } },
+        isNerv ? "// UNIT ROSTER //" : "📋 目前分組名單"),
+      groups.length === 0
+        ? React.createElement("p", { style:{color:'#aaa',fontSize:13} }, "尚未設定分組")
+        : React.createElement("div", { style:{display:'flex',flexWrap:'wrap',gap:8} },
+            groups.map(g =>
+              React.createElement("div", { key:g.id, style:{
+                background: isNerv?'rgba(255,102,0,.08)':'#f0f4ff',
+                border: isNerv?'1px solid rgba(255,102,0,.3)':'1px solid #d0d8f0',
+                borderRadius:10, padding:'8px 12px', minWidth:80
+              }},
+                React.createElement("div", { style:{fontWeight:700,fontSize:12,color:isNerv?'#ff8844':'#1e3a5f',marginBottom:4} }, g.label),
+                React.createElement("div", { style:{fontSize:11,color:isNerv?'rgba(255,102,0,.7)':'#666',lineHeight:1.8} },
+                  g.members.join('、'))
+              )
+            )
+          )
+    ),
+
+    // 資料統計
+    loading
+      ? React.createElement("div", { style:{textAlign:'center',padding:30,color:'#aaa'} }, "載入中…")
+      : stats && React.createElement(React.Fragment, null,
+
+          // 總覽數字
+          React.createElement("div", { style:{display:'flex',gap:10,marginBottom:12} },
+            [
+              { label:'有記錄天數', val: stats.totalDays+'天', icon:'📅' },
+              { label:'作業種類', val: Object.keys(stats.hwCount).length+'種', icon:'📝' },
+              { label:'請假人次', val: stats.totalAbsent+'人次', icon:'🏥' },
+            ].map(item =>
+              React.createElement("div", { key:item.label, style:{
+                flex:1, background: isNerv?'rgba(255,102,0,.07)':'#f5f8ff',
+                border: isNerv?'1px solid rgba(255,102,0,.2)':'1px solid #e0e8f8',
+                borderRadius:12, padding:'10px 8px', textAlign:'center'
+              }},
+                React.createElement("div", { style:{fontSize:20,marginBottom:4} }, item.icon),
+                React.createElement("div", { style:{fontSize:18,fontWeight:900,color:isNerv?'#ff8844':'#1e3a5f'} }, item.val),
+                React.createElement("div", { style:{fontSize:10,color:'#aaa',marginTop:2} }, item.label)
+              )
+            )
+          ),
+
+          // 常出現的功課 Top 10
+          stats.topHW.length > 0 && React.createElement("div", { style: cardStyle },
+            React.createElement("div", { style:{fontWeight:700,fontSize:14,color:isNerv?'#ff9944':'#1e3a5f',marginBottom:10} },
+              isNerv ? "// MISSION LOG TOP 10 //" : "📊 常出現的功課 Top 10"),
+            stats.topHW.map(([hw, cnt], i) =>
+              React.createElement("div", { key:hw, style:{display:'flex',alignItems:'center',gap:8,marginBottom:6} },
+                React.createElement("span", { style:{fontSize:11,color:'#aaa',width:18,textAlign:'right'} }, (i+1)+'.'),
+                React.createElement("div", { style:{flex:1} },
+                  React.createElement("div", { style:{display:'flex',justifyContent:'space-between',marginBottom:2} },
+                    React.createElement("span", { style:{fontSize:13,color:isNerv?'#ffa070':'#333'} }, hw),
+                    React.createElement("span", { style:{fontSize:12,fontWeight:700,color:isNerv?'#ff8844':'#1e3a5f'} }, cnt+'次')
+                  ),
+                  React.createElement("div", { style:{height:4,borderRadius:2,background:isNerv?'rgba(255,102,0,.15)':'#eee'} },
+                    React.createElement("div", { style:{
+                      height:'100%', borderRadius:2,
+                      background: isNerv?'#ff6600':'#1e3a5f',
+                      width: (cnt / stats.topHW[0][1] * 100) + '%',
+                      transition:'width .3s'
+                    }})
+                  )
+                )
+              )
+            )
+          ),
+
+          // 請假次數 Top 5
+          stats.topAbsent.length > 0 && React.createElement("div", { style: cardStyle },
+            React.createElement("div", { style:{fontWeight:700,fontSize:14,color:isNerv?'#ff9944':'#1e3a5f',marginBottom:10} },
+              isNerv ? "// ABSENCE RECORD //" : "🏥 請假次數 Top 5"),
+            stats.topAbsent.map(([name, data], i) =>
+              React.createElement("div", { key:name, style:{
+                display:'flex', alignItems:'center', justifyContent:'space-between',
+                padding:'8px 10px', marginBottom:4,
+                background: isNerv?'rgba(255,102,0,.05)':'#fafbff',
+                borderRadius:8, border: isNerv?'1px solid rgba(255,102,0,.15)':'1px solid #eee'
+              }},
+                React.createElement("span", { style:{fontWeight:700,fontSize:13,color:isNerv?'#ffa070':'#333'} }, name),
+                React.createElement("div", { style:{display:'flex',gap:6} },
+                  React.createElement("span", { style:{fontSize:11,padding:'2px 8px',borderRadius:10,background:isNerv?'rgba(255,100,0,.2)':'#fff3e0',color:isNerv?'#ff8844':'#f57c00'} }, '事'+data.personal),
+                  React.createElement("span", { style:{fontSize:11,padding:'2px 8px',borderRadius:10,background:isNerv?'rgba(0,150,255,.15)':'#e3f2fd',color:isNerv?'#66bbff':'#1976d2'} }, '病'+data.sick),
+                  React.createElement("span", { style:{fontSize:11,padding:'2px 8px',borderRadius:10,background:isNerv?'rgba(0,200,100,.15)':'#e8f5e9',color:isNerv?'#66ff99':'#388e3c'} }, '公'+data.official),
+                  React.createElement("span", { style:{fontSize:12,fontWeight:900,color:isNerv?'#ff6600':'#1e3a5f'} }, '共'+data.total)
+                )
+              )
+            )
+          )
+        )
+  );
+}
+
 function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
     const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
     const [draftClass, setDraftClass] = useState(className);
@@ -2454,7 +2846,8 @@ function App() {
                 React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️")),
+                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️"),
+                React.createElement("button", { className: "theme-btn", onClick: () => setView("archive"), title: "\u6B77\u5E74\u6A94\u6848\u5BA4", style:{fontSize:15} }, isNerv ? "◫" : "🗂")),
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
                     React.createElement("div", { className: "nerv-hex-ring" },
@@ -2519,7 +2912,7 @@ function App() {
                         ? "◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 // ◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 //"
                         : "🔌 Drive 未連線　資料儲存於本機　登入後自動同步　🔌 Drive 未連線　資料儲存於本機"))),
             React.createElement("div", { className: "nav-bar" },
-                (view === "day" || view === "settings" || counselView) && (React.createElement("button", { className: "back-btn", onClick: () => { setView("month"); setCounselView(false); } }, isNerv ? "⬡ HOME" : "🏠")),
+                (view === "day" || view === "settings" || view === "archive" || counselView) && (React.createElement("button", { className: "back-btn", onClick: () => { setView("month"); setCounselView(false); } }, isNerv ? "⬡ HOME" : "🏠")),
                 view === "day" && (React.createElement("button", { className: "back-btn", onClick: () => setView("month") }, isNerv ? "◀ RETURN" : "← 月曆")),
                 React.createElement("button", { className: "nav-btn", onClick: prevMonth }, "\u2039"),
                 React.createElement("span", { className: "month-label" }, isNerv
@@ -2969,7 +3362,8 @@ function App() {
                         React.createElement("div", { style: { fontSize: 11, opacity: .6, marginTop: 2 } }, t.desc)),
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))));
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE }))))
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, isNerv: isNerv })),;
 }
 
     debugStep('RENDER START');
@@ -3017,6 +3411,116 @@ setTimeout(function(){
 }, 100);
 </script>
 <script>
+// ── Nebula 動態星點系統 ─────────────────────────────────────
+(function() {
+  function initStars() {
+    var app = document.querySelector('[data-theme="nebula"]');
+    if (!app) return;
+    // 避免重複建立
+    if (document.getElementById('nebula-canvas')) return;
+
+    var canvas = document.createElement('canvas');
+    canvas.id = 'nebula-canvas';
+    canvas.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7';
+    document.body.insertBefore(canvas, document.body.firstChild);
+
+    var ctx = canvas.getContext('2d');
+    var stars = [];
+    var W, H;
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // 建立星星
+    for (var i = 0; i < 160; i++) {
+      stars.push({
+        x: Math.random() * 2,      // 相對位置 0-1
+        y: Math.random() * 2,
+        r: Math.random() * 1.4 + 0.2,
+        speed: Math.random() * 0.0003 + 0.00008,
+        phase: Math.random() * Math.PI * 2,
+        color: ['#fff','#e8e0ff','#c8d8ff','#b0c8ff','#d4b8ff'][Math.floor(Math.random()*5)]
+      });
+    }
+
+    var t = 0;
+    function draw() {
+      // 只在 nebula 主題時繪製
+      if (!document.querySelector('[data-theme="nebula"]')) {
+        canvas.style.opacity = '0';
+        requestAnimationFrame(draw);
+        return;
+      }
+      canvas.style.opacity = '.7';
+      ctx.clearRect(0, 0, W, H);
+      t += 0.008;
+
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        var x = ((s.x + t * s.speed * 0.3) % 1) * W;
+        var y = ((s.y + t * s.speed) % 1) * H;
+        var twinkle = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + s.phase));
+
+        ctx.save();
+        ctx.globalAlpha = twinkle * 0.85;
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = s.r * 3;
+        ctx.beginPath();
+        ctx.arc(x, y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 偶爾加入流星
+      if (Math.random() < 0.004) {
+        var mx = Math.random() * W;
+        var my = Math.random() * H * 0.5;
+        var grad = ctx.createLinearGradient(mx, my, mx + 80, my + 30);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.5, 'rgba(220,200,255,0.6)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mx, my);
+        ctx.lineTo(mx + 80, my + 30);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  // 等 DOM ready 後初始化，並監聽主題切換
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(initStars, 500); });
+  } else {
+    setTimeout(initStars, 500);
+  }
+
+  // 主題切換時重新初始化
+  var _origBody = document.body;
+  var themeObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      if (m.type === 'attributes' && m.attributeName === 'data-theme') return;
+      // 檢查是否有 nebula app
+      var nebulaApp = document.querySelector('[data-theme="nebula"]');
+      if (nebulaApp && !document.getElementById('nebula-canvas')) {
+        initStars();
+      }
+    });
+  });
+  try {
+    themeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
+  } catch(e) {}
+})();
+
 // PWA Touch Passthrough：確保所有按鈕在 PWA 模式下可點擊
 (function() {
   try {
