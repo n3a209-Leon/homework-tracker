@@ -191,20 +191,19 @@
         [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
 
         /* ========================================================
-           🌟 僅限一般 (default) 與星空 (nebula) 模式：彈出面板全圓圈 + 幽幽藍光 (不影響 NERV)
+           🌟 僅限一般與星雲模式：點名跳窗全圓圈 + 點擊幽幽綠光 (100%不干涉 NERV)
            ======================================================== */
-        @keyframes custom-blue-pulse {
+        @keyframes modal-green-pulse {
           0%, 100% {
-            box-shadow: 0 0 8px rgba(0,140,255,.7), 0 0 16px rgba(0,140,255,.3), inset 0 0 6px rgba(0,140,255,.2);
+            box-shadow: 0 0 8px rgba(61,214,140,.6), 0 0 16px rgba(61,214,140,.2), inset 0 0 6px rgba(61,214,140,.15);
           }
           50% {
-            box-shadow: 0 0 18px rgba(0,140,255,1), 0 0 36px rgba(0,140,255,.6), inset 0 0 12px rgba(0,140,255,.4);
+            box-shadow: 0 0 18px rgba(61,214,140,1), 0 0 36px rgba(61,214,140,.5), inset 0 0 12px rgba(61,214,140,.3);
           }
         }
 
-        /* 1. 僅在一般與星空模式下，解除點名面板內 NERV 六角形外殼 (.ng) 的定位限制 */
-        [data-theme="default"] .modal .ng,
-        [data-theme="nebula"] .modal .ng {
+        /* 1. 當外層不是 NERV 模式時，徹底拆除點名跳窗內 NERV 六角形外殼 (.ng) 的所有定位與重疊 */
+        body:not([data-theme="nerv"]) .modal .ng {
           position: static !important;
           width: auto !important;
           height: auto !important;
@@ -216,9 +215,8 @@
           display: inline-block !important;
         }
 
-        /* 2. 僅在一般與星空模式下，重設按鈕承載層 (.nw)，維持直立置中排版 */
-        [data-theme="default"] .modal .ng .nw,
-        [data-theme="nebula"] .modal .ng .nw {
+        /* 2. 當外層不是 NERV 模式時，重設跳窗內按鈕承載層 (.nw)，維持直立置中排版 */
+        body:not([data-theme="nerv"]) .modal .ng .nw {
           position: static !important;
           width: auto !important;
           height: auto !important;
@@ -229,14 +227,17 @@
           padding: 6px !important;
         }
 
-        /* 3. 解決點擊變小Bug：強制一般與星空模式下，所有按鈕未點擊(.nb)與點擊後(.nbsub)皆為完美圓圈 */
-        [data-theme="default"] .modal .nb, [data-theme="default"] .modal .nbsub, [data-theme="default"] .modal .nb.sub,
-        [data-theme="nebula"] .modal .nb, [data-theme="nebula"] .modal .nbsub, [data-theme="nebula"] .modal .nb.sub {
+        /* 3. 解決點擊變小Bug：強制在一般/星雲模式下，所有按鈕（組員、組長、秘書長）未點擊與點擊後一律是「完美標準圓圈」 */
+        body:not([data-theme="nerv"]) .modal .nb,
+        body:not([data-theme="nerv"]) .modal .nbsub,
+        body:not([data-theme="nerv"]) .modal .nb.sub,
+        body:not([data-theme="nerv"]) .modal .nb.ldr,
+        body:not([data-theme="nerv"]) .modal .nb.sec {
           position: static !important;
           width: 44px !important;
           height: 44px !important;
-          border-radius: 50% !important; /* 強制 100% 完美標準圓圈 */
-          clip-path: none !important;     /* 確保洗掉 NERV 的六角形裁切 */
+          border-radius: 50% !important; /* 100% 鎖定圓圈 */
+          clip-path: none !important;     /* 徹底洗掉 NERV 的六角形裁切 */
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
@@ -249,22 +250,23 @@
           transition: all 0.2s ease !important;
         }
 
-        /* 4. 僅在一般與星空模式下，選中（.nbsub 或 .nb.sub）時保持圓圈並亮起「幽幽藍光」 */
-        [data-theme="default"] .modal .nbsub, [data-theme="default"] .modal .nb.sub,
-        [data-theme="nebula"] .modal .nbsub, [data-theme="nebula"] .modal .nb.sub {
-          background: rgba(0,110,255,.12) !important;
-          border: 2.5px solid #0088ff !important;
-          color: #0055cc !important;
-          border-radius: 50% !important; /* 點擊後再次強制維持圓形 */
-          animation: custom-blue-pulse 2s ease-in-out infinite !important;
+        /* 4. 當點擊選中時，保持完美圓圈並發出「幽幽綠光」呼吸燈（同時綁定 React 渲染的 .nbsub 與 .nb.sub） */
+        body:not([data-theme="nerv"]) .modal .nbsub,
+        body:not([data-theme="nerv"]) .modal .nb.sub,
+        body:not([data-theme="nerv"]) .modal .nbsub.ldr,
+        body:not([data-theme="nerv"]) .modal .nbsub.sec {
+          background: rgba(61,214,140,.12) !important;
+          border: 2.5px solid #3dd68c !important;
+          color: #1a8a4a !important;
+          border-radius: 50% !important; /* 點擊後也強力鎖定圓圈，絕不縮小 */
+          animation: modal-green-pulse 2s ease-in-out infinite !important;
           transform: scale(1.08) !important;
           z-index: 5 !important;
           clip-path: none !important;
         }
 
-        /* 5. 僅在一般與星空模式下，修正職稱文字（組長、秘書長）排版，乖乖垂直排在圓圈下方 */
-        [data-theme="default"] .modal .rt,
-        [data-theme="nebula"] .modal .rt {
+        /* 5. 職稱文字（組長、秘書長標籤）解除 NERV 原本的高權重定位壓制，乖乖直立排在圓圈下方 */
+        body:not([data-theme="nerv"]) .modal .rt {
           position: static !important;
           transform: none !important;
           font-size: 11px !important;
