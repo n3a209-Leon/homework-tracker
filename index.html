@@ -1315,7 +1315,8 @@ function today() {
 function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
 function firstWeekday(y, m) { return new Date(y, m, 1).getDay(); }
 // ── Mini summary: how many rows have data in a day ───────────────────────────
-function daySummary(rows) {
+function daySummary(rows, groups) {
+    if (!groups || !groups.length) groups = window._fallbackGroups || [];
     const filled = rows.filter(r => r.hwName).length;
     const allDone = rows.filter(r => {
         if (!r.hwName)
@@ -1685,13 +1686,20 @@ function App() {
         debugStep('RENDER COMPLETE');
     }, []);
     const [view, setView] = useState("month");
-    const [groups, setGroups] = useState(() => loadGroups());
+    const [groups, setGroups] = useState(() => {
+        var g = loadGroups();
+        try { window._fallbackGroups = g; } catch(e) {}
+        return g;
+    });
     const [className, setClassName] = useState(() => safeGet("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => safeGet("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => safeGet("hw5ren:year") || String(new Date().getFullYear()));
+    // 同步 groups 到 window（供頂層函數使用）
+    React.useEffect(function() { try { window._fallbackGroups = groups; } catch(e) {} }, [groups]);
     const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
     function saveGroups(g) {
         setGroups(g);
+        try { window._fallbackGroups = g; } catch(e) {}
         _sl.set("hw5ren:groups", JSON.stringify(g));
     }
     const [curYear, setCurYear] = useState(() => new Date().getFullYear());
@@ -2246,7 +2254,7 @@ function App() {
         const entry = monthDays[dateStr] || { rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() } };
         const rows = entry.rows || [];
         const att = entry.attendance || { personal: new Set(), sick: new Set(), public: new Set() };
-        const { filled, allDone } = daySummary(rows);
+        const { filled, allDone } = daySummary(rows, groups);
         const isToday = dateStr === today();
         const hasSome = filled > 0;
         const allComplete = hasSome && allDone === filled;
