@@ -532,7 +532,43 @@ height: auto !important;
         .badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:17px;font-weight:900}
         .cb{background:#87ceeb;color:#fff;box-shadow:0 2px 6px rgba(135,206,235,.5);font-size:18px}
         .pb{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.35)}
-        .ab{background:#b71c1c;color:#fff;box-shadow:0 2px 8px rgba(183,28,28,.4);font-size:22px;font-weight:900}
+        .ab{
+  background:#b71c1c;
+  color:#fff;
+
+  box-shadow:
+    0 0 8px rgba(183,28,28,.4),
+    0 0 12px rgba(180,140,255,.45),
+    0 0 24px rgba(180,140,255,.25);
+
+  font-size:22px;
+  font-weight:900;
+
+  animation: allAbsentPulse 4s ease-in-out infinite;
+}
+
+@keyframes allAbsentPulse{
+
+  0%{
+    box-shadow:
+      0 0 8px rgba(183,28,28,.35),
+      0 0 8px rgba(180,140,255,.15);
+  }
+
+  50%{
+    box-shadow:
+      0 0 10px rgba(183,28,28,.45),
+      0 0 18px rgba(180,140,255,.55),
+      0 0 36px rgba(180,140,255,.30);
+  }
+
+  100%{
+    box-shadow:
+      0 0 8px rgba(183,28,28,.35),
+      0 0 8px rgba(180,140,255,.15);
+  }
+
+}
         .ub{background:#dde5ee;color:#7a90a8}
         .s-allabsent{background:#fff0f0}
         .ml{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;justify-items:center;margin-top:5px;width:100%}
@@ -3728,7 +3764,7 @@ function App() {
                                     React.createElement(
                                       "span",
                                       {
-                                        className: "badge ab purple-badge",
+                                        className: "badge ab ",
                                         style:{
                                           boxShadow:"0 0 20px #b080ff,0 0 40px #b080ff",
                                           animation:"badgePulse 3s infinite"
