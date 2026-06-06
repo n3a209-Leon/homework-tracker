@@ -869,7 +869,40 @@ height: auto !important;
           animation:green-glow-pulse 2s ease-in-out infinite;
           transform:scale(1.08);
         }
+[data-theme="nebula"] .purple-glow{
 
+  animation: nebulaPulse 3s ease-in-out infinite;
+
+  box-shadow:
+    inset 0 0 8px rgba(180,140,255,.15),
+    0 0 10px rgba(180,140,255,.20);
+
+  background:
+    rgba(80,60,180,.08);
+}
+
+@keyframes nebulaPulse{
+
+  0%{
+    box-shadow:
+      inset 0 0 4px rgba(180,140,255,.08),
+      0 0 4px rgba(180,140,255,.08);
+  }
+
+  50%{
+    box-shadow:
+      inset 0 0 14px rgba(180,140,255,.25),
+      0 0 18px rgba(180,140,255,.45),
+      0 0 32px rgba(180,140,255,.20);
+  }
+
+  100%{
+    box-shadow:
+      inset 0 0 4px rgba(180,140,255,.08),
+      0 0 4px rgba(180,140,255,.08);
+  }
+
+}
         /* Modal 彈窗 */
         [data-theme="nebula"] .ov{background:rgba(2,2,15,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
         [data-theme="nebula"] .mo{
