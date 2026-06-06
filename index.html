@@ -3725,11 +3725,17 @@ function App() {
                                     s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
                                     s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
                                     s === "allabsent" &&
-                                   React.createElement(
-                                     "span",
-                                     { className: "badge ab purple-badge" },
-                                     "\u2717"
-                                   ),
+                                    React.createElement(
+                                      "span",
+                                      {
+                                        className: "badge ab purple-badge",
+                                        style:{
+                                          boxShadow:"0 0 20px #b080ff,0 0 40px #b080ff",
+                                          animation:"badgePulse 3s infinite"
+                                        }
+                                      },
+                                      "\u2717"
+                                    ),
                                     s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
                                     ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
                                     s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
