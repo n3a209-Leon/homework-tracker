@@ -3248,10 +3248,28 @@ function App() {
     }
     function closeModal() { setModal(null); setMarked(new Set()); }
     function addRow() {
-        if (dayRows.length >= MAX_ROWS)
-            return;
-        updRows(p => [...p, { hwName: "", groupData: {} }]);
-    }
+    if (dayRows.length >= MAX_ROWS)
+        return;
+
+    const newIndex = dayRows.length;
+
+    updRows(p => [
+        ...p,
+        {
+            hwName: "",
+            groupData: {}
+        }
+    ]);
+
+    setModal({
+        ri: newIndex,
+        gid: null,
+        phase: "input"
+    });
+
+    setInputText("");
+    setPendingHw("");
+}
     function delRow(i) { updRows(p => p.filter((_, j) => j !== i)); }
     function rowStatus(ri, gid) {
         var _a, _b, _c;
