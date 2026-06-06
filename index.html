@@ -3687,8 +3687,7 @@ function App() {
                                   {
                                     key: g.id,
                                     className:
-                                      "gc s-"+s+
-                                  (s==="allabsent" ? " purple-glow" : ""),
+                                        "gc s-"+s+" purple-glow",
                                     onClick: () => row.hwName && openCell(ri, g.id)
                                   },
                                     s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
