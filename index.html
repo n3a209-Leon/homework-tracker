@@ -188,8 +188,38 @@
       0 0 4px rgba(160,120,255,.25),
       0 0 8px rgba(160,120,255,.15);
   }
+.purple-badge{
+  box-shadow:
+    0 0 6px rgba(180,140,255,.6),
+    0 0 12px rgba(180,140,255,.4),
+    0 0 20px rgba(180,140,255,.25);
+
+  animation: badgePulse 3.5s ease-in-out infinite;
+}
+
+@keyframes badgePulse{
+
+  0%{
+    box-shadow:
+      0 0 3px rgba(180,140,255,.25),
+      0 0 6px rgba(180,140,255,.15);
+  }
+
+  50%{
+    box-shadow:
+      0 0 10px rgba(180,140,255,.75),
+      0 0 20px rgba(180,140,255,.45),
+      0 0 30px rgba(180,140,255,.25);
+  }
+
+  100%{
+    box-shadow:
+      0 0 3px rgba(180,140,255,.25),
+      0 0 6px rgba(180,140,255,.15);
+  }
 
 }
+
         [data-theme="nerv"] .badge{clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border-radius:0;width:34px;height:34px;font-size:14px}
         [data-theme="nerv"] .cb{background:#00cc55;color:#000;box-shadow:0 0 12px rgba(0,204,85,.6)}
         [data-theme="nerv"] .pb{background:#ff3300;color:#fff;box-shadow:0 0 12px rgba(255,51,0,.6)}
@@ -3687,12 +3717,18 @@ function App() {
                                   {
                                     key: g.id,
                                     className:
-                                        "gc s-"+s+" purple-glow",
+                                      "gc s-"+s+
+                                      (s==="allabsent" ? " purple-glow" : ""),
                                     onClick: () => row.hwName && openCell(ri, g.id)
                                   },
                                     s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
                                     s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
-                                    s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
+                                    s === "allabsent" &&
+                                   React.createElement(
+                                     "span",
+                                     { className: "badge ab purple-badge" },
+                                     "\u2717"
+                                   ),
                                     s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
                                     ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
                                     s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
