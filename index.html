@@ -155,7 +155,41 @@
         [data-theme="nerv"] .ph{color:rgba(255,102,0,.25)}
         [data-theme="nerv"] .s-complete{background:rgba(0,255,100,.04)}
         [data-theme="nerv"] .s-partial{background:rgba(255,102,0,.06)}
-        [data-theme="nerv"] .s-allabsent{background:rgba(255,0,0,.06)}
+        [data-theme="nerv"] .s-allabsent{
+  background:rgba(255,0,0,.06)
+}
+
+.purple-glow{
+  box-shadow:
+    0 0 6px rgba(160,120,255,.45),
+    0 0 12px rgba(160,120,255,.35),
+    0 0 24px rgba(160,120,255,.20);
+
+  animation: purplePulse 3s ease-in-out infinite;
+}
+
+@keyframes purplePulse{
+
+  0%{
+    box-shadow:
+      0 0 4px rgba(160,120,255,.25),
+      0 0 8px rgba(160,120,255,.15);
+  }
+
+  50%{
+    box-shadow:
+      0 0 10px rgba(180,140,255,.60),
+      0 0 20px rgba(180,140,255,.40),
+      0 0 40px rgba(180,140,255,.25);
+  }
+
+  100%{
+    box-shadow:
+      0 0 4px rgba(160,120,255,.25),
+      0 0 8px rgba(160,120,255,.15);
+  }
+
+}
         [data-theme="nerv"] .badge{clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border-radius:0;width:34px;height:34px;font-size:14px}
         [data-theme="nerv"] .cb{background:#00cc55;color:#000;box-shadow:0 0 12px rgba(0,204,85,.6)}
         [data-theme="nerv"] .pb{background:#ff3300;color:#fff;box-shadow:0 0 12px rgba(255,51,0,.6)}
@@ -3648,7 +3682,15 @@ function App() {
                                 : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")),
                             groups.map(g => {
                                 const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
-                                return (React.createElement("td", { key: g.id, className: "gc s-"+s, onClick: () => row.hwName && openCell(ri, g.id) },
+                                return (React.createElement(
+                                 "td",
+                                  {
+                                    key: g.id,
+                                    className:
+                                      "gc s-"+s+
+                                  (s==="allabsent" ? " purple-glow" : ""),
+                                    onClick: () => row.hwName && openCell(ri, g.id)
+                                  },
                                     s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
                                     s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
                                     s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
