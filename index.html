@@ -212,6 +212,71 @@
         .sum-tag.tag-absent{background:#fce4ec;color:#c62828}
         .nb-exempt{background:#ffe082!important;border-color:#f9a825!important;color:#5d4037!important}
 
+        /* ── 班級切換下拉選單 ── */
+        .class-switcher{position:relative;display:inline-flex;align-items:center}
+        .class-switcher-btn{
+          background:rgba(255,255,255,.12);
+          border:1px solid rgba(255,255,255,.2);
+          border-radius:8px;
+          color:#fff;
+          font-size:12px;
+          font-weight:700;
+          padding:4px 10px 4px 10px;
+          cursor:pointer;
+          display:flex;align-items:center;gap:5px;
+          max-width:160px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+          transition:all .15s;
+          font-family:inherit;
+        }
+        .class-switcher-btn:hover{background:rgba(255,255,255,.22)}
+        .class-switcher-btn .cs-arrow{font-size:9px;opacity:.7;flex-shrink:0;transition:transform .2s}
+        .class-switcher-btn.open .cs-arrow{transform:rotate(180deg)}
+        .class-dropdown{
+          position:absolute;
+          top:calc(100% + 6px);
+          left:0;
+          min-width:220px;
+          background:#1e2a3a;
+          border:1px solid rgba(255,255,255,.15);
+          border-radius:12px;
+          box-shadow:0 8px 32px rgba(0,0,0,.4);
+          z-index:9999;
+          overflow:hidden;
+          animation:dropdown-in .15s ease;
+        }
+        @keyframes dropdown-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        .cd-header{padding:10px 14px 6px;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:2px}
+        .cd-item{
+          display:flex;align-items:center;justify-content:space-between;
+          padding:10px 14px;cursor:pointer;
+          border-bottom:1px solid rgba(255,255,255,.06);
+          transition:background .1s;
+        }
+        .cd-item:hover{background:rgba(255,255,255,.08)}
+        .cd-item.active{background:rgba(100,160,255,.15)}
+        .cd-item-info{flex:1;min-width:0}
+        .cd-item-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .cd-item-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+        .cd-item-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(76,175,128,.25);color:#4caf80;flex-shrink:0;margin-left:8px}
+        .cd-add{
+          display:flex;align-items:center;gap:8px;
+          padding:10px 14px;cursor:pointer;
+          color:rgba(255,255,255,.6);font-size:13px;font-weight:700;
+          transition:all .1s;
+        }
+        .cd-add:hover{background:rgba(255,255,255,.06);color:#fff}
+        .cd-add-icon{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+        [data-theme="nebula"] .class-dropdown{background:rgba(8,5,28,.95);border-color:rgba(120,80,255,.3)}
+        [data-theme="nebula"] .cd-item:hover{background:rgba(120,80,255,.15)}
+        [data-theme="nebula"] .cd-item.active{background:rgba(120,80,255,.2)}
+        [data-theme="nebula"] .cd-item-badge{background:rgba(120,80,255,.3);color:#c084fc}
+        [data-theme="nerv"] .class-dropdown{background:rgba(2,4,0,.97);border-color:rgba(255,102,0,.3)}
+        [data-theme="nerv"] .cd-item:hover{background:rgba(255,102,0,.1)}
+        [data-theme="nerv"] .cd-item.active{background:rgba(255,102,0,.15)}
+        [data-theme="nerv"] .cd-item-badge{background:rgba(255,102,0,.2);color:#ff8844}
+        [data-theme="nerv"] .cd-item-name{color:#ff9944;font-family:"Share Tech Mono",monospace}
+
         /* ── BACKUP WARNING BAR ── */
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
@@ -2222,7 +2287,19 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
   );
 }
 
-function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE }) {
+function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE, classes, addClass }) {
+    var [showAddClass, setShowAddClass] = React.useState(false);
+    var [newYear, setNewYear] = React.useState(String(new Date().getFullYear()));
+    var [newSchool, setNewSchool] = React.useState("");
+    var [newClass, setNewClass] = React.useState("");
+    function handleAddClass() {
+        if (!newYear.trim() || !newClass.trim()) { alert("請填寫學年度和班級名稱"); return; }
+        addClass({ year: newYear.trim(), school: newSchool.trim(), className: newClass.trim() });
+        setShowAddClass(false);
+        setNewYear(String(new Date().getFullYear()));
+        setNewSchool(""); setNewClass("");
+        alert("✅ 班級已新增並切換！");
+    }
     const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
     const [draftClass, setDraftClass] = useState(className);
     const [draftSchool, setDraftSchool] = useState(schoolName);
@@ -2350,6 +2427,46 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
             (draftYear || draftSchool || draftClass) && (React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#8a9db5", marginTop: 10 } },
                 nerv ? "// 預覽：" : "預覽：",
                 React.createElement("span", { style: { fontWeight: 700, color: nerv ? "#ffaa44" : "#1e3a5f" } }, [draftYear && draftYear+"年", draftSchool, draftClass].filter(Boolean).join(" "))))),
+        // ── 新增班級區塊 ──────────────────────────────────────────
+        React.createElement("div", { style: Object.assign({}, panel, { marginTop: 16, border: nerv ? "1px solid rgba(255,102,0,.3)" : "2px dashed #d0d8e8" }) },
+            React.createElement("div", { style: { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: showAddClass ? 14 : 0 } },
+                React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } },
+                    nerv ? "// ADD NEW UNIT //" : "➕ 新增班級"),
+                React.createElement("button", {
+                    onClick: () => setShowAddClass(p => !p),
+                    style: { background: nerv?"rgba(255,102,0,.15)":"rgba(30,58,95,.1)", border:"none", color: nerv?"#ff8844":"#1e3a5f", padding:"5px 12px", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }
+                }, showAddClass ? "▲ 收起" : "▼ 展開")
+            ),
+            showAddClass && React.createElement(React.Fragment, null,
+                React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "學年（西元年）"),
+                React.createElement("input", {
+                    style: Object.assign({}, inp, { marginBottom: 10 }),
+                    value: newYear, onChange: e => setNewYear(e.target.value),
+                    placeholder: "例：2027", maxLength: 4, type: "number"
+                }),
+                React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "學校名稱"),
+                React.createElement("input", {
+                    style: Object.assign({}, inp, { marginBottom: 10 }),
+                    value: newSchool, onChange: e => setNewSchool(e.target.value),
+                    placeholder: "例：大安國小", maxLength: 20
+                }),
+                React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "班級名稱"),
+                React.createElement("input", {
+                    style: Object.assign({}, inp, { marginBottom: 14 }),
+                    value: newClass, onChange: e => setNewClass(e.target.value),
+                    placeholder: "例：六年甲班", maxLength: 20
+                }),
+                React.createElement("button", {
+                    onClick: handleAddClass,
+                    style: {
+                        width:"100%", padding:"10px", border:"none", borderRadius:10, cursor:"pointer",
+                        background: nerv?"#ff6600":"#1e3a5f", color:"#fff", fontWeight:700, fontSize:14,
+                        opacity: (!newYear.trim()||!newClass.trim()) ? 0.5 : 1
+                    }
+                }, nerv ? "▶ DEPLOY NEW UNIT" : "✅ 新增並切換到此班級")
+            )
+        ),
+
         draft.map((g, idx) => (React.createElement("div", { key: idx, style: panel },
             React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
                 React.createElement("span", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } }, nerv ? "[UNIT-0"+g.id+"]" : "第 "+g.id+" 組"),
@@ -2470,6 +2587,58 @@ function App() {
     const [className, setClassName] = useState(() => safeGet("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => safeGet("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => safeGet("hw5ren:year") || String(new Date().getFullYear()));
+
+    // ── 多班級管理 ────────────────────────────────────────────────
+    const [classes, setClasses] = useState(() => {
+        try {
+            const stored = safeJSON(safeGet("hw5ren:classes"), null);
+            if (stored && stored.length > 0) return stored;
+            // 從現有資料自動建立第一筆
+            const cn = safeGet("hw5ren:className") || "";
+            const sn = safeGet("hw5ren:school") || "";
+            const sy = safeGet("hw5ren:year") || String(new Date().getFullYear());
+            if (cn || sn) {
+                return [{ id: sy+"_"+cn, year: sy, school: sn, className: cn, createdAt: new Date().toLocaleDateString("zh-TW") }];
+            }
+            return [];
+        } catch(e) { return []; }
+    });
+    const [activeClassId, setActiveClassId] = useState(() => safeGet("hw5ren:activeClass") || "");
+    const [showClassDropdown, setShowClassDropdown] = useState(false);
+
+    // 儲存 classes
+    function saveClasses(updated) {
+        setClasses(updated);
+        _sl.set("hw5ren:classes", JSON.stringify(updated));
+    }
+
+    // 切換班級
+    function switchClass(cls) {
+        setActiveClassId(cls.id);
+        _sl.set("hw5ren:activeClass", cls.id);
+        setClassName(cls.className);
+        setSchoolName(cls.school);
+        setSchoolYear(cls.year);
+        _sl.set("hw5ren:className", cls.className);
+        _sl.set("hw5ren:school", cls.school);
+        _sl.set("hw5ren:year", cls.year);
+        setShowClassDropdown(false);
+        // 重新載入該班級的分組
+        try {
+            const grpKey = "hw5ren:groups:" + cls.id;
+            const grpData = safeJSON(safeGet(grpKey), null);
+            if (grpData) saveGroups(grpData);
+        } catch(e) {}
+    }
+
+    // 新增班級
+    function addClass(newCls) {
+        const id = newCls.year + "_" + newCls.className;
+        const cls = { id, year: newCls.year, school: newCls.school, className: newCls.className, createdAt: new Date().toLocaleDateString("zh-TW") };
+        const updated = [...classes.filter(c => c.id !== id), cls];
+        saveClasses(updated);
+        switchClass(cls);
+    }
     // 同步 groups 到 window（供頂層函數使用）
     React.useEffect(function() { try { window._fallbackGroups = groups; } catch(e) {} }, [groups]);
     const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
@@ -2477,6 +2646,10 @@ function App() {
         setGroups(g);
         try { window._fallbackGroups = g; } catch(e) {}
         _sl.set("hw5ren:groups", JSON.stringify(g));
+        // 同時按班級 ID 儲存，切換班級時可還原
+        if (activeClassId) {
+            _sl.set("hw5ren:groups:" + activeClassId, JSON.stringify(g));
+        }
     }
     const [curYear, setCurYear] = useState(() => new Date().getFullYear());
     const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
@@ -3114,7 +3287,7 @@ function App() {
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
             React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Google Drive")));
     }
-    return (React.createElement("div", { className: "app", "data-theme": theme },
+    return (React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
             React.createElement("div", { className: "hi" },
                 React.createElement("span", { className: "ti" }, isNerv ? "⬡" : "📋"),
@@ -3124,7 +3297,40 @@ function App() {
                     React.createElement("span", { className: "nerv-slash" }, "//"),
                     " ",
                     React.createElement("em", null, "\u4F5C\u696D\u7E73\u4EA4\u30B7\u30B9\u30C6\u30E0")) : "作業繳交紀錄"),
-                React.createElement("span", { className: "sub" }, isNerv ? "▸ "+(headerSub||"CLASS-05REN").toUpperCase()+" ◂ TACTICAL OPS" : headerSub),
+                React.createElement("div", { className: "class-switcher" },
+                    React.createElement("button", {
+                        className: "class-switcher-btn" + (showClassDropdown ? " open" : ""),
+                        onClick: () => setShowClassDropdown(p => !p)
+                    },
+                        isNerv
+                            ? "▸ " + (headerSub || "CLASS-05REN").toUpperCase()
+                            : (headerSub || "點此切換班級"),
+                        React.createElement("span", { className: "cs-arrow" }, "▼")
+                    ),
+                    showClassDropdown && React.createElement("div", { className: "class-dropdown" },
+                        React.createElement("div", { className: "cd-header" }, isNerv ? "// SELECT UNIT //" : "選擇班級"),
+                        classes.length === 0
+                            ? React.createElement("div", { style:{padding:"12px 14px",color:"rgba(255,255,255,.4)",fontSize:13} }, "尚未建立班級")
+                            : classes.map(cls =>
+                                React.createElement("div", {
+                                    key: cls.id,
+                                    className: "cd-item" + (cls.id === activeClassId ? " active" : ""),
+                                    onClick: () => switchClass(cls)
+                                },
+                                    React.createElement("div", { className: "cd-item-info" },
+                                        React.createElement("div", { className: "cd-item-name" },
+                                            cls.year + "　" + cls.school + "　" + cls.className),
+                                        React.createElement("div", { className: "cd-item-sub" }, "建立於 " + (cls.createdAt || "-"))
+                                    ),
+                                    cls.id === activeClassId && React.createElement("span", { className: "cd-item-badge" }, "✓ 目前")
+                                )
+                            ),
+                        React.createElement("div", { className: "cd-add", onClick: () => { setShowClassDropdown(false); setView("settings"); } },
+                            React.createElement("div", { className: "cd-add-icon" }, "+"),
+                            isNerv ? "ADD NEW UNIT" : "新增班級"
+                        )
+                    )
+                ),
                 React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                 React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
                 React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️"),
@@ -3646,7 +3852,7 @@ function App() {
                         React.createElement("div", { style: { fontSize: 11, opacity: .6, marginTop: 2 } }, t.desc)),
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE })),
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, yearRecords: yearRecords, isNerv: isNerv }))));
 }
 
