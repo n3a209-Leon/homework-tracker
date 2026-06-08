@@ -590,8 +590,10 @@
         /* 星空層管理：::before z-index:-1，內容層 z-index:0（預設）
            不用 isolation，讓星空可以透過卡片間隙顯現 */
         [data-theme="nebula"] .app{background:transparent}
-        [data-theme="nebula"] main{background:transparent !important}
+        [data-theme="nebula"] main{background:transparent !important;position:relative;z-index:1}
         [data-theme="nebula"] main > *{position:relative;z-index:1}
+        [data-theme="nebula"] .calendar{position:relative;z-index:1}
+        [data-theme="nebula"] .month-summary{position:relative;z-index:1}
         [data-theme="nebula"] header{
           position:relative;z-index:2;
           background:rgba(6,3,20,.88);
@@ -622,7 +624,11 @@
         }
 
         /* 月曆 */
-        [data-theme="nebula"] .calendar{background:rgba(6,4,22,.75) !important;border:1px solid rgba(100,70,220,.3) !important}
+        [data-theme="nebula"] .calendar{background:rgba(6,4,22,.6) !important;border:1px solid rgba(100,70,220,.3) !important}
+        [data-theme="nebula"] .month-summary{background:rgba(6,4,22,.55) !important;border-radius:16px;border:1px solid rgba(100,70,220,.2) !important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+        [data-theme="nebula"] .summary-row{border-color:rgba(100,70,220,.2) !important}
+        [data-theme="nebula"] .sum-date{color:#a090e0}
+        [data-theme="nebula"] .no-data{color:rgba(160,140,255,.5)}
         [data-theme="nebula"] .cal-day{color:#b090ff;text-shadow:0 0 6px rgba(150,100,255,.4)}
         [data-theme="nebula"] .cal-cell.today .cal-day{
           background:rgba(100,60,220,.8);
@@ -732,6 +738,13 @@
         /* stor-bar */
         [data-theme="nebula"] .stor-bar{border-left:3px solid rgba(120,90,220,.7)}
 
+        /* 設定/輔導/歷年 — 星空模式下要有底色 */
+        [data-theme="nebula"] main.counsel-view,
+        [data-theme="nebula"] main > .settings-view,
+        [data-theme="nebula"] .archive-wrap{
+          position:relative;
+          z-index:2;
+        }
         /* ArchiveView — 星空模式下要有明確背景 */
         [data-theme="nebula"] .archive-wrap{
           background:rgba(6,4,20,.88);
@@ -1815,7 +1828,7 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
         ? { width: "100%", padding: "8px 10px", background: "rgba(255,102,0,.06)", border: "1px solid rgba(255,102,0,.4)", color: "#ff8844", borderRadius: 2, fontSize: 14, fontFamily: "Share Tech Mono,monospace", boxSizing: "border-box" }
         : { width: "100%", padding: "8px 12px", border: "2px solid #dde5ee", borderRadius: 10, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", outline: "none" };
     const rec = recs[activeIdx] || recs[0];
-    return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1, position: "relative", zIndex: 1 } },
+    return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1, position: "relative", zIndex: 2, background: 'transparent' } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 16 } },
             React.createElement("button", { onClick: onClose, style: { background: nerv ? "rgba(255,102,0,.1)" : "rgba(30,58,95,.1)", border: "none", color: nerv ? "#ff6600" : "#1e3a5f", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "◀ RETURN" : "← 返回"),
             React.createElement("span", { style: { fontSize: 16, fontWeight: 900, color: nerv ? "#ff6600" : "#1e3a5f", flex: 1 } }, nerv ? "◈ GUIDANCE LOG" : "💬 輔導紀錄"),
@@ -2114,7 +2127,7 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
   };
 
   // 星空模式下加 archive-wrap class 確保有背景
-  const wrapStyle = { padding:'16px 12px', maxWidth:500, margin:'0 auto', position:'relative', zIndex:1 };
+  const wrapStyle = { padding:'16px 12px', maxWidth:500, margin:'0 auto', position:'relative', zIndex:2, minHeight:'60vh' };
   if (isNerv) {
     // NERV 模式不需要特別處理
   }
