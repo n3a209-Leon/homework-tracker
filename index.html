@@ -100,7 +100,6 @@
         [data-theme="nerv"] header::after{content:"NERV MAGI SYSTEM // AUTHORIZED ACCESS ONLY // CLASS-05REN";position:absolute;bottom:2px;left:0;font-size:9px;color:rgba(255,102,0,.3);letter-spacing:2px;white-space:nowrap;padding:0 20px;font-family:"Share Tech Mono",monospace}
         [data-theme="nerv"] h1{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.9),0 0 30px rgba(255,102,0,.4);letter-spacing:5px;font-family:"Share Tech Mono",monospace;font-size:17px}
         [data-theme="nerv"] .sub{color:#ff4400;letter-spacing:4px;font-size:10px;opacity:.8}
-        
         [data-theme="nerv"] .ti{color:#ff6600;text-shadow:0 0 10px rgba(255,102,0,.8)}
         [data-theme="nerv"] .theme-btn{background:rgba(255,102,0,.1);color:#ff6600;border:1px solid rgba(255,102,0,.5);border-radius:2px;letter-spacing:1px;font-size:11px;box-shadow:0 0 8px rgba(255,102,0,.2)}
         [data-theme="nerv"] .stor-bar{border-left:3px solid #ff6600;background:rgba(255,102,0,.05)!important;font-family:"Share Tech Mono",monospace;letter-spacing:1px}
@@ -155,87 +154,11 @@
         [data-theme="nerv"] .ph{color:rgba(255,102,0,.25)}
         [data-theme="nerv"] .s-complete{background:rgba(0,255,100,.04)}
         [data-theme="nerv"] .s-partial{background:rgba(255,102,0,.06)}
-        [data-theme="nerv"] .s-allabsent{
-  background:rgba(255,0,0,.06)
-}
-
-.purple-glow{
-  box-shadow:
-    0 0 6px rgba(160,120,255,.45),
-    0 0 12px rgba(160,120,255,.35),
-    0 0 24px rgba(160,120,255,.20);
-
-  animation: purplePulse 3s ease-in-out infinite;
-}
-
-@keyframes purplePulse{
-
-  0%{
-    box-shadow:
-      0 0 4px rgba(160,120,255,.25),
-      0 0 8px rgba(160,120,255,.15);
-  }
-
-  50%{
-    box-shadow:
-      0 0 10px rgba(180,140,255,.60),
-      0 0 20px rgba(180,140,255,.40),
-      0 0 40px rgba(180,140,255,.25);
-  }
-
-  100%{
-    box-shadow:
-      0 0 4px rgba(160,120,255,.25),
-      0 0 8px rgba(160,120,255,.15);
-  }
-       }   
-.purple-badge{
-  box-shadow:
-    0 0 6px rgba(180,140,255,.6),
-    0 0 12px rgba(180,140,255,.4),
-    0 0 20px rgba(180,140,255,.25);
-
-  animation: badgePulse 3.5s ease-in-out infinite;
-}
-
-@keyframes badgePulse{
-
-  0%{
-    box-shadow:
-      0 0 3px rgba(180,140,255,.25),
-      0 0 6px rgba(180,140,255,.15);
-  }
-
-  50%{
-    box-shadow:
-      0 0 10px rgba(180,140,255,.75),
-      0 0 20px rgba(180,140,255,.45),
-      0 0 30px rgba(180,140,255,.25);
-  }
-
-  100%{
-    box-shadow:
-      0 0 3px rgba(180,140,255,.25),
-      0 0 6px rgba(180,140,255,.15);
-  }
-
-}
-
+        [data-theme="nerv"] .s-allabsent{background:rgba(255,0,0,.06)}
         [data-theme="nerv"] .badge{clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border-radius:0;width:34px;height:34px;font-size:14px}
         [data-theme="nerv"] .cb{background:#00cc55;color:#000;box-shadow:0 0 12px rgba(0,204,85,.6)}
         [data-theme="nerv"] .pb{background:#ff3300;color:#fff;box-shadow:0 0 12px rgba(255,51,0,.6)}
-        [data-theme="nerv"] .ab{
-  background:#cc0000;
-  color:#ff8800;
-
-  box-shadow:
-    0 0 16px rgba(204,0,0,.7),
-    0 0 24px rgba(180,140,255,.8),
-    0 0 48px rgba(180,140,255,.6);
-
-  font-size:18px;
-  font-weight:900;
-}
+        [data-theme="nerv"] .ab{background:#cc0000;color:#ff8800;box-shadow:0 0 16px rgba(204,0,0,.7);font-size:18px;font-weight:900}
         [data-theme="nerv"] .ub{background:#1a0800;color:rgba(255,102,0,.4)}
         [data-theme="nerv"] .mn{background:#cc1100;color:#ff8800;border-radius:2px;transform:rotate(45deg);width:20px;height:20px;font-size:9px}
         [data-theme="nerv"] .ar td{color:rgba(255,102,0,.5);border-color:rgba(255,102,0,.15);font-family:"Share Tech Mono",monospace;letter-spacing:2px}
@@ -266,172 +189,6 @@
         [data-theme="nerv"] .nb.sub{background:rgba(0,255,100,.12);border-color:#00ff66;color:#00ff66;box-shadow:0 0 10px rgba(0,255,100,.7),0 0 22px rgba(0,255,100,.3);animation:green-glow-pulse 2s ease-in-out infinite}
         [data-theme="nerv"] .nb:hover{background:rgba(255,102,0,.2);box-shadow:0 0 10px rgba(255,102,0,.4)}
         [data-theme="nerv"] .nb.sub{background:#ff6600;color:#000;box-shadow:0 0 14px rgba(255,102,0,.7)}
-
-        /* ========================================================
-           🌟 頂級精準分流：點名跳窗圓圈化 + 幽幽綠光呼吸燈 (一般與星雲模式)
-           ======================================================== */
-        @keyframes modal-green-pulse {
-          0%, 100% {
-            box-shadow: 0 0 6px rgba(61,214,140,.6), 0 0 14px rgba(61,214,140,.2), inset 0 0 6px rgba(61,214,140,.1);
-          }
-          50% {
-            box-shadow: 0 0 14px rgba(61,214,140,.9), 0 0 28px rgba(61,214,140,.4), inset 0 0 10px rgba(61,214,140,.2);
-          }
-        }
-
-        /* 1. 當不是 NERV 模式時，將跳窗內的外殼轉為標準一列列、一排排的正常直立排列 */
-        body:not([data-theme="nerv"]) .mo .ng {
-          position: static !important;
-          width: auto !important;
-          height: auto !important;
-          margin: 0 auto 16px !important;
-          background: none !important;
-          border: none !important;
-          box-shadow: none !important;
-          clip-path: none !important;
-          display: flex !important;
-          flex-wrap: wrap !important;
-          justify-content: center !important;
-          gap: 14px 10px !important; /* 控制圓圈上下左右的間距 */
-        }
-
-        /* 2. 當不是 NERV 模式時，將每個按鈕外層的包覆層 (.nw) 解除定位與高寬壓制 */
-        body:not([data-theme="nerv"]) .mo .ng .nw {
-          position: relative !important; /* 讓絕對定位的職稱標籤可以參考此中心點 */
-          left: auto !important;
-          top: auto !important;
-          width: 46px !important;
-          height: 46px !important;
-          transform: none !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-
-        /* =========================================================
-3. 未點擊狀態：全員統一圓圈
-========================================================= */
-
-body:not([data-theme="nerv"]) .mo .ng button.nb,
-body:not([data-theme="nerv"]) .mo .ng button.nbldr,
-body:not([data-theme="nerv"]) .mo .ng button.nbsec,
-body:not([data-theme="nerv"]) .mo .ng button[class*="nb"]{
-
-position: static !important;
-
-width: 46px !important;
-height: 46px !important;
-
-min-width: 46px !important;
-min-height: 46px !important;
-
-max-width: 46px !important;
-max-height: 46px !important;
-
-aspect-ratio: 1 / 1 !important;
-flex-shrink: 0 !important;
-
-border-radius: 999px !important;
-clip-path: none !important;
-
-display: flex !important;
-align-items: center !important;
-justify-content: center !important;
-
-background: #fff !important;
-border: 2.5px solid #c0ccd8 !important;
-color: #1e3a5f !important;
-
-box-shadow: none !important;
-transform: none !important;
-
-font-size: 14px !important;
-font-weight: 700 !important;
-
-transition: all .2s ease !important;
-}
-
-/* =========================================================
-4. 點擊後：保持圓圈 + 幽幽綠光
-========================================================= */
-
-body:not([data-theme="nerv"]) .mo .ng button.nbsub,
-body:not([data-theme="nerv"]) .mo .ng button.nbsubldr,
-body:not([data-theme="nerv"]) .mo .ng button.nbsubsec,
-body:not([data-theme="nerv"]) .mo .ng button[class*="nbsub"]{
-
-position: static !important;
-
-width: 46px !important;
-height: 46px !important;
-
-min-width: 46px !important;
-min-height: 46px !important;
-
-max-width: 46px !important;
-max-height: 46px !important;
-
-aspect-ratio: 1 / 1 !important;
-flex-shrink: 0 !important;
-
-border-radius: 999px !important;
-clip-path: none !important;
-
-display: flex !important;
-align-items: center !important;
-justify-content: center !important;
-
-background: rgba(61,214,140,.12) !important;
-border: 2.5px solid #3dd68c !important;
-color: #1a8a4a !important;
-
-transform: scale(1.08) !important;
-
-animation: modal-green-pulse 2s ease-in-out infinite !important;
-
-box-shadow:
-0 0 10px rgba(61,214,140,.7),
-0 0 22px rgba(61,214,140,.45),
-0 0 40px rgba(61,214,140,.25);
-
-font-size: 14px !important;
-font-weight: 700 !important;
-
-z-index: 5 !important;
-}
-
-/* =========================================================
-5. 組長／秘書長標籤
-========================================================= */
-
-body:not([data-theme="nerv"]) .mo .ng .rt{
-
-position: static !important;
-transform: none !important;
-
-display: block !important;
-
-margin-top: 6px !important;
-
-text-align: center !important;
-
-pointer-events: none !important;
-
-font-size: 11px !important;
-font-weight: 700 !important;
-
-white-space: nowrap !important;
-
-color: #6a8aaa !important;
-
-background: none !important;
-border: none !important;
-padding: 0 !important;
-
-width: auto !important;
-height: auto !important;
-}
-        
         [data-theme="nerv"] .nb.ldr{background:rgba(255,0,0,.15);box-shadow:0 0 10px rgba(255,0,0,.4)}
         [data-theme="nerv"] .nb.sec{background:rgba(255,200,0,.1);box-shadow:0 0 8px rgba(255,200,0,.3)}
         [data-theme="nerv"] .lt{background:rgba(255,0,0,.15);color:#ff5555;border-radius:2px}
@@ -543,34 +300,7 @@ height: auto !important;
         .badge{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:17px;font-weight:900}
         .cb{background:#87ceeb;color:#fff;box-shadow:0 2px 6px rgba(135,206,235,.5);font-size:18px}
         .pb{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.35)}
-        .ab{
-  background:#ff00ff !important;
-  color:#ffff00 !important;
-  font-size:30px !important;
-}
-
-@keyframes allAbsentPulse{
-
-  0%{
-    box-shadow:
-      0 0 8px rgba(183,28,28,.35),
-      0 0 8px rgba(180,140,255,.15);
-  }
-
-  50%{
-    box-shadow:
-      0 0 10px rgba(183,28,28,.45),
-      0 0 18px rgba(180,140,255,.55),
-      0 0 36px rgba(180,140,255,.30);
-  }
-
-  100%{
-    box-shadow:
-      0 0 8px rgba(183,28,28,.35),
-      0 0 8px rgba(180,140,255,.15);
-  }
-
-}
+        .ab{background:#b71c1c;color:#fff;box-shadow:0 2px 8px rgba(183,28,28,.4);font-size:22px;font-weight:900}
         .ub{background:#dde5ee;color:#7a90a8}
         .s-allabsent{background:#fff0f0}
         .ml{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;justify-items:center;margin-top:5px;width:100%}
@@ -620,6 +350,25 @@ height: auto !important;
           box-shadow:0 0 8px rgba(76,210,120,.7),0 0 20px rgba(76,210,120,.35),inset 0 0 8px rgba(76,210,120,.15);
           animation:green-glow-pulse 2s ease-in-out infinite;
           transform:scale(1.08);
+          font-weight:900;
+        }
+        /* 整組未交按鈕 — 按了才持續紫色脈衝光暈 */
+        .all-btn.all-none.active-none{
+          background:rgba(140,60,220,.2) !important;
+          border:2px solid #a855f7 !important;
+          color:#d8b4fe !important;
+          box-shadow:0 0 12px rgba(168,85,247,.9),0 0 28px rgba(139,60,230,.45),inset 0 0 10px rgba(160,80,255,.2) !important;
+          animation:purple-glow-pulse 1.8s ease-in-out infinite !important;
+          transform:scale(1.04);
+        }
+        /* 整組未交後座號圓圈紫光 */
+        .nb.none-fired{
+          background:rgba(140,60,220,.15);
+          border:2.5px solid #a855f7;
+          color:#d8b4fe;
+          box-shadow:0 0 8px rgba(168,85,247,.7),0 0 20px rgba(139,60,230,.35),inset 0 0 6px rgba(160,80,255,.15);
+          animation:purple-glow-pulse 1.8s ease-in-out infinite;
+          transform:scale(1.04);
           font-weight:900;
         }
         .nb.ldr{border-color:#e53935;border-width:3px}
@@ -711,6 +460,10 @@ height: auto !important;
         ══════════════════════════════════════════ */
 
         /* 動態星空粒子 keyframes */
+        @keyframes purple-glow-pulse{
+          0%,100%{box-shadow:0 0 6px rgba(160,80,255,.6),0 0 14px rgba(120,60,220,.3),inset 0 0 6px rgba(140,70,240,.15)}
+          50%{box-shadow:0 0 14px rgba(180,100,255,.9),0 0 30px rgba(140,70,240,.5),inset 0 0 10px rgba(160,90,255,.25)}
+        }
         @keyframes green-glow-pulse{
           0%,100%{box-shadow:0 0 6px rgba(76,210,120,.6),0 0 14px rgba(76,210,120,.3),inset 0 0 6px rgba(76,210,120,.15)}
           50%{box-shadow:0 0 12px rgba(76,210,120,.9),0 0 28px rgba(76,210,120,.5),inset 0 0 10px rgba(76,210,120,.25)}
@@ -737,30 +490,27 @@ height: auto !important;
           inset:0;
           z-index:-1;
           background:
-            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(80,40,180,.35) 0%, transparent 65%),
-            radial-gradient(ellipse 60% 80% at 80% 70%, rgba(20,80,200,.3) 0%, transparent 60%),
-            radial-gradient(ellipse 40% 50% at 50% 10%, rgba(160,60,220,.2) 0%, transparent 55%),
-            radial-gradient(ellipse 90% 40% at 10% 90%, rgba(30,100,180,.25) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 70% at 90% 20%, rgba(100,40,200,.2) 0%, transparent 55%),
+            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(80,40,180,.18) 0%, transparent 65%),
+            radial-gradient(ellipse 60% 80% at 80% 70%, rgba(20,80,200,.15) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 50% at 50% 10%, rgba(160,60,220,.12) 0%, transparent 55%),
+            radial-gradient(ellipse 90% 40% at 10% 90%, rgba(30,100,180,.14) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 70% at 90% 20%, rgba(100,40,200,.12) 0%, transparent 55%),
             linear-gradient(135deg, #04050f 0%, #070a1a 40%, #060818 70%, #050410 100%);
-          background-size:200% 200%;
-          animation:aurora 18s ease infinite;
           pointer-events:none;
         }
 
-        /* 星點層 */
+        /* 星點層 — 靜態若影若現 */
         [data-theme="nebula"]::after{
-          content:'✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦ ✧ ⋆ ✦';
+          content:'· ✦ · ✧ · ⋆ · ✦ · ✧ · ⋆ · ✦ · ✧ · ⋆ · ✦ · ✧ ·';
           position:fixed;
           inset:0;
           z-index:-1;
-          font-size:10px;
-          line-height:3.5;
-          letter-spacing:22px;
-          color:rgba(200,180,255,.25);
+          font-size:9px;
+          line-height:4;
+          letter-spacing:18px;
+          color:rgba(200,185,255,.18);
           word-break:break-all;
           overflow:hidden;
-          animation:nebula-drift 12s ease-in-out infinite;
           pointer-events:none;
         }
 
@@ -869,40 +619,7 @@ height: auto !important;
           animation:green-glow-pulse 2s ease-in-out infinite;
           transform:scale(1.08);
         }
-[data-theme="nebula"] .purple-glow{
 
-  animation: nebulaPulse 3s ease-in-out infinite;
-
-  box-shadow:
-    inset 0 0 8px rgba(180,140,255,.15),
-    0 0 10px rgba(180,140,255,.20);
-
-  background:
-    rgba(80,60,180,.08);
-}
-
-@keyframes nebulaPulse{
-
-  0%{
-    box-shadow:
-      inset 0 0 4px rgba(180,140,255,.08),
-      0 0 4px rgba(180,140,255,.08);
-  }
-
-  50%{
-    box-shadow:
-      inset 0 0 14px rgba(180,140,255,.25),
-      0 0 18px rgba(180,140,255,.45),
-      0 0 32px rgba(180,140,255,.20);
-  }
-
-  100%{
-    box-shadow:
-      inset 0 0 4px rgba(180,140,255,.08),
-      0 0 4px rgba(180,140,255,.08);
-  }
-
-}
         /* Modal 彈窗 */
         [data-theme="nebula"] .ov{background:rgba(2,2,15,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
         [data-theme="nebula"] .mo{
@@ -1358,26 +1075,6 @@ height: auto !important;
 
 
 
-        @keyframes green-glow-pulse {
-          0%, 100% {
-            box-shadow: 0 0 6px rgba(76,210,120,.6), 0 0 14px rgba(76,210,120,.3), inset 0 0 6px rgba(76,210,120,.15);
-          }
-          50% {
-            box-shadow: 0 0 12px rgba(76,210,120,.9), 0 0 28px rgba(76,210,120,.5), inset 0 0 10px rgba(76,210,120,.25);
-          }
-        }
-        [data-theme="nebula"] .nb.sub,
-        [data-theme="nebula"] .nb.done {
-          background: rgba(30,160,80,.2) !important;
-          border: 2.5px solid #3dd68c !important;
-          color: #a0ffcc !important;
-          box-shadow: 0 0 10px rgba(60,220,120,.8), 0 0 24px rgba(40,200,100,.4), inset 0 0 8px rgba(60,220,120,.2) !important;
-          animation: green-glow-pulse 2s ease-in-out infinite !important;
-          transform: scale(1.08) !important;
-          clip-path: none !important;
-          border-radius: 50% !important;
-        }
-
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1550,44 +1247,23 @@ function loadGSI() {
     document.head.appendChild(s);
   });
 }
-async function gSignIn(silent = false) {
-
+async function gSignIn() {
   await loadGSI();
-
   if (typeof google === 'undefined' || !google.accounts) {
-    throw new Error('Google 登入服務無法載入');
+    throw new Error('Google 登入服務無法載入，請確認網路連線後重試');
   }
-
-  return new Promise((res, rej) => {
-
+  return new Promise((res,rej) => {
     const client = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/drive.file',
-
+      client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
       callback: resp => {
-
-        if (resp.error) {
-          rej(resp.error);
-          return;
-        }
-
+        if (resp.error) { rej(resp.error); return; }
         accessToken = resp.access_token;
-
-        safeSet(
-          'hw5ren:tok',
-          accessToken
-        );
-
+        safeSet('hw5ren:tok', accessToken);
         res(accessToken);
       }
     });
-
-    client.requestAccessToken({
-      prompt: silent ? '' : 'consent'
-    });
-
+    client.requestAccessToken();
   });
-
 }
 async function findDriveFile(year, cls) {
   if (!accessToken) return null;
@@ -1608,68 +1284,14 @@ async function saveDrive(snapshot) {
   if (driveFileId) {
     form.append('metadata', new Blob([JSON.stringify({name})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch(
-  "https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart",
-  {
-    method:'PATCH',
-    headers:{'Authorization':'Bearer '+accessToken},
-    body:form
-  }
-);
-
-if (r.ok) return true;
-
-if (r.status === 401) {
-
-  accessToken = null;
-
-  const ok = await window.refreshTokenSilently();
-
-  if (ok) {
-    return await saveDrive(snapshot);
-  }
-
-  safeRemove('hw5ren:tok');
-}
-
-return false;
+    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    return r.ok;
   } else {
     form.append('metadata', new Blob([JSON.stringify({name,mimeType:'application/json'})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch(
-  'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-  {
-    method:'POST',
-    headers:{'Authorization':'Bearer '+accessToken},
-    body:form
-  }
-);
-
-if (r.ok) {
-
-  const d = await r.json();
-
-  driveFileId = d.id;
-
-  return true;
-
-}
-
-if (r.status === 401) {
-
-  accessToken = null;
-
-  const ok = await window.refreshTokenSilently();
-
-  if (ok) {
-    return await saveDrive(snapshot);
-  }
-
-  safeRemove('hw5ren:tok');
-
-}
-
-return false;
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
+    if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
+    return false;
   }
 }
 async function loadDrive(year, cls) {
@@ -1680,53 +1302,13 @@ async function loadDrive(year, cls) {
   if (!fid) return null;
   const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", {headers:{'Authorization':'Bearer '+accessToken}});
   if (r.ok) return r.json();
-  if (r.status === 401) {
-
-  accessToken = null;
-
-  try {
-
-    const ok = await window.refreshTokenSilently();
-
-    if (ok) {
-
-      return await loadDrive(
-        year,
-        cls
-      );
-
-    }
-
-  } catch(e) {}
-
-  safeRemove('hw5ren:tok');
-
-}
+  if (r.status === 401) { accessToken = null; safeRemove('hw5ren:tok'); }
   return null;
 }
 window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
 window.loadDrive = loadDrive;
 window.getDriveFilename = getDriveFilename;
-
-window.refreshTokenSilently = async function() {
-
-  try {
-
-    await gSignIn(true);
-
-    return true;
-
-  } catch (e) {
-
-    console.warn('Silent token refresh failed', e);
-
-    return false;
-
-  }
-
-};
-
 debugStep('GOOGLE API READY');
 
 
@@ -2990,11 +2572,7 @@ function App() {
                 if (v)
                     snap[k] = v;
             }
-            console.log('開始同步到 Drive');
-
             const ok = await saveDrive(snap);
-
-            console.log('同步結果=', ok);
             if (ok) {
                 markSynced();
                 setDriveStatus('ok');
@@ -3003,14 +2581,10 @@ function App() {
             setDriveStatus('error');
             return 0;
         }
-        catch (e) {
-
-    console.error('同步失敗', e);
-
-    setDriveStatus('error');
-
-    return 0;
-}
+        catch (_a) {
+            setDriveStatus('error');
+            return 0;
+        }
     }
     // Header subtitle
     const headerSub = React.useMemo(() => (authed ? [schoolYear && schoolYear+"年", schoolName, className].filter(Boolean).join(" ") : ""), [authed, schoolYear, schoolName, className]);
@@ -3311,6 +2885,7 @@ function App() {
     const [inputText, setInputText] = useState("");
     const [pendingHw, setPendingHw] = useState("");
     const [marked, setMarked] = useState(new Set());
+    const [noneFired, setNoneFired] = useState(false);
     // ── Attendance modal ──
     const [attModal, setAttModal] = useState(null);
     // ── Exempt modal ──
@@ -3384,28 +2959,10 @@ function App() {
     }
     function closeModal() { setModal(null); setMarked(new Set()); }
     function addRow() {
-    if (dayRows.length >= MAX_ROWS)
-        return;
-
-    const newIndex = dayRows.length;
-
-    updRows(p => [
-        ...p,
-        {
-            hwName: "",
-            groupData: {}
-        }
-    ]);
-
-    setModal({
-        ri: newIndex,
-        gid: null,
-        phase: "input"
-    });
-
-    setInputText("");
-    setPendingHw("");
-}
+        if (dayRows.length >= MAX_ROWS)
+            return;
+        updRows(p => [...p, { hwName: "", groupData: {} }]);
+    }
     function delRow(i) { updRows(p => p.filter((_, j) => j !== i)); }
     function rowStatus(ri, gid) {
         var _a, _b, _c;
@@ -3784,29 +3341,10 @@ function App() {
                                 : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")),
                             groups.map(g => {
                                 const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
-                                return (React.createElement(
-                                 "td",
-                                  {
-                                    key: g.id,
-                                    className:
-                                      "gc s-"+s+
-                                      (s==="allabsent" ? " purple-glow" : ""),
-                                    onClick: () => row.hwName && openCell(ri, g.id)
-                                  },
+                                return (React.createElement("td", { key: g.id, className: "gc s-"+s, onClick: () => row.hwName && openCell(ri, g.id) },
                                     s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
                                     s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
-                                    s === "allabsent" &&
-                                    React.createElement(
-                                      "span",
-                                      {
-                                        className: "badge ab ",
-                                        style:{
-                                          boxShadow:"0 0 20px #b080ff,0 0 40px #b080ff",
-                                          animation:"badgePulse 3s infinite"
-                                        }
-                                      },
-                                      "\u2717"
-                                    ),
+                                    s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
                                     s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
                                     ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
                                     s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
@@ -3963,12 +3501,15 @@ function App() {
                                     React.createElement("button", { className: "all-btn"+(allSelected?" all-undo":""), onClick: () => {
                                             if (allSelected) {
                                                 setMarked(new Set());
-                                            }
-                                            else {
+                                            } else {
                                                 setMarked(new Set(grp.members));
+                                                setNoneFired(false); // 整組全交時清除紫光
                                             }
                                         } }, allSelected ? "↩ 取消全選" : "✓ 整組全交"),
-                                    React.createElement("button", { className: "all-btn all-none", onClick: () => setMarked(new Set()) }, "\u2717 \u6574\u7D44\u672A\u4EA4")),
+                                    React.createElement("button", { 
+                                        className: "all-btn all-none"+(noneFired?" active-none":""), 
+                                        onClick: () => { setMarked(new Set()); setNoneFired(true); } 
+                                    }, "✗ 整組未交")),
                                 React.createElement("span", { className: "mark-count" },
                                     marked.size,
                                     " / ", grp === null || grp === void 0 ? void 0 :
@@ -3976,10 +3517,10 @@ function App() {
                                     " \u4EBA")),
                             React.createElement("div", { className: "ng"+(isNerv?" ng-hex":""), style: isNerv ? { position: "relative", width: containerW, height: containerH, margin: "0 auto 16px" } : {} }, isNerv ? positions.map(({ n, x, y }) => (React.createElement("div", { key: n, className: "nw", style: { position: "absolute", left: x, top: y, width: HEX_W, height: HEX_H,
                                     transition: "all .15s "+Math.random()*0.1+"s" } },
-                                React.createElement("button", { className: "nb"+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), style: { width: "100%", height: "100%" }, onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
+                                React.createElement("button", { className: "nb"+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), style: { width: "100%", height: "100%" }, onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
                                 n === grp.leader && React.createElement("span", { className: "rt lt", style: { position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)", fontSize: 9 } }, "\u7D44\u9577"),
                                 n === grp.secretary && React.createElement("span", { className: "rt st", style: { position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)", fontSize: 9 } }, "\u79D8\u66F8")))) : members.map(n => (React.createElement("div", { key: n, className: "nw" },
-                                React.createElement("button", { className: "nb"+(marked.has(n) ? "sub" : "")+(n === grp.leader ? "ldr" : "")+(n === grp.secretary ? "sec" : ""), onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
+                                React.createElement("button", { className: "nb"+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
                                 n === grp.leader && React.createElement("span", { className: "rt lt" }, "\u7D44\u9577"),
                                 n === grp.secretary && React.createElement("span", { className: "rt st" }, "\u79D8\u66F8")))))));
                     })(),
@@ -4291,7 +3832,6 @@ setTimeout(function(){
     }
   } catch(e) {}
 })();
-     
 </script>
 </body>
 </html>
