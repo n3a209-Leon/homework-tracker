@@ -590,7 +590,8 @@
         /* 星空層管理：::before z-index:-1，內容層 z-index:0（預設）
            不用 isolation，讓星空可以透過卡片間隙顯現 */
         [data-theme="nebula"] .app{background:transparent}
-        [data-theme="nebula"] main{background:transparent}
+        [data-theme="nebula"] main{background:transparent !important}
+        [data-theme="nebula"] main > *{position:relative;z-index:1}
         [data-theme="nebula"] header{
           position:relative;z-index:2;
           background:rgba(6,3,20,.88);
@@ -1222,23 +1223,10 @@ function _rej(e) {
   try {
     var r = 'Promise rejected';
     try { r = e.reason ? (e.reason.message || String(e.reason)) : r; } catch(x) {}
-    // 只在 App 還未渲染時才覆蓋 body（載入中階段）
-    var root = document.getElementById('root');
-    var isLoading = root && (
-      root.innerHTML.indexOf('載入') !== -1 ||
-      root.innerHTML.indexOf('loading') !== -1 ||
-      root.innerHTML.length < 100
-    );
-    if (isLoading) {
-      // App 未載入，顯示錯誤
-      document.body.innerHTML =
-        '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
-        'white-space:pre-wrap;background:#001a1a;color:#88ffee;overflow:auto;margin:0">' +
-        'PROMISE ERROR\n\n' + r + '</pre>';
-    } else {
-      // App 已載入，只在紅條顯示，不破壞 App
-      debugStep('PROMISE ERR: ' + String(r).slice(0, 50));
-      // 3 秒後自動清除紅條
+    // 用 _appReady 判斷（比 isLoading 可靠）
+    if (window._appReady) {
+      // App 已渲染：只在紅條顯示，絕不覆蓋 body
+      try { debugStep('PROMISE ERR: ' + String(r).slice(0, 50)); } catch(ex) {}
       setTimeout(function() {
         try {
           var el = document.getElementById('safari-debug');
@@ -1827,7 +1815,7 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
         ? { width: "100%", padding: "8px 10px", background: "rgba(255,102,0,.06)", border: "1px solid rgba(255,102,0,.4)", color: "#ff8844", borderRadius: 2, fontSize: 14, fontFamily: "Share Tech Mono,monospace", boxSizing: "border-box" }
         : { width: "100%", padding: "8px 12px", border: "2px solid #dde5ee", borderRadius: 10, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", outline: "none" };
     const rec = recs[activeIdx] || recs[0];
-    return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1 } },
+    return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1, position: "relative", zIndex: 1 } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 16 } },
             React.createElement("button", { onClick: onClose, style: { background: nerv ? "rgba(255,102,0,.1)" : "rgba(30,58,95,.1)", border: "none", color: nerv ? "#ff6600" : "#1e3a5f", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "◀ RETURN" : "← 返回"),
             React.createElement("span", { style: { fontSize: 16, fontWeight: 900, color: nerv ? "#ff6600" : "#1e3a5f", flex: 1 } }, nerv ? "◈ GUIDANCE LOG" : "💬 輔導紀錄"),
@@ -2126,7 +2114,7 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
   };
 
   // 星空模式下加 archive-wrap class 確保有背景
-  const wrapStyle = { padding:'16px 12px', maxWidth:500, margin:'0 auto' };
+  const wrapStyle = { padding:'16px 12px', maxWidth:500, margin:'0 auto', position:'relative', zIndex:1 };
   if (isNerv) {
     // NERV 模式不需要特別處理
   }
@@ -3901,8 +3889,9 @@ function App() {
 
     debugStep('RENDER START');
     ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    // 立刻設 _appReady，不等 useEffect
+    try { window._appReady = true; } catch(ex) {}
     debugStep('RENDER COMPLETE (sync)');
-    window._appReady = true; // 標記 App 已渲染，錯誤不再覆蓋 body
   } catch(e) {
     try { debugStep('APP CATCH: ' + String(e && e.message ? e.message : e).slice(0,60)); } catch(ex) {}
     try { document.body.style.background = '#f0f4f8'; } catch(ex) {}
