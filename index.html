@@ -38,9 +38,15 @@
 
         /* ── HEADER ── */
         header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
-        .hi{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;padding-bottom:10px}
-        .ti{font-size:22px} h1{color:#fff;font-size:19px;font-weight:900;letter-spacing:2px}
+        .hi{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
+        .hi-row1{display:flex;align-items:center;gap:8px}
+        .hi-row2{display:flex;align-items:center}
+        .ti{font-size:20px;flex-shrink:0}
+        h1{color:#fff;font-size:17px;font-weight:900;letter-spacing:1px;white-space:nowrap;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
         .sub{color:#a8cdf0;font-size:12px;letter-spacing:1px}
+        /* 下拉選單佔整行 */
+        .hi-row2 .class-switcher{width:100%}
+        .hi-row2 .class-switcher-btn{width:100%;max-width:100%;justify-content:space-between;box-sizing:border-box}
         .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
         .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
 
@@ -2592,13 +2598,19 @@ function App() {
     const [classes, setClasses] = useState(() => {
         try {
             const stored = safeJSON(safeGet("hw5ren:classes"), null);
-            if (stored && stored.length > 0) return stored;
+            if (stored && stored.length > 0) {
+                // 過濾掉明顯的測試資料（school 為空或 id 格式不對）
+                const valid = stored.filter(c => c && c.year && c.className);
+                if (valid.length > 0) return valid;
+            }
             // 從現有資料自動建立第一筆
             const cn = safeGet("hw5ren:className") || "";
             const sn = safeGet("hw5ren:school") || "";
             const sy = safeGet("hw5ren:year") || String(new Date().getFullYear());
             if (cn || sn) {
-                return [{ id: sy+"_"+cn, year: sy, school: sn, className: cn, createdAt: new Date().toLocaleDateString("zh-TW") }];
+                const cls = [{ id: sy+"_"+cn, year: sy, school: sn, className: cn, createdAt: new Date().toLocaleDateString("zh-TW") }];
+                _sl.set("hw5ren:classes", JSON.stringify(cls));
+                return cls;
             }
             return [];
         } catch(e) { return []; }
@@ -3290,51 +3302,67 @@ function App() {
     return (React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
             React.createElement("div", { className: "hi" },
-                React.createElement("span", { className: "ti" }, isNerv ? "⬡" : "📋"),
-                React.createElement("h1", null, isNerv ? React.createElement(React.Fragment, null,
-                    React.createElement("em", null, "NERV"),
-                    " ",
-                    React.createElement("span", { className: "nerv-slash" }, "//"),
-                    " ",
-                    React.createElement("em", null, "\u4F5C\u696D\u7E73\u4EA4\u30B7\u30B9\u30C6\u30E0")) : "作業繳交紀錄"),
-                React.createElement("div", { className: "class-switcher" },
-                    React.createElement("button", {
-                        className: "class-switcher-btn" + (showClassDropdown ? " open" : ""),
-                        onClick: () => setShowClassDropdown(p => !p)
-                    },
-                        isNerv
-                            ? "▸ " + (headerSub || "CLASS-05REN").toUpperCase()
-                            : (headerSub || "點此切換班級"),
-                        React.createElement("span", { className: "cs-arrow" }, "▼")
-                    ),
-                    showClassDropdown && React.createElement("div", { className: "class-dropdown" },
-                        React.createElement("div", { className: "cd-header" }, isNerv ? "// SELECT UNIT //" : "選擇班級"),
-                        classes.length === 0
-                            ? React.createElement("div", { style:{padding:"12px 14px",color:"rgba(255,255,255,.4)",fontSize:13} }, "尚未建立班級")
-                            : classes.map(cls =>
-                                React.createElement("div", {
-                                    key: cls.id,
-                                    className: "cd-item" + (cls.id === activeClassId ? " active" : ""),
-                                    onClick: () => switchClass(cls)
-                                },
-                                    React.createElement("div", { className: "cd-item-info" },
-                                        React.createElement("div", { className: "cd-item-name" },
-                                            cls.year + "　" + cls.school + "　" + cls.className),
-                                        React.createElement("div", { className: "cd-item-sub" }, "建立於 " + (cls.createdAt || "-"))
-                                    ),
-                                    cls.id === activeClassId && React.createElement("span", { className: "cd-item-badge" }, "✓ 目前")
-                                )
-                            ),
-                        React.createElement("div", { className: "cd-add", onClick: () => { setShowClassDropdown(false); setView("settings"); } },
-                            React.createElement("div", { className: "cd-add-icon" }, "+"),
-                            isNerv ? "ADD NEW UNIT" : "新增班級"
+                React.createElement("div", { className: "hi-row1" },
+                    React.createElement("span", { className: "ti" }, isNerv ? "⬡" : "📋"),
+                    React.createElement("h1", null, isNerv ? React.createElement(React.Fragment, null,
+                        React.createElement("em", null, "NERV"),
+                        " ",
+                        React.createElement("span", { className: "nerv-slash" }, "//"),
+                        " ",
+                        React.createElement("em", null, "作業系統")) : "作業繳交紀錄"),
+                    React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
+                    React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "輔導記錄", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
+                    React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "設定" }, isNerv ? "⚙" : "⚙️"),
+                    React.createElement("button", { className: "theme-btn", onClick: () => setView("archive"), title: "歷年檔案室", style:{fontSize:15} }, isNerv ? "◫" : "🗂")
+                ),
+                React.createElement("div", { className: "hi-row2" },
+                    React.createElement("div", { className: "class-switcher" },
+                        React.createElement("button", {
+                            className: "class-switcher-btn" + (showClassDropdown ? " open" : ""),
+                            onClick: () => setShowClassDropdown(p => !p)
+                        },
+                            isNerv
+                                ? "▸ " + (headerSub || "CLASS-05REN").toUpperCase()
+                                : (headerSub || "點此選擇班級"),
+                            React.createElement("span", { className: "cs-arrow" }, "▼")
+                        ),
+                        showClassDropdown && React.createElement("div", { className: "class-dropdown" },
+                            React.createElement("div", { className: "cd-header" }, isNerv ? "// SELECT UNIT //" : "選擇班級"),
+                            classes.length === 0
+                                ? React.createElement("div", { style:{padding:"12px 14px",color:"rgba(255,255,255,.4)",fontSize:13} }, "尚未建立班級")
+                                : classes.map(cls =>
+                                    React.createElement("div", {
+                                        key: cls.id,
+                                        className: "cd-item" + (cls.id === activeClassId ? " active" : ""),
+                                        onClick: () => switchClass(cls)
+                                    },
+                                        React.createElement("div", { className: "cd-item-info" },
+                                            React.createElement("div", { className: "cd-item-name" },
+                                                cls.year + "　" + cls.school + "　" + cls.className),
+                                            React.createElement("div", { className: "cd-item-sub" }, "建立於 " + (cls.createdAt || "-"))
+                                        ),
+                                        cls.id === activeClassId 
+                                    ? React.createElement("span", { className: "cd-item-badge" }, "✓ 目前")
+                                    : React.createElement("button", {
+                                        onClick: (e) => { 
+                                            e.stopPropagation(); 
+                                            if (confirm("確定刪除「"+cls.year+"年 "+cls.className+"」班級記錄？\n（不會刪除作業資料，只移除班級清單）")) {
+                                                const updated = classes.filter(c => c.id !== cls.id);
+                                                saveClasses(updated);
+                                            }
+                                        },
+                                        style:{padding:"2px 8px",borderRadius:8,border:"1px solid rgba(255,80,80,.4)",background:"rgba(255,60,60,.15)",color:"rgba(255,120,120,.9)",fontSize:11,cursor:"pointer"}
+                                    }, "✕ 刪除")
+                                    )
+                                ),
+                            React.createElement("div", { className: "cd-add", onClick: () => { setShowClassDropdown(false); setView("settings"); } },
+                                React.createElement("div", { className: "cd-add-icon" }, "+"),
+                                isNerv ? "ADD NEW UNIT" : "新增班級"
+                            )
                         )
                     )
-                ),
-                React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
-                React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "\u8F14\u5C0E\u7D00\u9304", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "\u8A2D\u5B9A" }, isNerv ? "⚙" : "⚙️"),
-                React.createElement("button", { className: "theme-btn", onClick: () => setView("archive"), title: "\u6B77\u5E74\u6A94\u6848\u5BA4", style:{fontSize:15} }, isNerv ? "◫" : "🗂")),
+                )
+            ),
             intro && (React.createElement("div", { className: "nerv-intro" },
                 React.createElement("div", { className: "nerv-intro-inner" },
                     React.createElement("div", { className: "nerv-hex-ring" },
