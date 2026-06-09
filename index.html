@@ -4345,25 +4345,31 @@ setTimeout(function(){
 })();
 </script>
 </body>
-        <script>
+<script>
 (function() {
-  // 偵測是否處於 iOS PWA 獨立模式
+  // 1. 強制解除 Google 登入按鈕的 CSS 觸控鎖定，允許事件穿透
+  var btn = document.getElementById('googleLoginBtn');
+  if (btn) {
+    btn.style.setProperty('touch-action', 'auto', 'important');
+    btn.style.setProperty('-webkit-tap-highlight-color', 'rgba(0,0,0,0)', 'important');
+    btn.style.cursor = 'pointer';
+  }
+
+  // 2. 偵測是否處於 iOS PWA 獨立模式
   var isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
   
   if (isStandalone) {
-    // 建立一個漂亮、醒目的浮動按鈕
+    // 建立一個橘黃色的醒目提示，點擊時用最頂層視窗強行破開 iOS 沙盒
     var patchBtn = document.createElement('a');
-    patchBtn.href = "https://n3a209-leon.github.io/homework-tracker/?v=64";
-    patchBtn.target = "_blank";
-    patchBtn.rel = "noopener noreferrer";
+    patchBtn.href = "https://n3a209-leon.github.io/homework-tracker/?v=65";
     patchBtn.innerText = "🌐 點此跳出 App，改用 Safari 登入並同步存檔";
     
-    // 設定按鈕樣式（固定在畫面最上方，絕對不會被擋住）
+    // 樣式設定
     patchBtn.style.position = 'fixed';
-    patchBtn.style.top = '10px';
-    patchBtn.style.left = '10px';
-    patchBtn.style.right = '10px';
-    patchBtn.style.backgroundColor = '#2563eb';
+    patchBtn.style.top = '12px';
+    patchBtn.style.left = '12px';
+    patchBtn.style.right = '12px';
+    patchBtn.style.backgroundColor = '#ea580c'; // 橘黃色
     patchBtn.style.color = '#ffffff';
     patchBtn.style.textAlign = 'center';
     patchBtn.style.padding = '14px';
@@ -4371,10 +4377,19 @@ setTimeout(function(){
     patchBtn.style.fontWeight = 'bold';
     patchBtn.style.fontSize = '16px';
     patchBtn.style.textDecoration = 'none';
-    patchBtn.style.zIndex = '999999'; // 確保在最上層
-    patchBtn.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
+    patchBtn.style.zIndex = '999999';
+    patchBtn.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.4)';
+    patchBtn.style.display = 'block';
     
-    // 將按鈕塞進網頁
+    // 【核心修正】點擊時解除所有預防事件，用最粗暴但合規的方式逼 iOS 跳出 Safari
+    patchBtn.onclick = function(e) {
+      // 故意不呼叫 e.preventDefault()，讓 HTML 自身的超連結發揮作用
+      // 同時用 JS 做雙重保險
+      setTimeout(function() {
+        window.top.location.href = "https://n3a209-leon.github.io/homework-tracker/?v=65";
+      }, 50);
+    };
+    
     document.body.appendChild(patchBtn);
   }
 })();
