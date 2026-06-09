@@ -1205,11 +1205,7 @@ function debugStep(step) {
   } catch(e) {}
 }
 debugStep('JS START');
-function _writeLog(type, msg) {
-  try {
-    console.log('[LOG]', type, msg);
-  } catch(e) {}
-}
+
 // PWA standalone 模式偵測
 var _isPWA = false;
 
@@ -1699,7 +1695,6 @@ const DEFAULT_GROUPS = [
     { id: 4, label: "第四組", members: [15, 27, 13, 18, 22], leader: 15, secretary: 27 },
     { id: 5, label: "第五組", members: [23, 19, 16, 24, 1, 20], leader: 23, secretary: 19 },
 ];
-          
 function loadGroups() {
     try {
         const s = safeGet("hw5ren:groups");
@@ -2941,7 +2936,6 @@ function App() {
         return !!(tok && tok.length > 20);
     });
     const [driveStatus, setDriveStatus] = useState('offline');
-    const [driveError, setDriveError] = useState('');
     useEffect(() => {
         if (!authed)
             return;
@@ -2980,9 +2974,17 @@ function App() {
                 try { eStr = String(e) + (e && e.message ? e.message : ''); } catch(ex) {}
                 var errMsg = '未知錯誤';
                 if (eStr.includes('401') || eStr.includes('Unauthorized') || eStr.includes('invalid_token')) {
-                    errMsg = 'Token 過期（401）— 請重新登入';
-                    try { _sl.remove('hw5ren:tok'); } catch(ex) {}
-                    setAuthed(false);
+                    // PWA 模式下不清除 token，避免死結（PWA 無法重新登入）
+                    var _isPWA2 = false;
+                    try { _isPWA2 = window.navigator.standalone === true || window.matchMedia('(display-mode:standalone)').matches; } catch(ex) {}
+                    if (_isPWA2) {
+                        errMsg = 'Token 過期，請用 Safari 瀏覽器重新登入後再使用 PWA';
+                        // 不清除 token，不登出，只顯示警告
+                    } else {
+                        errMsg = 'Token 過期（401）— 請重新登入';
+                        try { _sl.remove('hw5ren:tok'); } catch(ex) {}
+                        setAuthed(false);
+                    }
                 } else if (eStr.includes('403')) {
                     errMsg = '權限不足（403）';
                 } else if (eStr.includes('429')) {
@@ -4345,53 +4347,4 @@ setTimeout(function(){
 })();
 </script>
 </body>
-<script>
-(function() {
-  // 1. 強制解除 Google 登入按鈕的 CSS 觸控鎖定，允許事件穿透
-  var btn = document.getElementById('googleLoginBtn');
-  if (btn) {
-    btn.style.setProperty('touch-action', 'auto', 'important');
-    btn.style.setProperty('-webkit-tap-highlight-color', 'rgba(0,0,0,0)', 'important');
-    btn.style.cursor = 'pointer';
-  }
-
-  // 2. 偵測是否處於 iOS PWA 獨立模式
-  var isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  
-  if (isStandalone) {
-    // 建立一個橘黃色的醒目提示，點擊時用最頂層視窗強行破開 iOS 沙盒
-    var patchBtn = document.createElement('a');
-    patchBtn.href = "https://n3a209-leon.github.io/homework-tracker/?v=65";
-    patchBtn.innerText = "🌐 點此跳出 App，改用 Safari 登入並同步存檔";
-    
-    // 樣式設定
-    patchBtn.style.position = 'fixed';
-    patchBtn.style.top = '12px';
-    patchBtn.style.left = '12px';
-    patchBtn.style.right = '12px';
-    patchBtn.style.backgroundColor = '#ea580c'; // 橘黃色
-    patchBtn.style.color = '#ffffff';
-    patchBtn.style.textAlign = 'center';
-    patchBtn.style.padding = '14px';
-    patchBtn.style.borderRadius = '12px';
-    patchBtn.style.fontWeight = 'bold';
-    patchBtn.style.fontSize = '16px';
-    patchBtn.style.textDecoration = 'none';
-    patchBtn.style.zIndex = '999999';
-    patchBtn.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.4)';
-    patchBtn.style.display = 'block';
-    
-    // 【核心修正】點擊時解除所有預防事件，用最粗暴但合規的方式逼 iOS 跳出 Safari
-    patchBtn.onclick = function(e) {
-      // 故意不呼叫 e.preventDefault()，讓 HTML 自身的超連結發揮作用
-      // 同時用 JS 做雙重保險
-      setTimeout(function() {
-        window.top.location.href = "https://n3a209-leon.github.io/homework-tracker/?v=65";
-      }, 50);
-    };
-    
-    document.body.appendChild(patchBtn);
-  }
-})();
-</script>
 </html>
