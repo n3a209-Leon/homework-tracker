@@ -1409,19 +1409,67 @@ function getDriveFilename(year, cls) {
 }
 let accessToken = null, driveFileId = null;
 function loadGSI() {
-  return new Promise(res => {
-    if (typeof google !== 'undefined') { res(); return; }
-    const s = document.createElement('script');
+  return new Promise((res, rej) => {
+    if (typeof google !== 'undefined' && google.accounts) { res(); return; }
+    var s = document.createElement('script');
     s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = res;
-    s.onerror = function() { console.warn("GSI failed"); res(); };
+    s.async = true;
+    s.defer = true;
+    s.crossOrigin = 'anonymous';
+    // 10 秒超時
+    var timer = setTimeout(function() {
+      _writeLog('error', 'loadGSI timeout');
+      rej(new Error('Google 登入服務載入逾時（10秒），請確認網路後重試'));
+    }, 10000);
+    s.onload = function() {
+      clearTimeout(timer);
+      // 等待 google.accounts 初始化
+      var check = 0;
+      var poll = setInterval(function() {
+        if (typeof google !== 'undefined' && google.accounts) {
+          clearInterval(poll);
+          res();
+        } else if (++check > 20) {
+          clearInterval(poll);
+          rej(new Error('Google 登入服務初始化失敗'));
+        }
+      }, 100);
+    };
+    s.onerror = function() {
+      clearTimeout(timer);
+      _writeLog('error', 'loadGSI script onerror');
+      rej(new Error('Google 登入服務無法載入，請確認網路連線'));
+    };
     document.head.appendChild(s);
   });
 }
 async function gSignIn() {
   // PWA standalone 模式下 Google popup 會被 Safari 封鎖
-  var isPWA = window.navigator.standalone === true ||
-              window.matchMedia('(display-mode: standalone)').matches;
+  var isPWA = false;
+  try {
+    isPWA = window.navigator.standalone === true ||
+            window.matchMedia('(display-mode: standalone)').matches;
+  } catch(e) {}
+
+  _writeLog('step', 'gSignIn start isPWA:' + isPWA);
+
+  if (isPWA) {
+    throw new Error(
+      'PWA 模式無法登入 Google。
+
+' +
+      '請依以下步驟操作：
+' +
+      '1. 用 Safari 瀏覽器開啟此網址
+' +
+      '2. 點「使用 Google 帳號登入」
+' +
+      '3. 登入完成後，再加到主畫面
+
+' +
+      '加到主畫面後，Token 會自動保留，不需要再登入。'
+    );
+  }
 
   await loadGSI();
   if (typeof google === 'undefined' || !google.accounts) {
