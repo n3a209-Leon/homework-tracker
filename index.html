@@ -4345,4 +4345,38 @@ setTimeout(function(){
 })();
 </script>
 </body>
+        <script>
+(function() {
+  // 偵測是否處於 iOS PWA 獨立模式
+  var isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  
+  if (isStandalone) {
+    // 建立一個漂亮、醒目的浮動按鈕
+    var patchBtn = document.createElement('a');
+    patchBtn.href = "https://n3a209-leon.github.io/homework-tracker/?v=64";
+    patchBtn.target = "_blank";
+    patchBtn.rel = "noopener noreferrer";
+    patchBtn.innerText = "🌐 點此跳出 App，改用 Safari 登入並同步存檔";
+    
+    // 設定按鈕樣式（固定在畫面最上方，絕對不會被擋住）
+    patchBtn.style.position = 'fixed';
+    patchBtn.style.top = '10px';
+    patchBtn.style.left = '10px';
+    patchBtn.style.right = '10px';
+    patchBtn.style.backgroundColor = '#2563eb';
+    patchBtn.style.color = '#ffffff';
+    patchBtn.style.textAlign = 'center';
+    patchBtn.style.padding = '14px';
+    patchBtn.style.borderRadius = '12px';
+    patchBtn.style.fontWeight = 'bold';
+    patchBtn.style.fontSize = '16px';
+    patchBtn.style.textDecoration = 'none';
+    patchBtn.style.zIndex = '999999'; // 確保在最上層
+    patchBtn.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
+    
+    // 將按鈕塞進網頁
+    document.body.appendChild(patchBtn);
+  }
+})();
+</script>
 </html>
