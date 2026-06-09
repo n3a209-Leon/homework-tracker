@@ -1419,21 +1419,66 @@ function loadGSI() {
   });
 }
 async function gSignIn() {
+  // PWA standalone 模式下 Google popup 會被 Safari 封鎖
+  var isPWA = window.navigator.standalone === true ||
+              window.matchMedia('(display-mode: standalone)').matches;
+
   await loadGSI();
   if (typeof google === 'undefined' || !google.accounts) {
     throw new Error('Google 登入服務無法載入，請確認網路連線後重試');
   }
-  return new Promise((res,rej) => {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file',
-      callback: resp => {
-        if (resp.error) { rej(resp.error); return; }
-        accessToken = resp.access_token;
-        safeSet('hw5ren:tok', accessToken);
-        res(accessToken);
-      }
-    });
-    client.requestAccessToken();
+
+  return new Promise((res, rej) => {
+    // 30 秒超時保護（避免 PWA popup 被封鎖後永久卡住）
+    var timeout = setTimeout(function() {
+      _writeLog('error', 'gSignIn timeout isPWA:' + isPWA);
+      rej(new Error(
+        isPWA
+          ? 'PWA 模式登入逾時。
+
+請改用 Safari 瀏覽器（非主畫面）開啟此網址登入後，再加回主畫面。'
+          : '登入逾時，請重試。'
+      ));
+    }, 30000);
+
+    try {
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: resp => {
+          clearTimeout(timeout);
+          if (resp.error) { rej(new Error(resp.error)); return; }
+          accessToken = resp.access_token;
+          safeSet('hw5ren:tok', accessToken);
+          _writeLog('step', 'gSignIn success');
+          res(accessToken);
+        },
+        error_callback: function(err) {
+          clearTimeout(timeout);
+          _writeLog('error', 'gSignIn error: ' + JSON.stringify(err));
+          if (err && err.type === 'popup_closed') {
+            rej(new Error('登入視窗已關閉，請重試。'));
+          } else if (err && err.type === 'popup_blocked') {
+            rej(new Error(
+              isPWA
+                ? 'PWA 模式無法開啟登入視窗。
+
+解決方法：
+1. 用 Safari 瀏覽器開啟此 App
+2. 登入 Google
+3. 登入成功後再加到主畫面'
+                : '登入視窗被封鎖，請允許彈出視窗後重試。'
+            ));
+          } else {
+            rej(new Error(err ? (err.message || err.type || JSON.stringify(err)) : '登入失敗'));
+          }
+        }
+      });
+      client.requestAccessToken();
+    } catch(e) {
+      clearTimeout(timeout);
+      rej(e);
+    }
   });
 }
 async function findDriveFile(year, cls) {
@@ -3405,7 +3450,9 @@ function App() {
                     // 直接呼叫 gSignIn（內部會自動載入 Google GSI）
                     gSignIn().then(() => setAuthed(true)).catch(function(err) {
                         var em = err ? (err.message || String(err)) : '登入失敗';
-                        alert('Google 登入失敗：' + em + '\n\n請確認允許彈出視窗，並重試。');
+                        showError('Google 登入失敗
+
+' + em, '#1a1a0a');
                     });
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
