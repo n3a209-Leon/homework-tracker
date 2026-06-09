@@ -1454,7 +1454,6 @@ function loadGSI() {
   });
 }
 async function gSignIn() {
-  // PWA standalone 模式下 Google popup 會被 Safari 封鎖
   var isPWA = false;
   try {
     isPWA = window.navigator.standalone === true ||
@@ -1463,16 +1462,32 @@ async function gSignIn() {
 
   _writeLog('step', 'gSignIn start isPWA:' + isPWA);
 
-  if (isPWA) {
-    throw new Error(
-      'PWA 模式無法登入 Google。\n\n' +
-      '請依以下步驟操作：\n' +
-      '1. 用 Safari 瀏覽器開啟此網址\n' +
-      '2. 點「使用 Google 帳號登入」\n' +
-      '3. 登入完成後，再加到主畫面\n\n' +
-      '加到主畫面後，Token 會自動保留，不需要再登入。'
-    );
-  }
+  // 1. 確保載入 Google GSI 腳本（呼叫你原本寫好的函數）
+  await loadGSI();
+
+  // 2. 初始化 Google 登入
+  google.accounts.id.initialize({
+    client_id: '你的_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // 🔴 請記得填入你的 Google Client ID！
+    
+    // 🟢 關鍵修正：如果是 PWA，用 redirect（整個畫面跳轉）；如果是一般網頁，用 popup（彈出小視窗）
+    ux_mode: isPWA ? 'redirect' : 'popup', 
+    
+    // 🟢 重新導向回來後，Google 必須知道要跳回哪裡（請填寫你的 GitHub Pages 首頁網址）
+    login_uri: 'https://n3a209-leon.github.io/homework-tracker',
+    
+    // 如果是一般網頁版（Popup 模式），成功後會直接執行這個 callback
+    callback: function(response) {
+      if (response && response.credential) {
+        _writeLog('success', '網頁版 Popup 登入成功');
+        handleCredentialResponse(response.credential);
+      }
+    }
+  });
+
+  // 3. 觸發 Google 登入
+  // 如果是 PWA，這一行執行後，整個 PWA 畫面會跳轉前往 Google 的官方帳密輸入頁面
+  google.accounts.id.prompt(); 
+}
 
   await loadGSI();
   if (typeof google === 'undefined' || !google.accounts) {
@@ -4361,7 +4376,51 @@ setTimeout(function(){
       root.style.webkitUserSelect = 'auto';
     }
   } catch(e) {}
+});
+  });
+  try {
+    themeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
+  } catch(e) {}
 })();
+
+// ==================== 🟢 這裡開始是新貼上的「最後一段」（不用 Firebase） ====================
+(function checkGoogleRedirectResult() {
+  window.addEventListener('load', function() {
+    _writeLog('step', '檢查是否有 Google PWA 重新導向回來的資料');
+
+    // 1. 嘗試從網址列抓取 Google 重新導向帶回來的憑證 (credential)
+    var urlParams = new URLSearchParams(window.location.search);
+    var credentialFromUrl = urlParams.get('credential') || window.location.hash.match(/credential=([^&]*)/)?.[1];
+
+    if (credentialFromUrl) {
+      _writeLog('success', '成功接住 PWA 重新導向回來的 Google Token！');
+      
+      // 2. 觸發處理憑證的邏輯
+      handleCredentialResponse(decodeURIComponent(credentialFromUrl));
+      
+      // 3. 把網址列難看的 Token 清除，讓網址恢復乾淨
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+})();
+
+// 處理 Google 登入成功憑證的函數
+function handleCredentialResponse(token) {
+  _writeLog('success', '成功拿到 Google 驗證憑證！');
+  
+  // 1. 把 token 存進 localStorage（這樣以後打開 App 就會自動登入，不怕 7 天過期）
+  localStorage.setItem('user_token', token);
+  
+  // 2. 彈出歡迎訊息
+  alert("PWA 登入成功！歡迎使用作業記錄功能。");
+  
+  // 💡 提示：如果你的網頁有特定「登入成功後換頁」的 Function（例如 showMainPage()），可以寫在這裡
+}
+// ==================== 🔴 新貼上的內容結束 ====================
+
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
