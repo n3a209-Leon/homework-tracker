@@ -1169,8 +1169,26 @@
 </head>
 <body>
 <div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px;display:none">HTML LOADED</div>
+<div id="error-overlay" style="display:none;position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;overflow:auto;margin:0;font-family:monospace"></div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
+function showError(msg, color) {
+  try {
+    var ov = document.getElementById('error-overlay');
+    if (!ov) return;
+    ov.style.background = color || '#1a0000';
+    ov.style.color = color === '#001a1a' ? '#88ffee' : '#ff8888';
+    ov.textContent = msg;
+    ov.style.display = 'block';
+    // 加「關閉」按鈕
+    var btn = document.createElement('button');
+    btn.textContent = '✕ 關閉';
+    btn.style.cssText = 'display:block;margin-top:16px;padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;font-size:14px;cursor:pointer;font-family:sans-serif';
+    btn.onclick = function() { ov.style.display = 'none'; };
+    ov.appendChild(btn);
+  } catch(e) {}
+}
+
 function debugStep(step) {
   try { console.log('[DEBUG]', step); } catch(e) {}
   try { console.error('[STEP]', step); } catch(e) {}
@@ -1221,13 +1239,9 @@ window.onerror = function(msg, url, line, col, err) {
   }
   try {
     var s = (err && err.stack) ? String(err.stack).slice(0,400) : '';
-    var h = '<pre style="position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;' +
-            'white-space:pre-wrap;background:#1a0000;color:#ff8888;overflow:auto;margin:0">' +
-            'SAFARI ERROR\n\n' + String(msg||'') + '\n\n' + String(url||'') +
-            '\n' + String(line||0) + ':' + String(col||0) +
-            (s ? '\n\n'+s : '') + '</pre>';
-    document.body.innerHTML = h;
-    document.body.style.cssText = 'display:block!important;background:#1a0000!important';
+    var msg2 = 'SAFARI ERROR\n\n' + String(msg||'') + '\n\n' + String(url||'') +
+               '\n' + String(line||0) + ':' + String(col||0) + (s ? '\n\n'+s : '');
+    showError(msg2, '#1a0000');
   } catch(e2) {}
   return true;
 };
@@ -1252,15 +1266,7 @@ function _rej(e) {
 window.onunhandledrejection = _rej;
 try { window.addEventListener('unhandledrejection', _rej); } catch(e) {}
 
-setTimeout(function() {
-  try {
-    document.body.style.display = '';
-    document.body.style.visibility = 'visible';
-    document.body.style.opacity = '1';
-    var r = document.getElementById('root');
-    if (r) { r.style.display=''; r.style.visibility='visible'; r.style.opacity='1'; }
-  } catch(e) {}
-}, 1000);
+// visibility fallback 已移除（改用 error-overlay 不覆蓋 body）
 
 debugStep('JS START OK');
 </script>
