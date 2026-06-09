@@ -1497,7 +1497,6 @@ debugStep('REACTDOM CDN START');
   var useState=React.useState, useEffect=React.useEffect,
       useCallback=React.useCallback, useRef=React.useRef, useMemo=React.useMemo;
   try {
-debugStep('APP TRY START');
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEFAULT_GROUPS = [
     { id: 1, label: "第一組", members: [7, 9, 4, 5, 26, 8], leader: 7, secretary: 9 },
@@ -2585,11 +2584,9 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                     React.createElement("button", { onClick: doClear, disabled: clearDel !== "DEL", style: { flex: 1, padding: "10px 0", border: "none", borderRadius: nerv ? 2 : 12, background: clearDel === "DEL" ? "#e53935" : "#aaa", color: "#fff", fontSize: 14, fontWeight: 700, cursor: clearDel === "DEL" ? "pointer" : "not-allowed" } }, nerv ? "PURGE" : "確認清除")))))));
 }
 function App() {
-    debugStep('APP START');
     var _a, _b, _c, _d, _e;
     // Render complete marker（mount 後）
     useEffect(function() {
-        debugStep('RENDER COMPLETE');
         try { window._appReady = true; } catch(e) {}
     }, []);
     const [view, setView] = useState("month");
@@ -2685,7 +2682,6 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [theme, setTheme] = useState(() => safeGet("hw5ren:theme") || "default");
     const [showThemeMenu, setShowThemeMenu] = useState(false);
-    debugStep('APP STATE INIT');
     const [yearRecords, setYearRecords] = useState(() => { try {
         return safeJSON(safeGet('hw5ren:years'), []);
     }
@@ -2701,7 +2697,6 @@ function App() {
     const isNerv = theme === "nerv";
     const isNebula = theme === "nebula";
     // ── Drive / Auth ──
-    debugStep('APP STATE INIT');
     const [authed, setAuthed] = useState(() => {
         // 只有 token 存在且看起來合法才認為已登入，避免過期 token 造成白屏
         const tok = safeGet('hw5ren:tok');
@@ -3043,7 +3038,6 @@ function App() {
         });
     }
     // ── Custom HW memory ──
-    debugStep('APP STATE INIT');
     const [customHW, setCustomHW] = useState(() => {
         try {
             return safeJSON(safeGet("hw5ren:customHW"), []);
