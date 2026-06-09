@@ -4345,12 +4345,13 @@ setTimeout(function(){
       }
     });
   });
+  // 1. 🟢 讓原本的主程式完美結束（包含主題監聽器）
   try {
     themeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
   } catch(e) {}
-})();
+})(); 
 
-// PWA Touch Passthrough：確保所有按鈕在 PWA 模式下可點擊
+// 2. 🟢 獨立出來的 PWA 點擊修復區塊（修正了括號，安全閉合）
 (function() {
   try {
     var isPWA = window.navigator.standalone === true ||
@@ -4376,14 +4377,9 @@ setTimeout(function(){
       root.style.webkitUserSelect = 'auto';
     }
   } catch(e) {}
-});
-  
-try {
-    themeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
-  } catch(e) {}
-})(); // 🟢 修正點 1：幫你補回原本漏掉的「 } 」符號，原本的主程式結構完美閉合！
+})();
 
-// ==================== 🟢 這裡開始是新貼上的「最後一段」（不用 Firebase） ====================
+// ==================== 🟢 3. 這裡開始是新貼上的「最後一段」（不用 Firebase） ====================
 (function checkGoogleRedirectResult() {
   window.addEventListener('load', function() {
     _writeLog('step', '檢查是否有 Google PWA 重新導向回來的資料');
@@ -4398,7 +4394,7 @@ try {
       // 2. 觸發處理憑證的邏輯
       handleCredentialResponse(decodeURIComponent(credentialFromUrl));
       
-      // 3. 把網址列難快的 Token 清除，讓網址恢復乾淨
+      // 3. 把網址列難看的 Token 清除，讓網址恢復乾淨
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   });
@@ -4414,10 +4410,11 @@ function handleCredentialResponse(token) {
   // 2. 彈出歡迎訊息
   alert("PWA 登入成功！歡迎使用作業記錄功能。");
   
-  // 3. 🟢 關鍵修正：登入成功後，重新整理網頁，讓你原本的主程式直接讀取 localStorage 進入主畫面！
+  // 3. 重新整理網頁，讓主程式重新讀取狀態
   window.location.reload();
 }
 // ==================== 🔴 新貼上的內容結束 ====================
 
-</script> </body>
+</script>
+</body>
 </html>
