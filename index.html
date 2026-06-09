@@ -4378,10 +4378,10 @@ setTimeout(function(){
   } catch(e) {}
 });
   
-  try {
+try {
     themeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
   } catch(e) {}
-();
+})(); // 🟢 修正點 1：幫你補回原本漏掉的「 } 」符號，原本的主程式結構完美閉合！
 
 // ==================== 🟢 這裡開始是新貼上的「最後一段」（不用 Firebase） ====================
 (function checkGoogleRedirectResult() {
@@ -4390,7 +4390,7 @@ setTimeout(function(){
 
     // 1. 嘗試從網址列抓取 Google 重新導向帶回來的憑證 (credential)
     var urlParams = new URLSearchParams(window.location.search);
-    var credentialFromUrl = urlParams.get('credential') || window.location.hash.match(/credential=([^&]*)/)?.[1];
+    var credentialFromUrl = urlParams.get('credential') || (window.location.hash.match(/credential=([^&]*)/)?.[1]);
 
     if (credentialFromUrl) {
       _writeLog('success', '成功接住 PWA 重新導向回來的 Google Token！');
@@ -4398,7 +4398,7 @@ setTimeout(function(){
       // 2. 觸發處理憑證的邏輯
       handleCredentialResponse(decodeURIComponent(credentialFromUrl));
       
-      // 3. 把網址列難看的 Token 清除，讓網址恢復乾淨
+      // 3. 把網址列難快的 Token 清除，讓網址恢復乾淨
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   });
@@ -4414,13 +4414,10 @@ function handleCredentialResponse(token) {
   // 2. 彈出歡迎訊息
   alert("PWA 登入成功！歡迎使用作業記錄功能。");
   
-  // 💡 提示：如果你的網頁有特定「登入成功後換頁」的 Function（例如 showMainPage()），可以寫在這裡
+  // 3. 🟢 關鍵修正：登入成功後，重新整理網頁，讓你原本的主程式直接讀取 localStorage 進入主畫面！
+  window.location.reload();
 }
 // ==================== 🔴 新貼上的內容結束 ====================
 
-</script>
-</body>
-</html>
-</script>
-</body>
+</script> </body>
 </html>
