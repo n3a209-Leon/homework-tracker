@@ -1490,16 +1490,37 @@ async function gSignIn() {
 }
 
 
-  return new Promise((res, rej) => {
-    // 30 秒超時保護（避免 PWA popup 被封鎖後永久卡住）
-    var timeout = setTimeout(function() {
-      _writeLog('error', 'gSignIn timeout isPWA:' + isPWA);
-      rej(new Error(
-        isPWA
-          ? 'PWA 模式登入逾時。\n\n請改用 Safari 瀏覽器（非主畫面）開啟此網址登入後，再加回主畫面。'
-          : '登入逾時，請重試。'
-      ));
-    }, 30000);
+  async function gSignIn() {
+var isPWA = false;
+
+try {
+isPWA =
+window.navigator.standalone === true ||
+window.matchMedia('(display-mode: standalone)').matches;
+} catch(e) {}
+
+_writeLog('step', 'gSignIn start isPWA:' + isPWA);
+
+await loadGSI();
+
+google.accounts.id.initialize({
+client_id: '你的_CLIENT_ID',
+ux_mode: isPWA ? 'redirect' : 'popup',
+login_uri: 'https://n3a209-leon.github.io/homework-tracker',
+
+```
+callback: function(response) {
+  if (response && response.credential) {
+    handleCredentialResponse(response.credential);
+  }
+}
+```
+
+});
+
+google.accounts.id.prompt();
+}
+
 
     try {
       const client = google.accounts.oauth2.initTokenClient({
