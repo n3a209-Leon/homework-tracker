@@ -1173,6 +1173,8 @@
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
 function showError(msg, color) {
+  // 記錄到 log
+  _writeLog('error', msg);
   try {
     var ov = document.getElementById('error-overlay');
     if (!ov) return;
@@ -1226,6 +1228,7 @@ window._appReady = false;
 window.onerror = function(msg, url, line, col, err) {
   // Safari 分享/背景化會觸發 Script error. 0:0，直接忽略
   if (!msg || (String(msg) === 'Script error.' && !line && !col)) return true;
+  _writeLog('error', 'onerror: ' + String(msg) + ' @' + line + ':' + col);
   // App 已渲染時，只在 debug bar 顯示，不破壞畫面
   if (window._appReady) {
     try { debugStep('ERR:' + String(msg).slice(0,40)); } catch(ex) {}
@@ -1250,6 +1253,7 @@ function _rej(e) {
   try {
     var r = 'Promise rejected';
     try { r = e.reason ? (e.reason.message || String(e.reason)) : r; } catch(x) {}
+    _writeLog('error', 'rejection: ' + r);
     // 用 _appReady 判斷（比 isLoading 可靠）
     if (window._appReady) {
       // App 已渲染：只在紅條顯示，絕不覆蓋 body
@@ -2588,8 +2592,10 @@ function App() {
     // Render complete marker（mount 後）
     useEffect(function() {
         try { window._appReady = true; } catch(e) {}
+        _writeLog('step', 'App mounted');
     }, []);
-    const [view, setView] = useState("month");
+    const [view, setViewRaw] = useState("month");
+    function setView(v) { _writeLog('step', 'view→' + v); setViewRaw(v); }
     const [groups, setGroups] = useState(() => {
         var g = loadGroups();
         try { window._fallbackGroups = g; } catch(e) {}
@@ -3466,6 +3472,26 @@ function App() {
             React.createElement("div", { className: "excel-bar" },
                 importMsg && React.createElement("span", { className: "import-msg" }, importMsg),
                 React.createElement("button", { className: "excel-btn diag-btn", onClick: async () => {
+                    // 顯示白屏診斷日誌
+                    try {
+                        var log = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}');
+                        var out = '=== 白屏診斷日誌 ===\n';
+                        out += '記錄時間：' + (log.ts || '未知') + '\n';
+                        out += (log.note ? '備註：' + log.note + '\n' : '');
+                        out += '\n--- 錯誤紀錄（' + (log.errors||[]).length + ' 筆）---\n';
+                        (log.errors||[]).forEach(function(e) {
+                            out += '[' + e.t + '] ' + e.type + ': ' + e.msg + '\n';
+                        });
+                        out += '\n--- 最後操作步驟 ---\n';
+                        (log.steps||[]).forEach(function(s) {
+                            out += '[' + s.t + '] ' + s.msg + '\n';
+                        });
+                        if ((log.errors||[]).length === 0) {
+                            out += '\n✅ 沒有記錄到錯誤\n（白屏可能是 Safari 記憶體不足直接殺掉頁面）';
+                        }
+                        alert(out);
+                        return;
+                    } catch(ex) { alert('無法讀取日誌：' + ex); return; }
                         setImportMsg("🔍 掃描中…");
                         let idbOk = false, idbKeys_ = [], lsKeys = [];
                         try {
