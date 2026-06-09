@@ -1174,7 +1174,7 @@
 <script>
 function showError(msg, color) {
   // 記錄到 log
-  _writeLog('error', msg);
+  window._writeLog('error', msg);
   try {
     var ov = document.getElementById('error-overlay');
     if (!ov) return;
@@ -1191,9 +1191,26 @@ function showError(msg, color) {
   } catch(e) {}
 }
 
+// ── 錯誤日誌（全域，所有 script 共享）──
+window._errLog = [];
+window._stepLog = [];
+window._writeLog = function(type, msg) {
+  try {
+    var entry = { t: new Date().toLocaleTimeString('zh-TW'), type: type, msg: String(msg).slice(0,200) };
+    if (type === 'step') {
+      window._stepLog.push(entry);
+      if (window._stepLog.length > 30) window._stepLog.shift();
+    } else {
+      window._errLog.push(entry);
+    }
+    var log = { ts: new Date().toLocaleString('zh-TW'), steps: window._stepLog.slice(-20), errors: window._errLog };
+    try { localStorage.setItem('hw5ren:debugLog', JSON.stringify(log)); } catch(ex) {}
+  } catch(e) {}
+};
+
 function debugStep(step) {
-  try { console.log('[DEBUG]', step); } catch(e) {}
-  try { console.error('[STEP]', step); } catch(e) {}
+  try { if (window.location.search.indexOf('debug=1') > -1) console.log('[DEBUG]', step); } catch(e) {}
+  try { if (window.location.search.indexOf('debug=1') > -1) console.error('[STEP]', step); } catch(e) {}
   try {
     var el = document.getElementById('safari-debug');
     if (el) {
@@ -1212,14 +1229,14 @@ var _isPWA = false;
 // 記錄頁面 visibility change（iOS PWA 切背景時的觸發點）
 document.addEventListener('visibilitychange', function() {
   try {
-    _writeLog('step', 'visibility:' + document.visibilityState);
+    window._writeLog('step', 'visibility:' + document.visibilityState);
   } catch(e) {}
 });
 window.addEventListener('pagehide', function() {
-  try { _writeLog('step', 'pagehide'); } catch(e) {}
+  try { window._writeLog('step', 'pagehide'); } catch(e) {}
 });
 window.addEventListener('pageshow', function(e) {
-  try { _writeLog('step', 'pageshow persisted:' + e.persisted); } catch(e) {}
+  try { window._writeLog('step', 'pageshow persisted:' + e.persisted); } catch(e) {}
 });
 try {
   _isPWA = window.navigator.standalone === true ||
@@ -1241,7 +1258,7 @@ window._appReady = false;
 window.onerror = function(msg, url, line, col, err) {
   // Safari 分享/背景化會觸發 Script error. 0:0，直接忽略
   if (!msg || (String(msg) === 'Script error.' && !line && !col)) return true;
-  _writeLog('error', 'onerror: ' + String(msg) + ' @' + line + ':' + col);
+  window._writeLog('error', 'onerror: ' + String(msg) + ' @' + line + ':' + col);
   // App 已渲染時，只在 debug bar 顯示，不破壞畫面
   if (window._appReady) {
     try { debugStep('ERR:' + String(msg).slice(0,40)); } catch(ex) {}
@@ -1266,7 +1283,7 @@ function _rej(e) {
   try {
     var r = 'Promise rejected';
     try { r = e.reason ? (e.reason.message || String(e.reason)) : r; } catch(x) {}
-    _writeLog('error', 'rejection: ' + r);
+    window._writeLog('error', 'rejection: ' + r);
     // 用 _appReady 判斷（比 isLoading 可靠）
     if (window._appReady) {
       // App 已渲染：只在紅條顯示，絕不覆蓋 body
@@ -2808,11 +2825,11 @@ function App() {
             var banner = document.getElementById('crash-banner');
             if (banner) banner.style.display = 'none';
         } catch(e) {}
-        _writeLog('step', 'App mounted OK');
+        try { window._writeLog('step', 'App mounted OK'); } catch(e) {}
     }, []);
     const [view, setViewRaw] = useState("month");
     function setView(v) {
-        _writeLog('step', 'view→' + v);
+        try { window._writeLog('step', 'view→' + v); } catch(e) {}
         try { localStorage.setItem('hw5ren:lastView', v); } catch(e) {}
         setViewRaw(v);
     }
@@ -2849,7 +2866,7 @@ function App() {
             }
             return [];
         } catch(e) {
-            _writeLog('error', 'classes init: ' + String(e).slice(0,60));
+            window._writeLog && window._writeLog('error', 'classes init: ' + String(e).slice(0,60));
             return [];
         }
     });
