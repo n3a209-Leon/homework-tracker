@@ -1489,10 +1489,6 @@ async function gSignIn() {
   google.accounts.id.prompt(); 
 }
 
-  await loadGSI();
-  if (typeof google === 'undefined' || !google.accounts) {
-    throw new Error('Google 登入服務無法載入，請確認網路連線後重試');
-  }
 
   return new Promise((res, rej) => {
     // 30 秒超時保護（避免 PWA popup 被封鎖後永久卡住）
