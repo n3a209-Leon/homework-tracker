@@ -3498,9 +3498,7 @@ function App() {
                     // 直接呼叫 gSignIn（內部會自動載入 Google GSI）
                     gSignIn().then(() => setAuthed(true)).catch(function(err) {
                         var em = err ? (err.message || String(err)) : '登入失敗';
-                        showError('Google 登入失敗
-
-' + em, '#1a1a0a');
+                        showError('Google 登入失敗\n\n' + em, '#1a1a0a');
                     });
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
