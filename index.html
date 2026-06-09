@@ -1172,6 +1172,30 @@
 <div id="error-overlay" style="display:none;position:fixed;inset:0;z-index:99999999;padding:20px;font-size:14px;white-space:pre-wrap;overflow:auto;margin:0;font-family:monospace"></div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:#1e3a5f;font-family:sans-serif;background:#f0f4ff">正在載入...</div></div>
 <script>
+window._writeLog = function(type, msg) {
+  try {
+    console.log(
+      '[' + String(type).toUpperCase() + ']',
+      msg
+    );
+  } catch(e) {}
+};
+
+window.onerror = function(msg, src, line, col, err) {
+  window._writeLog(
+    'fatal',
+    String(msg) +
+    ' @' + line + ':' + col
+  );
+};
+
+window.onunhandledrejection = function(e) {
+  window._writeLog(
+    'promise',
+    String(e.reason)
+  );
+};
+
 function showError(msg, color) {
   // 記錄到 log
   window._writeLog('error', msg);
@@ -1455,108 +1479,72 @@ function loadGSI() {
 }
 async function gSignIn() {
   var isPWA = false;
+
   try {
-    isPWA = window.navigator.standalone === true ||
-            window.matchMedia('(display-mode: standalone)').matches;
+    isPWA =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
   } catch(e) {}
 
-  _writeLog('step', 'gSignIn start isPWA:' + isPWA);
-
-  // 1. 確保載入 Google GSI 腳本（呼叫你原本寫好的函數）
-  await loadGSI();
-
-  // 2. 初始化 Google 登入
-  google.accounts.id.initialize({
-    client_id: '你的_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // 🔴 請記得填入你的 Google Client ID！
-    
-    // 🟢 關鍵修正：如果是 PWA，用 redirect（整個畫面跳轉）；如果是一般網頁，用 popup（彈出小視窗）
-    ux_mode: isPWA ? 'redirect' : 'popup', 
-    
-    // 🟢 重新導向回來後，Google 必須知道要跳回哪裡（請填寫你的 GitHub Pages 首頁網址）
-    login_uri: 'https://n3a209-leon.github.io/homework-tracker',
-    
-    // 如果是一般網頁版（Popup 模式），成功後會直接執行這個 callback
-    callback: function(response) {
-      if (response && response.credential) {
-        _writeLog('success', '網頁版 Popup 登入成功');
-        handleCredentialResponse(response.credential);
-      }
-    }
-  });
-
-  // 3. 觸發 Google 登入
-  // 如果是 PWA，這一行執行後，整個 PWA 畫面會跳轉前往 Google 的官方帳密輸入頁面
-  google.accounts.id.prompt(); 
-}
-
-
-  async function gSignIn() {
-var isPWA = false;
-
-try {
-isPWA =
-window.navigator.standalone === true ||
-window.matchMedia('(display-mode: standalone)').matches;
-} catch(e) {}
-
-_writeLog('step', 'gSignIn start isPWA:' + isPWA);
+ _writeLog('step', 'gSignIn start isPWA:' + isPWA);
 
 await loadGSI();
 
-google.accounts.id.initialize({
-client_id: '你的_CLIENT_ID',
-ux_mode: isPWA ? 'redirect' : 'popup',
-login_uri: 'https://n3a209-leon.github.io/homework-tracker',
+return new Promise((res, rej) => {
 
-```
-callback: function(response) {
-  if (response && response.credential) {
-    handleCredentialResponse(response.credential);
-  }
-}
-```
-
-);
-
-google.accounts.id.prompt();
-}
-
+  var timeout = setTimeout(function() {
+    rej(new Error('登入逾時'));
+  }, 30000);
 
     try {
+
       const client = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: resp => {
+
+        callback: function(resp) {
+
           clearTimeout(timeout);
-          if (resp.error) { rej(new Error(resp.error)); return; }
+
+          if (resp.error) {
+            rej(new Error(resp.error));
+            return;
+          }
+
           accessToken = resp.access_token;
+
           safeSet('hw5ren:tok', accessToken);
+
           _writeLog('step', 'gSignIn success');
+
           res(accessToken);
         },
+
         error_callback: function(err) {
+
           clearTimeout(timeout);
-          _writeLog('error', 'gSignIn error: ' + JSON.stringify(err));
-          if (err && err.type === 'popup_closed') {
-            rej(new Error('登入視窗已關閉，請重試。'));
-          } else if (err && err.type === 'popup_blocked') {
-            rej(new Error(
-              isPWA
-                ? 'PWA 模式無法開啟登入視窗。\n\n解決方法：\n1. 用 Safari 瀏覽器開啟此 App\n2. 登入 Google\n3. 登入成功後再加到主畫面'
-                : '登入視窗被封鎖，請允許彈出視窗後重試。'
-            ));
-          } else {
-            rej(new Error(err ? (err.message || err.type || JSON.stringify(err)) : '登入失敗'));
-          }
+
+          rej(
+            new Error(
+              err
+                ? (err.message || err.type || JSON.stringify(err))
+                : '登入失敗'
+            )
+          );
         }
       });
+
       client.requestAccessToken();
+
     } catch(e) {
+
       clearTimeout(timeout);
+
       rej(e);
     }
   });
 }
+   
 async function findDriveFile(year, cls) {
   if (!accessToken) return null;
   const name = getDriveFilename(year, cls);
