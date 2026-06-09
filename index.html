@@ -1291,38 +1291,31 @@ debugStep('JS START OK');
 (function() {
   try {
     var lastStatus = localStorage.getItem('hw5ren:alive');
-    var lastLog = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}');
+    var lastLog = {};
+  try { lastLog = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}') || {}; } catch(e) {
+    localStorage.removeItem('hw5ren:debugLog');
+  }
 
     // 若上次啟動沒有正常完成（白屏/崩潰）
     if (lastStatus === 'loading' || lastStatus === 'crashed') {
-      var crashMsg = '⚠️ 上次啟動異常（可能白屏）
-
-';
-      crashMsg += '上次記錄時間：' + (lastLog.ts || '未知') + '
-';
+      var nl = '\n';
+      var crashMsg = '\u26A0\uFE0F 上次啟動異常（可能白屏）' + nl + nl;
+      crashMsg += '上次記錄時間：' + (lastLog.ts || '未知') + nl;
 
       if (lastLog.errors && lastLog.errors.length > 0) {
-        crashMsg += '
-=== 錯誤記錄 ===
-';
+        crashMsg += nl + '=== 錯誤記錄 ===' + nl;
         lastLog.errors.forEach(function(e) {
-          crashMsg += '[' + e.t + '] ' + e.msg + '
-';
+          crashMsg += '[' + e.t + '] ' + e.msg + nl;
         });
       }
       if (lastLog.steps && lastLog.steps.length > 0) {
-        crashMsg += '
-=== 最後操作步驟 ===
-';
+        crashMsg += nl + '=== 最後操作步驟 ===' + nl;
         lastLog.steps.slice(-10).forEach(function(s) {
-          crashMsg += '[' + s.t + '] ' + s.msg + '
-';
+          crashMsg += '[' + s.t + '] ' + s.msg + nl;
         });
       }
       if (!lastLog.errors || lastLog.errors.length === 0) {
-        crashMsg += '
-沒有捕捉到 JS 錯誤。
-可能原因：Safari 記憶體不足強制終止。';
+        crashMsg += nl + '沒有捕捉到 JS 錯誤。' + nl + '可能原因：Safari 記憶體不足強制終止。';
       }
 
       // 顯示在畫面上（不等 React）
@@ -1455,18 +1448,11 @@ async function gSignIn() {
 
   if (isPWA) {
     throw new Error(
-      'PWA 模式無法登入 Google。
-
-' +
-      '請依以下步驟操作：
-' +
-      '1. 用 Safari 瀏覽器開啟此網址
-' +
-      '2. 點「使用 Google 帳號登入」
-' +
-      '3. 登入完成後，再加到主畫面
-
-' +
+      'PWA 模式無法登入 Google。\n\n' +
+      '請依以下步驟操作：\n' +
+      '1. 用 Safari 瀏覽器開啟此網址\n' +
+      '2. 點「使用 Google 帳號登入」\n' +
+      '3. 登入完成後，再加到主畫面\n\n' +
       '加到主畫面後，Token 會自動保留，不需要再登入。'
     );
   }
@@ -1482,9 +1468,7 @@ async function gSignIn() {
       _writeLog('error', 'gSignIn timeout isPWA:' + isPWA);
       rej(new Error(
         isPWA
-          ? 'PWA 模式登入逾時。
-
-請改用 Safari 瀏覽器（非主畫面）開啟此網址登入後，再加回主畫面。'
+          ? 'PWA 模式登入逾時。\n\n請改用 Safari 瀏覽器（非主畫面）開啟此網址登入後，再加回主畫面。'
           : '登入逾時，請重試。'
       ));
     }, 30000);
@@ -1509,12 +1493,7 @@ async function gSignIn() {
           } else if (err && err.type === 'popup_blocked') {
             rej(new Error(
               isPWA
-                ? 'PWA 模式無法開啟登入視窗。
-
-解決方法：
-1. 用 Safari 瀏覽器開啟此 App
-2. 登入 Google
-3. 登入成功後再加到主畫面'
+                ? 'PWA 模式無法開啟登入視窗。\n\n解決方法：\n1. 用 Safari 瀏覽器開啟此 App\n2. 登入 Google\n3. 登入成功後再加到主畫面'
                 : '登入視窗被封鎖，請允許彈出視窗後重試。'
             ));
           } else {
@@ -1548,26 +1527,52 @@ async function saveDrive(snapshot) {
   if (driveFileId) {
     form.append('metadata', new Blob([JSON.stringify({name})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    return r.ok;
+    const ctrl1 = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const t1 = setTimeout(function(){ if(ctrl1) ctrl1.abort(); }, 10000);
+    try {
+      const fetchOpts1 = {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form};
+      if (ctrl1) fetchOpts1.signal = ctrl1.signal;
+      const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", fetchOpts1);
+      clearTimeout(t1);
+      return r.ok;
+    } catch(e) { clearTimeout(t1); throw e; }
   } else {
     form.append('metadata', new Blob([JSON.stringify({name,mimeType:'application/json'})], {type:'application/json'}));
     form.append('file', blob);
-    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form});
-    if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
-    return false;
+    const ctrl2 = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const t2 = setTimeout(function(){ if(ctrl2) ctrl2.abort(); }, 10000);
+    try {
+      const fetchOpts2 = {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form};
+      if (ctrl2) fetchOpts2.signal = ctrl2.signal;
+      const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', fetchOpts2);
+      clearTimeout(t2);
+      if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
+      return false;
+    } catch(e) { clearTimeout(t2); throw e; }
   }
 }
 async function loadDrive(year, cls) {
   const stored = safeGet('hw5ren:tok');
   if (stored) accessToken = stored;
   if (!accessToken) return null;
-  const fid = await findDriveFile(year, cls);
-  if (!fid) return null;
-  const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", {headers:{'Authorization':'Bearer '+accessToken}});
-  if (r.ok) return r.json();
-  if (r.status === 401) { accessToken = null; safeRemove('hw5ren:tok'); }
-  return null;
+  // 8 秒總超時
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = setTimeout(function() { if (ctrl) ctrl.abort(); }, 8000);
+  try {
+    const fid = await findDriveFile(year, cls);
+    if (!fid) { clearTimeout(timer); return null; }
+    const fetchOpts = { headers: {'Authorization': 'Bearer '+accessToken} };
+    if (ctrl) fetchOpts.signal = ctrl.signal;
+    const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", fetchOpts);
+    clearTimeout(timer);
+    if (r.ok) return r.json();
+    if (r.status === 401) { accessToken = null; safeRemove('hw5ren:tok'); }
+    return null;
+  } catch(e) {
+    clearTimeout(timer);
+    _writeLog('error', 'loadDrive: ' + String(e).slice(0,80));
+    return null;
+  }
 }
 window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
@@ -1693,11 +1698,21 @@ const DEFAULT_GROUPS = [
 function loadGroups() {
     try {
         const s = safeGet("hw5ren:groups");
-        if (s)
-            return JSON.parse(s);
+        if (!s) return DEFAULT_GROUPS;
+        const parsed = JSON.parse(s);
+        // 驗證格式：必須是陣列且每個元素有 id/members
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id && parsed[0].members) {
+            return parsed;
+        }
+        // 格式不對，清除損壞資料
+        _writeLog('error', 'loadGroups: invalid format, using default');
+        try { localStorage.removeItem('hw5ren:groups'); } catch(e) {}
+        return DEFAULT_GROUPS;
+    } catch(e) {
+        _writeLog('error', 'loadGroups parse error: ' + String(e).slice(0,60));
+        try { localStorage.removeItem('hw5ren:groups'); } catch(ex) {}
+        return DEFAULT_GROUPS;
     }
-    catch (_a) { }
-    return DEFAULT_GROUPS;
 }
 const PRESET_HW = ["國習", "數習", "國乙", "國甲", "聽寫", "小日記", "小作文", "作文段落", "作文", "數習題", "國卷", "數卷", "聯絡簿", "回條", "國習題"];
 const MAX_ROWS = 6;
@@ -1723,29 +1738,43 @@ const DB_NAME = "hw5ren_db";
 const DB_STORE = "dayData";
 let _db = null;
 function openDB() {
-    debugStep('INDEXEDDB START');
-    // Safari guard: 若 IDB 不可用直接 reject（會被上層 catch 處理）
-    if (!_idbAvailable) { debugStep('INDEXEDDB UNSUPPORTED'); return Promise.reject(new Error("IDB not available")); }
-    // 若 _db 存在且連線未關閉，直接回傳
+    if (!_idbAvailable) return Promise.reject(new Error("IDB not available"));
     if (_db) {
-        try {
-            _db.transaction(DB_STORE, "readonly").abort();
-            return Promise.resolve(_db);
-        }
-        catch (_a) {
-            _db = null;
-        }
+        try { _db.transaction(DB_STORE, "readonly").abort(); return Promise.resolve(_db); }
+        catch (_a) { _db = null; }
     }
     return new Promise((resolve, reject) => {
+        var settled = false;
+        function done(val, err) {
+            if (settled) return;
+            settled = true;
+            if (err) reject(err); else resolve(val);
+        }
+        // 4 秒硬超時，防止 Safari Private Browse 永遠卡死
+        var timer = setTimeout(function() {
+            done(null, new Error("IDB open timeout"));
+        }, 4000);
         try {
-            const req = indexedDB.open(DB_NAME, 1);
-            req.onupgradeneeded = e => { try { e.target.result.createObjectStore(DB_STORE); } catch(ex){} };
-            req.onsuccess = e => { _db = e.target.result; debugStep('INDEXEDDB READY'); resolve(_db); };
-            req.onerror = e => reject(e.target.error);
-            // Safari 有時在 Private Browse 下不會觸發 onsuccess/onerror
-            setTimeout(() => { if (!_db) reject(new Error("IDB timeout")); }, 5000);
+            var req = indexedDB.open(DB_NAME, 1);
+            req.onupgradeneeded = function(e) {
+                try { e.target.result.createObjectStore(DB_STORE); } catch(ex) {}
+            };
+            req.onsuccess = function(e) {
+                clearTimeout(timer);
+                _db = e.target.result;
+                done(_db);
+            };
+            req.onerror = function(e) {
+                clearTimeout(timer);
+                done(null, e.target.error);
+            };
+            req.onblocked = function() {
+                clearTimeout(timer);
+                done(null, new Error("IDB blocked"));
+            };
         } catch(ex) {
-            reject(ex);
+            clearTimeout(timer);
+            done(null, ex);
         }
     });
 }
@@ -2799,11 +2828,15 @@ function App() {
     // ── 多班級管理 ────────────────────────────────────────────────
     const [classes, setClasses] = useState(() => {
         try {
-            const stored = safeJSON(safeGet("hw5ren:classes"), null);
-            if (stored && stored.length > 0) {
-                // 過濾掉明顯的測試資料（school 為空或 id 格式不對）
-                const valid = stored.filter(c => c && c.year && c.className);
-                if (valid.length > 0) return valid;
+            const raw = safeGet("hw5ren:classes");
+            if (raw) {
+                const stored = safeJSON(raw, null);
+                if (Array.isArray(stored) && stored.length > 0) {
+                    const valid = stored.filter(c => c && c.year && c.className && typeof c.year === 'string');
+                    if (valid.length > 0) return valid;
+                }
+                // 損壞資料：清除並重建
+                try { localStorage.removeItem('hw5ren:classes'); } catch(ex) {}
             }
             // 從現有資料自動建立第一筆
             const cn = safeGet("hw5ren:className") || "";
@@ -2811,11 +2844,14 @@ function App() {
             const sy = safeGet("hw5ren:year") || String(new Date().getFullYear());
             if (cn || sn) {
                 const cls = [{ id: sy+"_"+cn, year: sy, school: sn, className: cn, createdAt: new Date().toLocaleDateString("zh-TW") }];
-                _sl.set("hw5ren:classes", JSON.stringify(cls));
+                try { _sl.set("hw5ren:classes", JSON.stringify(cls)); } catch(ex) {}
                 return cls;
             }
             return [];
-        } catch(e) { return []; }
+        } catch(e) {
+            _writeLog('error', 'classes init: ' + String(e).slice(0,60));
+            return [];
+        }
     });
     const [activeClassId, setActiveClassId] = useState(() => safeGet("hw5ren:activeClass") || "");
     const [showClassDropdown, setShowClassDropdown] = useState(false);
@@ -3665,7 +3701,8 @@ function App() {
                 React.createElement("button", { className: "excel-btn diag-btn", onClick: async () => {
                     // 顯示白屏診斷日誌
                     try {
-                        var log = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}');
+                        var log = {};
+                    try { log = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}') || {}; } catch(e) { log = {}; }
                         var out = '=== 白屏診斷日誌 ===\n';
                         out += '記錄時間：' + (log.ts || '未知') + '\n';
                         out += (log.note ? '備註：' + log.note + '\n' : '');
