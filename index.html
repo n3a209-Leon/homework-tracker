@@ -1208,6 +1208,19 @@ debugStep('JS START');
 
 // PWA standalone 模式偵測
 var _isPWA = false;
+
+// 記錄頁面 visibility change（iOS PWA 切背景時的觸發點）
+document.addEventListener('visibilitychange', function() {
+  try {
+    _writeLog('step', 'visibility:' + document.visibilityState);
+  } catch(e) {}
+});
+window.addEventListener('pagehide', function() {
+  try { _writeLog('step', 'pagehide'); } catch(e) {}
+});
+window.addEventListener('pageshow', function(e) {
+  try { _writeLog('step', 'pageshow persisted:' + e.persisted); } catch(e) {}
+});
 try {
   _isPWA = window.navigator.standalone === true ||
            window.matchMedia('(display-mode: standalone)').matches;
@@ -1271,6 +1284,81 @@ window.onunhandledrejection = _rej;
 try { window.addEventListener('unhandledrejection', _rej); } catch(e) {}
 
 // visibility fallback 已移除（改用 error-overlay 不覆蓋 body）
+
+debugStep('JS START OK');
+
+// ── 崩潰偵測系統 ─────────────────────────────────────────────
+(function() {
+  try {
+    var lastStatus = localStorage.getItem('hw5ren:alive');
+    var lastLog = JSON.parse(localStorage.getItem('hw5ren:debugLog') || '{}');
+
+    // 若上次啟動沒有正常完成（白屏/崩潰）
+    if (lastStatus === 'loading' || lastStatus === 'crashed') {
+      var crashMsg = '⚠️ 上次啟動異常（可能白屏）
+
+';
+      crashMsg += '上次記錄時間：' + (lastLog.ts || '未知') + '
+';
+
+      if (lastLog.errors && lastLog.errors.length > 0) {
+        crashMsg += '
+=== 錯誤記錄 ===
+';
+        lastLog.errors.forEach(function(e) {
+          crashMsg += '[' + e.t + '] ' + e.msg + '
+';
+        });
+      }
+      if (lastLog.steps && lastLog.steps.length > 0) {
+        crashMsg += '
+=== 最後操作步驟 ===
+';
+        lastLog.steps.slice(-10).forEach(function(s) {
+          crashMsg += '[' + s.t + '] ' + s.msg + '
+';
+        });
+      }
+      if (!lastLog.errors || lastLog.errors.length === 0) {
+        crashMsg += '
+沒有捕捉到 JS 錯誤。
+可能原因：Safari 記憶體不足強制終止。';
+      }
+
+      // 顯示在畫面上（不等 React）
+      var banner = document.createElement('div');
+      banner.id = 'crash-banner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999999;' +
+        'background:#1a0000;color:#ff9999;padding:12px 14px;font-size:12px;' +
+        'font-family:monospace;white-space:pre-wrap;max-height:60vh;overflow-y:auto;' +
+        'border-bottom:2px solid #ff4444;box-shadow:0 4px 20px rgba(0,0,0,.8)';
+      banner.textContent = crashMsg;
+
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕ 關閉並繼續';
+      closeBtn.style.cssText = 'display:block;margin-top:10px;padding:6px 16px;' +
+        'background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);' +
+        'color:#fff;border-radius:6px;cursor:pointer;font-size:13px;font-family:sans-serif';
+      closeBtn.onclick = function() {
+        banner.style.display = 'none';
+        localStorage.setItem('hw5ren:alive', 'dismissed');
+      };
+      banner.appendChild(closeBtn);
+
+      // 等 body ready
+      if (document.body) {
+        document.body.appendChild(banner);
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.appendChild(banner);
+        });
+      }
+    }
+
+    // 標記本次啟動中
+    localStorage.setItem('hw5ren:alive', 'loading');
+  } catch(e) {}
+})();
 
 debugStep('JS START OK');
 </script>
@@ -2591,11 +2679,21 @@ function App() {
     var _a, _b, _c, _d, _e;
     // Render complete marker（mount 後）
     useEffect(function() {
-        try { window._appReady = true; } catch(e) {}
-        _writeLog('step', 'App mounted');
+        try {
+            window._appReady = true;
+            localStorage.setItem('hw5ren:alive', 'ok'); // 正常啟動完成
+            // 隱藏崩潰 banner（如果有）
+            var banner = document.getElementById('crash-banner');
+            if (banner) banner.style.display = 'none';
+        } catch(e) {}
+        _writeLog('step', 'App mounted OK');
     }, []);
     const [view, setViewRaw] = useState("month");
-    function setView(v) { _writeLog('step', 'view→' + v); setViewRaw(v); }
+    function setView(v) {
+        _writeLog('step', 'view→' + v);
+        try { localStorage.setItem('hw5ren:lastView', v); } catch(e) {}
+        setViewRaw(v);
+    }
     const [groups, setGroups] = useState(() => {
         var g = loadGroups();
         try { window._fallbackGroups = g; } catch(e) {}
