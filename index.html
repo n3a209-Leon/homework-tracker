@@ -1205,7 +1205,11 @@ function debugStep(step) {
   } catch(e) {}
 }
 debugStep('JS START');
-
+function _writeLog(type, msg) {
+  try {
+    console.log('[LOG]', type, msg);
+  } catch(e) {}
+}
 // PWA standalone 模式偵測
 var _isPWA = false;
 
@@ -1695,6 +1699,7 @@ const DEFAULT_GROUPS = [
     { id: 4, label: "第四組", members: [15, 27, 13, 18, 22], leader: 15, secretary: 27 },
     { id: 5, label: "第五組", members: [23, 19, 16, 24, 1, 20], leader: 23, secretary: 19 },
 ];
+          
 function loadGroups() {
     try {
         const s = safeGet("hw5ren:groups");
