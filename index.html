@@ -1174,26 +1174,16 @@
 <script>
 window._writeLog = function(type, msg) {
   try {
-    console.log(
-      '[' + String(type).toUpperCase() + ']',
-      msg
-    );
+    try { console.log('[' + String(type).toUpperCase() + '] ' + msg); } catch(e) {}
   } catch(e) {}
 };
 
 window.onerror = function(msg, src, line, col, err) {
-  window._writeLog(
-    'fatal',
-    String(msg) +
-    ' @' + line + ':' + col
-  );
+  try { window._writeLog('fatal', String(msg) + ' @' + line + ':' + col); } catch(e) {}
 };
 
 window.onunhandledrejection = function(e) {
-  window._writeLog(
-    'promise',
-    String(e.reason)
-  );
+  try { window._writeLog('promise', String(e && e.reason ? e.reason : e)); } catch(ex) {}
 };
 
 function showError(msg, color) {
