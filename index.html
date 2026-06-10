@@ -1479,7 +1479,7 @@ function safeKey(i) {
 }
 window._safeLS = { get: safeGet, set: safeSet, remove: safeRemove, length: safeLength, key: safeKey };
 
-const CLIENT_ID = '587833882314-pp9ig9k5of9cnbk1aek44lferujlpcs7.apps.googleusercontent.com';
+// Google OAuth 已改用 Firebase Auth
 function getDriveFilename(year, cls) {
   if (!year && !cls) return 'hw-5renren-ALL.json';
   const safe = (cls||'').replace(/\s/g,'').slice(0,10);
@@ -2869,7 +2869,13 @@ function App() {
         });
 
         // 監聽登入狀態
+        var _authTimer = setTimeout(function() {
+            setAuthLoading(false);
+            try { window._writeLog && window._writeLog('step', 'Firebase auth timeout'); } catch(e) {}
+        }, 5000);
+
         var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+            clearTimeout(_authTimer);
             if (user) {
                 _writeLog && _writeLog('step', 'Firebase user: ' + user.email);
                 setFirebaseUid(user.uid);
@@ -3459,8 +3465,20 @@ function App() {
         const wd = new Date(+y, +m - 1, +d).getDay();
         return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
     }
+    // 等待 Firebase 確認登入狀態
+    if (authLoading) {
+        return (React.createElement("div", { style: {
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            height: '100vh', background: '#0a0e1a', flexDirection: 'column', gap: 16,
+            position: 'relative', zIndex: 10
+        }},
+            React.createElement("div", { style: { width: 40, height: 40, border: '3px solid rgba(255,255,255,.1)', borderTop: '3px solid #6c8ebf', borderRadius: '50%', animation: 'spin 1s linear infinite' } }),
+            React.createElement("p", { style: { color: 'rgba(255,255,255,.5)', fontSize: 14 } }, '確認登入狀態...')
+        ));
+    }
+
     if (!authed) {
-        return (React.createElement("div", { className: "app", "data-theme": theme, style: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: isNerv ? "#050200" : "linear-gradient(160deg,#1e3a5f,#2d5a8e)", padding: "40px 24px" } },
+        return (React.createElement("div", { className: "app", "data-theme": theme, style: { minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: isNerv ? "#050200" : "linear-gradient(160deg,#1e3a5f,#2d5a8e)", padding: "40px 24px", position: "relative", zIndex: 10 } },
             React.createElement("div", { style: { fontSize: 64, marginBottom: 16 } }, isNerv ? "⬡" : "📋"),
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
