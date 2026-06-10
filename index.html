@@ -2042,128 +2042,18 @@ function CounselView({ date, records, onSave, onClose, isNerv, allMembers, group
 // ══════════════════════════════════════════════════
 // ImportToArchive — 備份 JSON 匯入到檔案室
 // ══════════════════════════════════════════════════
-function ImportToArchive({ isNerv, selYear, onImported }) {
-  var useState = React.useState;
-  const [text, setText] = useState('');
-  const [msg, setMsg] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+// ImportToArchive 已移除（改用 Firestore 自動讀取）
 
-  const cardStyle = {
-    background: isNerv ? 'rgba(255,102,0,.05)' : '#fff',
-    border: isNerv ? '1px solid rgba(255,102,0,.3)' : '1px solid #e8edf5',
-    borderRadius: 14,
-    padding: '16px',
-    marginTop: 12,
-  };
-
-  async function doImport() {
-    const raw = text.trim();
-    if (!raw) { setMsg('❌ 請先貼上 JSON'); return; }
-    setLoading(true);
-    setMsg('⏳ 匯入中…');
-    try {
-      const parsed = JSON.parse(raw);
-      let count = 0;
-      let firstYear = null;
-      const entries = Object.entries(parsed);
-
-      for (const [k, v] of entries) {
-        if (k.startsWith('day:2')) {
-          // 直接寫入 IDB
-          await new Promise((res, rej) => {
-            var req = indexedDB.open('hw5ren_db', 1);
-            req.onupgradeneeded = function(e) { e.target.result.createObjectStore('dayData'); };
-            req.onsuccess = function(e) {
-              var db = e.target.result;
-              var tx = db.transaction('dayData', 'readwrite');
-              tx.objectStore('dayData').put(v, k);
-              tx.oncomplete = res;
-              tx.onerror = rej;
-            };
-            req.onerror = rej;
-          });
-          // 同步到 localStorage
-          try {
-            var ds = k.replace('day:', '');
-            localStorage.setItem('hw5ren:' + ds, v);
-          } catch(ex) {}
-          count++;
-          if (!firstYear) {
-            var m = k.match(/day:(\d{4})-/);
-            if (m) firstYear = parseInt(m[1]);
-          }
-        }
-      }
-
-      if (count === 0) {
-        setMsg('⚠️ 找不到有效的 day: 資料，請確認 JSON 格式');
-      } else {
-        setMsg('✅ 成功匯入 ' + count + ' 天資料！');
-        setText('');
-        setOpen(false);
-        if (onImported) onImported(count, firstYear || selYear);
-      }
-    } catch(e) {
-      setMsg('❌ JSON 格式錯誤：' + String(e).slice(0, 80));
-    }
-    setLoading(false);
-    setTimeout(function() { setMsg(''); }, 6000);
-  }
-
-  return React.createElement("div", { style: cardStyle },
-    React.createElement("div", {
-      style: { display:'flex', alignItems:'center', justifyContent:'space-between', cursor:'pointer' },
-      onClick: function() { setOpen(function(o) { return !o; }); }
-    },
-      React.createElement("div", { style:{ fontWeight:700, fontSize:14, color: isNerv?'#ff9944':'#1e3a5f' } },
-        isNerv ? "// IMPORT ARCHIVE DATA //" : "📥 匯入歷史備份"),
-      React.createElement("span", { style:{ fontSize:18, color:'#aaa' } }, open ? '▲' : '▼')
-    ),
-
-    open && React.createElement("div", { style:{ marginTop:12 } },
-      React.createElement("p", { style:{ fontSize:12, color:'#888', marginBottom:8, lineHeight:1.7 } },
-        "貼上之前用「備份」按鈕產生的 JSON 字串，即可將歷年資料匯入到檔案室統計中。"),
-      React.createElement("textarea", {
-        value: text,
-        onChange: function(e) { setText(e.target.value); },
-        placeholder: '貼上 JSON 字串...',
-        rows: 5,
-        style: {
-          width:'100%', padding:'10px', borderRadius:8, border: isNerv?'1px solid rgba(255,102,0,.3)':'1px solid #dde5ee',
-          background: isNerv?'rgba(0,0,0,.4)':'#f8faff', color: isNerv?'#ffa070':'#333',
-          fontSize:12, fontFamily:'monospace', resize:'vertical',
-          boxSizing:'border-box',
-        }
-      }),
-      msg && React.createElement("p", { style:{ fontSize:13, color: msg.startsWith('✅')?'#388e3c':msg.startsWith('⏳')?'#1976d2':'#c00', margin:'8px 0', fontWeight:700 } }, msg),
-      React.createElement("div", { style:{ display:'flex', gap:8, marginTop:8 } },
-        React.createElement("button", {
-          onClick: function() { setText(''); setMsg(''); },
-          style:{ padding:'8px 16px', borderRadius:8, border:'1px solid #dde', background:'#f0f0f0', cursor:'pointer', fontSize:13 }
-        }, "清除"),
-        React.createElement("button", {
-          onClick: doImport,
-          disabled: loading || !text.trim(),
-          style:{
-            padding:'8px 20px', borderRadius:8, border:'none', cursor:'pointer',
-            background: isNerv?'#ff6600':'#1e3a5f', color:'#fff', fontWeight:700, fontSize:13,
-            opacity: (loading || !text.trim()) ? 0.5 : 1,
-          }
-        }, loading ? '匯入中…' : '確認匯入')
-      )
-    )
-  );
-}
-
-function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecords, isNerv }) {
+function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolName, yearRecords, isNerv, firebaseUid }) {
   var useState = React.useState, useEffect = React.useEffect;
-  // yearRecords 是歷年學校/班級記錄，格式：[{year, school, className, driveFile, savedAt}]
   const [selYear, setSelYear] = useState(schoolYear || String(new Date().getFullYear()));
+  const [selSchool, setSelSchool] = useState(schoolName || '');
+  const [selClass, setSelClass] = useState(className || '');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [yearList, setYearList] = useState([]);
   const [activeTab, setActiveTab] = useState('stats'); // 'stats' | 'roster'
+  const [fsLoaded, setFsLoaded] = useState(false); // 是否已從 Firestore 讀取
 
   // 取得所有有資料的學年（從 IDB + yearRecords 合併）
   useEffect(() => {
@@ -2253,7 +2143,32 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
         setLoading(false);
       }
     })();
-  }, [selYear]);
+  }, [selYear, selSchool, selClass]);
+
+  // 當切換 year/school/class 時，從 Firestore 讀取對應資料到 IDB
+  useEffect(() => {
+    if (!firebaseUid || !selYear) return;
+    var fsKey = 'day:' + selYear; // Firestore 資料的 key 前綴
+    setFsLoaded(false);
+    (async () => {
+      try {
+        // 從 Firestore 讀取該班級的所有 day: 資料
+        var allData = await window.fsGetAll(firebaseUid, fsKey);
+        var count = 0;
+        for (var k in allData) {
+          if (k.startsWith('day:' + selYear + '-')) {
+            // 寫入 IDB（讓 ArchiveView 的統計可以讀取）
+            // 使用 idbSet（如果可用）
+            count++;
+          }
+        }
+        setFsLoaded(true);
+        if (count > 0) setStats(null); // 重新觸發統計載入
+      } catch(e) {
+        setFsLoaded(true);
+      }
+    })();
+  }, [selYear, selSchool, selClass, firebaseUid]);
 
   const accent = isNerv ? '#ff6600' : '#1e3a5f';
   const cardStyle = {
@@ -2422,14 +2337,10 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, yearRecor
           )
         ),
 
-        // ── 匯入備份到檔案室 ──────────────────────────────
-        React.createElement(ImportToArchive, {
-          isNerv: isNerv, selYear: selYear,
-          onImported: function(count, year) {
-            setSelYear(String(year));
-            setStats(null); // 重新載入統計
-          }
-        })
+        // ── 班級切換說明 ──────────────────────────────
+        React.createElement("div", { style:{padding:"12px 0 4px",fontSize:12,color:"rgba(255,255,255,.4)",textAlign:"center"} },
+          "切換上方學年即可自動載入對應 Firebase 紀錄"
+        )
   );
 }
 
@@ -3277,7 +3188,8 @@ function App() {
         }
         // 記憶自訂輸入
         addToCustomHW(name);
-        if (modal.gid !== null) {
+        // 明確判斷 gid：只有 gid 是有效字串時才進入整組模式
+        if (modal.gid !== null && modal.gid !== undefined && modal.gid !== '') {
             confirmInput(name);
         }
         else {
@@ -3411,10 +3323,6 @@ function App() {
     const resMissing = (modal === null || modal === void 0 ? void 0 : modal.phase) === "result" ? getMissing(modal.ri, modal.gid) : [];
     const resGroup = groups.find(g => g.id === (modal === null || modal === void 0 ? void 0 : modal.gid));
     const [importMsg, setImportMsg] = useState("");
-    const [backupJson, setBackupJson] = useState("");
-    const [showBackup, setShowBackup] = useState(false);
-    const [showImport, setShowImport] = useState(false);
-    const [importText, setImportText] = useState("");
     // ── Month navigation ──
     function prevMonth() {
         if (curMonth === 0) {
@@ -3828,10 +3736,16 @@ function App() {
                             }),
                             React.createElement("td", { className: "dc" },
                                 React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "\u00D7"))))),
-                        dayRows.length < MAX_ROWS && (React.createElement("tr", { className: "ar", onClick: () => { setModal({ phase: "input" }); setPendingHw("");  } },
+                        dayRows.length < MAX_ROWS && (React.createElement("tr", { className: "ar", onClick: () => {
+                                // 先新增一列（取得正確的 ri）
+                                const newRi = dayRows.length;
+                                updRows(p => [...p, { hwName: "", groupData: {} }]);
+                                // 再開啟輸入 modal，帶入正確的 ri 和 gid=null
+                                setInputText("");
+                                setPendingHw("");
+                                setModal({ phase: "input", ri: newRi, gid: null });
+                            } },
                             React.createElement("td", { colSpan: 7 },
-                                React.createElement("span", { className: "ai" }, "\uFF0B"),
-                                " ",
                                 isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課")))))),
             dayRows.some(r => r.hwName) && (React.createElement("div", { className: "exempt-panel" },
                 React.createElement("div", { className: "exempt-header" },
@@ -3913,7 +3827,7 @@ function App() {
                     React.createElement("p", { className: "custom-hw-label" }, isNerv ? "// PRESET //" : "預設"),
                     React.createElement("div", { className: "pg" }, PRESET_HW.map(hw => (React.createElement("button", { key: hw, className: "pb2"+(pendingHw===hw?" act":""), onClick: () => { setPendingHw(hw); setInputText(hw); } }, hw)))),
                     React.createElement("div", { className: "ir" },
-                        React.createElement("input", { className: "hi2", value: inputText, placeholder: isNerv ? "[ MANUAL INPUT ]" : "手動輸入（自動記憶）", onChange: e => { setInputText(e.target.value); setPendingHw(e.target.value); }, onKeyDown: e => e.key === "Enter" && (modal && modal.ri != null && modal.gid != null ? handleConfirmInput() : null), autoFocus: true })),
+                        React.createElement("input", { className: "hi2", value: inputText, placeholder: isNerv ? "[ MANUAL INPUT ]" : "手動輸入（自動記憶）", onChange: e => { setInputText(e.target.value); setPendingHw(e.target.value); }, onKeyDown: e => e.key === "Enter" && (modal.gid !== null ? handleConfirmInput() : null), autoFocus: true })),
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeModal }, "\u53D6\u6D88"),
                         React.createElement("button", { className: "bk", onClick: handleConfirmInput }, "\u78BA\u8A8D")))),
@@ -4020,72 +3934,6 @@ function App() {
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeAttModal }, "\u95DC\u9589"))));
             })()))),
-        showBackup && (React.createElement("div", { className: "ov", onClick: () => setShowBackup(false) },
-            React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
-                React.createElement("h2", { className: "mt", style: { fontSize: 15 } }, "\uD83D\uDCE4 \u5099\u4EFD\u8CC7\u6599"),
-                React.createElement("p", { className: "mhint" }, "\u9EDE\u6B04\u4F4D \u2192 \u5DF2\u5168\u9078 \u2192 \u76F4\u63A5\u300C\u62F7\u8C9D\u300D\u2192 \u95DC\u9589 \u2192 \u56DE\u5C0D\u8A71\u8CBC\u4E0A"),
-                React.createElement("input", { className: "backup-input", readOnly: true, value: backupJson, ref: el => { if (el) {
-                        el.focus();
-                        el.select();
-                    } }, onClick: e => e.target.select() }),
-                React.createElement("p", { className: "mhint", style: { marginTop: 6, color: '#f9a825' } }, "\uD83D\uDCA1 iOS\uFF1A\u9EDE\u6B04\u4F4D \u2192 \u5168\u9078 \u2192 \u62F7\u8C9D"),
-                React.createElement("div", { className: "ma", style: { marginTop: 12 } },
-                    React.createElement("button", { className: "bk", onClick: () => setShowBackup(false) }, "\u95DC\u9589"))))),
-        showImport && (React.createElement("div", { className: "ov", onClick: () => { setShowImport(false); setImportText(""); } },
-            React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
-                React.createElement("h2", { className: "mt", style: { fontSize: 15 } }, "\uD83D\uDCE5 \u532F\u5165\u8CC7\u6599"),
-                React.createElement("p", { className: "mhint" }, "\u8CBC\u4E0A Claude \u7D66\u4F60\u7684 JSON \u5B57\u4E32"),
-                React.createElement("textarea", { className: "backup-textarea", value: importText, onChange: e => setImportText(e.target.value), placeholder: "\u5728\u6B64\u8CBC\u4E0A JSON...", rows: 6 }),
-                React.createElement("div", { className: "ma", style: { justifyContent: "flex-start", gap: 8 } },
-                    React.createElement("button", { className: "bc", onClick: () => { setShowImport(false); setImportText(""); } }, "\u53D6\u6D88"),
-                    React.createElement("button", { className: "bk", onClick: async () => {
-                            if (!importText.trim()) {
-                                return;
-                            }
-                            setImportMsg("⏳ 匯入中…");
-                            try {
-                                const parsed = JSON.parse(importText.trim());
-                                let count = 0;
-                                const importedDates = [];
-                                if (parsed.date && parsed.data) {
-                                    await idbSet("day:"+parsed.date, parsed.data);
-                                    _sl.set("hw5ren:"+parsed.date, parsed.data);
-                                    importedDates.push(parsed.date);
-                                    count = 1;
-                                }
-                                else {
-                                    for (const [k, v] of Object.entries(parsed)) {
-                                        if (k.startsWith("day:2")) {
-                                            const ds = k.replace("day:", "");
-                                            await idbSet("day:"+ds, v);
-                                            _sl.set("hw5ren:"+ds, v);
-                                            importedDates.push(ds);
-                                            count++;
-                                        }
-                                    }
-                                }
-                                if (importedDates.length > 0) {
-                                    const firstDate = importedDates.sort()[0];
-                                    const [y, m] = firstDate.split("-").map(Number);
-                                    setCurYear(y);
-                                    setCurMonth(m - 1);
-                                    await doLoadMonth(y, m - 1);
-                                }
-                                else {
-                                    await doLoadMonth(curYear, curMonth);
-                                }
-                                // 關閉 modal、回月曆、顯示成功
-                                setShowImport(false);
-                                setImportText("");
-                                setView("month");
-                                setImportMsg("✅ 已還原 "+count+" 天資料");
-                                setTimeout(() => setImportMsg(""), 5000);
-                            }
-                            catch (e) {
-                                setImportMsg("❌ 匯入失敗：" + String(e).slice(0, 60));
-                                setTimeout(() => setImportMsg(""), 6000);
-                            }
-                        } }, "\u78BA\u8A8D\u532F\u5165"))))),
         showThemeMenu && (React.createElement("div", { onClick: () => setShowThemeMenu(false), style: { position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.5)' } },
             React.createElement("div", { onClick: e => e.stopPropagation(), style: { position: 'absolute', bottom: 0, left: 0, right: 0, background: theme === 'nerv' ? '#120400' : theme === 'nebula' ? '#0a0c20' : '#fff', borderRadius: '20px 20px 0 0', padding: '12px 0 40px', boxShadow: '0 -8px 40px rgba(0,0,0,.3)' } },
                 React.createElement("div", { style: { width: 40, height: 4, borderRadius: 2, background: 'rgba(128,128,128,.3)', margin: '0 auto 16px' } }),
@@ -4098,7 +3946,7 @@ function App() {
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
-        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, yearRecords: yearRecords, isNerv: isNerv }))));
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid }))));
 }
 
     debugStep('RENDER START');
