@@ -1166,6 +1166,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script>
+    // Firebase 初始化
+    var firebaseConfig = {
+      apiKey: "AIzaSyAqgA9pYvOduWypEE5kxVNlq9fEfrEMV0c",
+      authDomain: "attendance-pwa-9fa73.firebaseapp.com",
+      projectId: "attendance-pwa-9fa73",
+      storageBucket: "attendance-pwa-9fa73.firebasestorage.app",
+      messagingSenderId: "231697999145",
+      appId: "1:231697999145:web:b92cba42082eb9cc574338"
+    };
+    try {
+      firebase.initializeApp(firebaseConfig);
+    } catch(e) {
+      console.log('Firebase already initialized');
+    }
+  </script>
 </head>
 <body>
 <div id="safari-debug" style="position:fixed;top:0;left:0;right:0;z-index:9999999;background:#c00;color:#fff;padding:8px 12px;font-size:14px;font-family:monospace;letter-spacing:1px;display:none">HTML LOADED</div>
@@ -2958,11 +2977,31 @@ function App() {
     const isNebula = theme === "nebula";
     // ── Drive / Auth ──
     const [authed, setAuthed] = useState(() => {
+        // 先檢查 localStorage token
         var tok = null;
         try { tok = localStorage.getItem('hw5ren:tok'); } catch(e) {}
         if (!tok) { try { tok = safeGet('hw5ren:tok'); } catch(e) {} }
         return !!(tok && tok.length > 20);
     });
+
+    // Firebase 自動登入監聽（補強 token 過期問題）
+    useEffect(function() {
+        if (authed) return; // 已登入就不需要
+        try {
+            if (typeof firebase === 'undefined' || !firebase.auth) return;
+            var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    var tok = null;
+                    try { tok = localStorage.getItem('hw5ren:tok'); } catch(e) {}
+                    if (tok && tok.length > 20) {
+                        _writeLog && _writeLog('step', 'Firebase auto-restore authed');
+                        setAuthed(true);
+                    }
+                }
+            });
+            return function() { try { unsubscribe(); } catch(e) {} };
+        } catch(e) {}
+    }, []);
     const [driveStatus, setDriveStatus] = useState('offline');
     useEffect(() => {
         if (!authed)
