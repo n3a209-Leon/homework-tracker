@@ -1167,10 +1167,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
   <script>
-    // Firebase 初始化
+  (function() {
     var firebaseConfig = {
       apiKey: "AIzaSyAqgA9pYvOduWypEE5kxVNlq9fEfrEMV0c",
       authDomain: "attendance-pwa-9fa73.firebaseapp.com",
@@ -1180,10 +1180,11 @@
       appId: "1:231697999145:web:b92cba42082eb9cc574338"
     };
     try {
-      firebase.initializeApp(firebaseConfig);
-    } catch(e) {
-      console.log('Firebase already initialized');
-    }
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      // 設定 persistence 為 LOCAL（存在 IndexedDB，PWA 和 Safari 共享）
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    } catch(e) {}
+  })();
   </script>
 </head>
 <body>
@@ -2988,8 +2989,9 @@ function App() {
     useEffect(function() {
         if (authed) return;
         try {
-            if (typeof firebase === 'undefined' || !firebase.auth) return;
-            var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+            loadFirebase(function(err) {
+              if (err || typeof firebase === 'undefined' || !firebase.auth) return;
+              var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
                 if (user) {
                     _writeLog && _writeLog('step', 'Firebase auto-auth: ' + (user.email || 'ok'));
                     // Firebase 用戶存在就直接設為已登入
@@ -3002,7 +3004,8 @@ function App() {
                     });
                 }
             });
-            return function() { try { unsubscribe(); } catch(e) {} };
+              return function() { try { unsubscribe(); } catch(e) {} };
+            }); // loadFirebase
         } catch(e) {}
     }, []);
     const [driveStatus, setDriveStatus] = useState('offline');
