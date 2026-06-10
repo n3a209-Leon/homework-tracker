@@ -3468,14 +3468,11 @@ function App() {
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
-
-    
-                    }
                     gSignIn().then(function(tok) {
                         if (tok !== null) setAuthed(true);
                     }).catch(function(err) {
-                        var em = err ? (err.message || String(err)) : '\\u767b\\u5165\\u5931\\u6557';
-                        showError('Google \\u767b\\u5165\\u5931\\u6557\\n\\n' + em, '#1a1a0a');
+                        var em = err ? (err.message || String(err)) : '登入失敗';
+                        showError('Google 登入失敗\\n\\n' + em, '#1a1a0a');
                     });
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
