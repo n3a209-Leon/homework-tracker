@@ -3612,7 +3612,7 @@ function App() {
                         var _t = null;
                         try { _t = localStorage.getItem('hw5ren:tok'); } catch(ex) {}
                         if (_t && _t.length > 20) { setAuthed(true); return; }
-                        showError('PWA\\u6a21\\u5f0f\\u8acb\\u5148\\u5728 Safari \\u700f\\u89bd\\u5668\\u767b\\u5165 Google', '#1a1a0a');
+                        showError('PWA 模式請先在 Safari 瀏覽器登入 Google，再回主畫面打開 App', '#1a1a0a');
                         return;
                     }
                     gSignIn().then(function(tok) {
