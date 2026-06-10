@@ -1497,9 +1497,6 @@ async function gSignIn() {
   return firebase.auth().signInWithRedirect(provider);
 }
 window.gSignIn = gSignIn;
-window.saveDrive = saveDrive;
-window.loadDrive = loadDrive;
-window.getDriveFilename = getDriveFilename;
 debugStep('GOOGLE API READY');
 
 
@@ -1644,8 +1641,8 @@ const COUNSEL_TYPES = ["學習", "行為", "情緒", "人際", "家庭", "其他
 const COUNSEL_FOLLOWUP = ["需追蹤", "已處理", "轉介"];
 // ── Drive stubs（Artifact 模式下不實際連 Drive，PWA 版會覆蓋）──
 const gSignIn = typeof window !== "undefined" && window.gSignIn ? window.gSignIn : async () => { throw new Error("請使用 PWA 版本登入 Google"); };
-const loadDrive = typeof window !== "undefined" && window.loadDrive ? window.loadDrive : async () => null;
-const saveDrive = typeof window !== "undefined" && window.saveDrive ? window.saveDrive : async () => false;
+const loadDrive = async () => null;
+const saveDrive = async () => false;
 const LEAVE_TYPES = [
     { id: "personal", label: "事假", color: "#f57c00", bg: "#fff3e0" },
     { id: "sick", label: "病假", color: "#1565c0", bg: "#e3f2fd" },
