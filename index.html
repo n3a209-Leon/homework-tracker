@@ -1488,12 +1488,17 @@ function getDriveFilename(year, cls) {
 let accessToken = null, driveFileId = null;
 function loadGSI() { return Promise.resolve(); }
 async function gSignIn() {
+
+  alert('開始 Google 登入');
+
   _writeLog('step', 'gSignIn start (Firebase redirect)');
+
   if (typeof firebase === 'undefined' || !firebase.auth) {
     throw new Error('Firebase 未載入，請確認網路連線');
   }
+
   var provider = new firebase.auth.GoogleAuthProvider();
-  // signInWithRedirect：整頁跳轉，iOS PWA 完全支援，不需彈窗
+
   return firebase.auth().signInWithRedirect(provider);
 }
 window.gSignIn = gSignIn;
@@ -2861,12 +2866,41 @@ function App() {
         }
         // 先處理 redirect 登入結果
         firebase.auth().getRedirectResult().then(function(result) {
-            if (result && result.user) {
-                _writeLog && _writeLog('step', 'redirect login: ' + result.user.email);
-            }
-        }).catch(function(e) {
-            _writeLog && _writeLog('error', 'getRedirectResult: ' + String(e.code || e.message).slice(0,60));
-        });
+
+    if (result && result.user) {
+
+        alert(
+          'Redirect Success\n' +
+          result.user.email
+        );
+
+        _writeLog &&
+        _writeLog(
+          'step',
+          'redirect login: ' + result.user.email
+        );
+
+    } else {
+
+        alert('Redirect Empty');
+
+    }
+
+}).catch(function(e) {
+
+    alert(
+      'Redirect Error\n' +
+      (e.code || e.message)
+    );
+
+    _writeLog &&
+    _writeLog(
+      'error',
+      'getRedirectResult: ' +
+      String(e.code || e.message).slice(0,60)
+    );
+
+});
 
         // 監聽登入狀態
         var _authTimer = setTimeout(function() {
