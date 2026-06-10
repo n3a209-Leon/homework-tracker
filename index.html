@@ -283,6 +283,7 @@
         [data-theme="nerv"] .cd-item-badge{background:rgba(255,102,0,.2);color:#ff8844}
         [data-theme="nerv"] .cd-item-name{color:#ff9944;font-family:"Share Tech Mono",monospace}
 
+        @keyframes spin { to { transform: rotate(360deg); } }
         /* ── BACKUP WARNING BAR ── */
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
@@ -1166,9 +1167,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"></noscript>
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK（Auth + Firestore）-->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" crossorigin="anonymous"></script>
   <script>
   (function() {
     var firebaseConfig = {
@@ -1180,11 +1182,43 @@
       appId: "1:231697999145:web:b92cba42082eb9cc574338"
     };
     try {
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-      // 設定 persistence 為 LOCAL（存在 IndexedDB，PWA 和 Safari 共享）
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      }
     } catch(e) {}
   })();
+
+  // Firestore 存取函數（全域）
+  window.fsGet = async function(uid, key) {
+    try {
+      var db = firebase.firestore();
+      var doc = await db.collection('users').doc(uid).collection('data').doc(key).get();
+      return doc.exists ? doc.data().value : null;
+    } catch(e) { return null; }
+  };
+
+  window.fsSet = async function(uid, key, value) {
+    try {
+      var db = firebase.firestore();
+      await db.collection('users').doc(uid).collection('data').doc(key).set({ value: value, updatedAt: new Date().toISOString() });
+      return true;
+    } catch(e) { return false; }
+  };
+
+  window.fsGetAll = async function(uid, prefix) {
+    try {
+      var db = firebase.firestore();
+      var snap = await db.collection('users').doc(uid).collection('data').get();
+      var result = {};
+      snap.forEach(function(doc) {
+        if (!prefix || doc.id.startsWith(prefix)) {
+          result[doc.id] = doc.data().value;
+        }
+      });
+      return result;
+    } catch(e) { return {}; }
+  };
   </script>
 </head>
 <body>
@@ -1452,174 +1486,15 @@ function getDriveFilename(year, cls) {
   return 'hw-'+(year||'unknown')+'-'+(safe||'class')+'.json';
 }
 let accessToken = null, driveFileId = null;
-function loadGSI() {
-  return new Promise((res, rej) => {
-    if (typeof google !== 'undefined' && google.accounts) { res(); return; }
-    var s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.async = true;
-    s.defer = true;
-    s.crossOrigin = 'anonymous';
-    // 10 秒超時
-    var timer = setTimeout(function() {
-      _writeLog('error', 'loadGSI timeout');
-      rej(new Error('Google 登入服務載入逾時（10秒），請確認網路後重試'));
-    }, 10000);
-    s.onload = function() {
-      clearTimeout(timer);
-      // 等待 google.accounts 初始化
-      var check = 0;
-      var poll = setInterval(function() {
-        if (typeof google !== 'undefined' && google.accounts) {
-          clearInterval(poll);
-          res();
-        } else if (++check > 20) {
-          clearInterval(poll);
-          rej(new Error('Google 登入服務初始化失敗'));
-        }
-      }, 100);
-    };
-    s.onerror = function() {
-      clearTimeout(timer);
-      _writeLog('error', 'loadGSI script onerror');
-      rej(new Error('Google 登入服務無法載入，請確認網路連線'));
-    };
-    document.head.appendChild(s);
-  });
-}
+function loadGSI() { return Promise.resolve(); }
 async function gSignIn() {
-  var isPWA = false;
-
-  try {
-    isPWA =
-      window.navigator.standalone === true ||
-      window.matchMedia('(display-mode: standalone)').matches;
-  } catch(e) {}
-
- _writeLog('step', 'gSignIn start isPWA:' + isPWA);
-
-await loadGSI();
-
-return new Promise((res, rej) => {
-
-  var timeout = setTimeout(function() {
-    rej(new Error('登入逾時'));
-  }, 30000);
-
-    try {
-
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-
-        callback: function(resp) {
-
-          clearTimeout(timeout);
-
-          if (resp.error) {
-            rej(new Error(resp.error));
-            return;
-          }
-
-          accessToken = resp.access_token;
-
-          safeSet('hw5ren:tok', accessToken);
-
-          _writeLog('step', 'gSignIn success');
-
-          res(accessToken);
-        },
-
-        error_callback: function(err) {
-
-          clearTimeout(timeout);
-
-          rej(
-            new Error(
-              err
-                ? (err.message || err.type || JSON.stringify(err))
-                : '登入失敗'
-            )
-          );
-        }
-      });
-
-      client.requestAccessToken();
-
-    } catch(e) {
-
-      clearTimeout(timeout);
-
-      rej(e);
-    }
-  });
-}
-   
-async function findDriveFile(year, cls) {
-  if (!accessToken) return null;
-  const name = getDriveFilename(year, cls);
-  const r = await fetch("https://www.googleapis.com/drive/v3/files?q=name='"+name+"'&fields=files(id)", {headers:{'Authorization':'Bearer '+accessToken}});
-  const d = await r.json();
-  if (d.files && d.files.length) { driveFileId = d.files[0].id; return driveFileId; }
-  return null;
-}
-async function saveDrive(snapshot) {
-  if (!accessToken) throw new Error('未登入');
-  const year = safeGet('hw5ren:year');
-  const cls = safeGet('hw5ren:className');
-  const name = getDriveFilename(year, cls);
-  const blob = new Blob([JSON.stringify(snapshot)], {type:'application/json'});
-  if (!driveFileId) await findDriveFile(year, cls);
-  const form = new FormData();
-  if (driveFileId) {
-    form.append('metadata', new Blob([JSON.stringify({name})], {type:'application/json'}));
-    form.append('file', blob);
-    const ctrl1 = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const t1 = setTimeout(function(){ if(ctrl1) ctrl1.abort(); }, 10000);
-    try {
-      const fetchOpts1 = {method:'PATCH',headers:{'Authorization':'Bearer '+accessToken},body:form};
-      if (ctrl1) fetchOpts1.signal = ctrl1.signal;
-      const r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+driveFileId+"?uploadType=multipart", fetchOpts1);
-      clearTimeout(t1);
-      return r.ok;
-    } catch(e) { clearTimeout(t1); throw e; }
-  } else {
-    form.append('metadata', new Blob([JSON.stringify({name,mimeType:'application/json'})], {type:'application/json'}));
-    form.append('file', blob);
-    const ctrl2 = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const t2 = setTimeout(function(){ if(ctrl2) ctrl2.abort(); }, 10000);
-    try {
-      const fetchOpts2 = {method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form};
-      if (ctrl2) fetchOpts2.signal = ctrl2.signal;
-      const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', fetchOpts2);
-      clearTimeout(t2);
-      if (r.ok) { const d = await r.json(); driveFileId = d.id; return true; }
-      return false;
-    } catch(e) { clearTimeout(t2); throw e; }
+  _writeLog('step', 'gSignIn start (Firebase redirect)');
+  if (typeof firebase === 'undefined' || !firebase.auth) {
+    throw new Error('Firebase 未載入，請確認網路連線');
   }
-}
-async function loadDrive(year, cls) {
-  const stored = safeGet('hw5ren:tok');
-  if (stored) accessToken = stored;
-  if (!accessToken) return null;
-  // 8 秒總超時
-  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  const timer = setTimeout(function() { if (ctrl) ctrl.abort(); }, 8000);
-  try {
-    const fid = await findDriveFile(year, cls);
-    if (!fid) { clearTimeout(timer); return null; }
-    const fetchOpts = { headers: {'Authorization': 'Bearer '+accessToken} };
-    if (ctrl) fetchOpts.signal = ctrl.signal;
-    const r = await fetch("https://www.googleapis.com/drive/v3/files/"+fid+"?alt=media", fetchOpts);
-    clearTimeout(timer);
-    if (r.ok) return r.json();
-    if (r.status === 401) { accessToken = null; safeRemove('hw5ren:tok'); }
-    return null;
-  } catch(e) {
-    clearTimeout(timer);
-    _writeLog('error', 'loadDrive: ' + String(e).slice(0,80));
-    return null;
-  }
+  var provider = new firebase.auth.GoogleAuthProvider();
+  // signInWithRedirect：整頁跳轉，iOS PWA 完全支援，不需彈窗
+  return firebase.auth().signInWithRedirect(provider);
 }
 window.gSignIn = gSignIn;
 window.saveDrive = saveDrive;
@@ -2977,101 +2852,77 @@ function App() {
     const isNerv = theme === "nerv";
     const isNebula = theme === "nebula";
     // ── Drive / Auth ──
-    const [authed, setAuthed] = useState(() => {
-        // 先檢查 localStorage token
-        var tok = null;
-        try { tok = localStorage.getItem('hw5ren:tok'); } catch(e) {}
-        if (!tok) { try { tok = safeGet('hw5ren:tok'); } catch(e) {} }
-        return !!(tok && tok.length > 20);
-    });
+    const [authed, setAuthed] = useState(false);
+    const [firebaseUid, setFirebaseUid] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true); // 等待 Firebase 確認
 
-    // Firebase 自動登入監聽（App 啟動時自動恢復登入）
+    // Firebase Auth 狀態監聽（自動登入）
     useEffect(function() {
-        if (authed) return;
-        try {
-            loadFirebase(function(err) {
-              if (err || typeof firebase === 'undefined' || !firebase.auth) return;
-              var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    _writeLog && _writeLog('step', 'Firebase auto-auth: ' + (user.email || 'ok'));
-                    // Firebase 用戶存在就直接設為已登入
-                    // 同時嘗試取得最新 access token（給 Drive 用）
-                    user.getIdToken(false).then(function() {
-                        setAuthed(true);
-                    }).catch(function() {
-                        // getIdToken 失敗也設為已登入（離線模式）
-                        setAuthed(true);
-                    });
-                }
-            });
-              return function() { try { unsubscribe(); } catch(e) {} };
-            }); // loadFirebase
-        } catch(e) {}
-    }, []);
-    const [driveStatus, setDriveStatus] = useState('offline');
-    useEffect(() => {
-        if (!authed)
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            setAuthLoading(false);
             return;
-        (async () => {
+        }
+        // 先處理 redirect 登入結果
+        firebase.auth().getRedirectResult().then(function(result) {
+            if (result && result.user) {
+                _writeLog && _writeLog('step', 'redirect login: ' + result.user.email);
+            }
+        }).catch(function(e) {
+            _writeLog && _writeLog('error', 'getRedirectResult: ' + String(e.code || e.message).slice(0,60));
+        });
+
+        // 監聽登入狀態
+        var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                _writeLog && _writeLog('step', 'Firebase user: ' + user.email);
+                setFirebaseUid(user.uid);
+                setAuthed(true);
+            } else {
+                _writeLog && _writeLog('step', 'Firebase: not logged in');
+                setAuthed(false);
+                setFirebaseUid(null);
+            }
+            setAuthLoading(false);
+        });
+        return function() { try { unsubscribe(); } catch(e) {} };
+    }, []);
+
+    const [driveStatus, setDriveStatus] = useState('offline');
+    // Firestore 同步：登入後自動載入雲端資料
+    useEffect(function() {
+        if (!authed || !firebaseUid) return;
+        (async function() {
             setDriveStatus('syncing');
-            setStor(s => (Object.assign(Object.assign({}, s), { msg: '☁️ 從 Drive 載入…' })));
+            setStor(function(s) { return Object.assign({}, s, { msg: '☁️ 從雲端載入…' }); });
             try {
-                // 傳入學年和班級，才能找到正確的 Drive 檔案
-                const snap = await loadDrive(schoolYear, className);
-                if (snap && Object.keys(snap).length > 0) {
-                    let c = 0;
-                    for (const [k, v] of Object.entries(snap)) {
-                        if (k.startsWith('day:2')) {
-                            const ds = k.replace('day:', '');
-                            await idbSet('day:' + ds, v);
-                            try {
-                                _sl.set('hw5ren:' + ds, v);
-                            }
-                            catch (_a) { }
-                            c++;
-                        }
+                var allData = await window.fsGetAll(firebaseUid, 'day:');
+                var c = 0;
+                for (var k in allData) {
+                    if (k.startsWith('day:2')) {
+                        var ds = k.replace('day:', '');
+                        await idbSet('day:' + ds, allData[k]);
+                        try { _sl.set('hw5ren:' + ds, allData[k]); } catch(ex) {}
+                        c++;
                     }
-                    setDriveStatus('ok');
-                    setStor({ state: 'ok', msg: '✅ Drive 還原 ' + c + ' 天資料' });
+                }
+                setDriveStatus('ok');
+                if (c > 0) {
+                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料' });
                     await doLoadMonth(curYear, curMonth);
-                    markSynced();
+                } else {
+                    setStor({ state: 'ok', msg: '✅ 雲端就緒' });
                 }
-                else {
-                    setDriveStatus('ok');
-                    setStor({ state: 'ok', msg: '✅ Drive 就緒' });
-                }
-            }
-            catch (e) {
+            } catch(e) {
                 setDriveStatus('error');
-                var eStr = '';
-                try { eStr = String(e) + (e && e.message ? e.message : ''); } catch(ex) {}
-                var errMsg = '未知錯誤';
-                if (eStr.includes('401') || eStr.includes('Unauthorized') || eStr.includes('invalid_token')) {
-                    // PWA 模式下不清除 token，避免死結（PWA 無法重新登入）
-                    var _isPWA2 = false;
-                    try { _isPWA2 = window.navigator.standalone === true || window.matchMedia('(display-mode:standalone)').matches; } catch(ex) {}
-                    if (_isPWA2) {
-                        errMsg = 'Token 過期，請用 Safari 瀏覽器重新登入後再使用 PWA';
-                        // 不清除 token，不登出，只顯示警告
-                    } else {
-                        errMsg = 'Token 過期（401）— 請重新登入';
-                        try { _sl.remove('hw5ren:tok'); } catch(ex) {}
-                        setAuthed(false);
-                    }
-                } else if (eStr.includes('403')) {
-                    errMsg = '權限不足（403）';
-                } else if (eStr.includes('429')) {
-                    errMsg = '請求過多（429）— 稍後再試';
-                } else if (eStr.includes('NetworkError') || eStr.includes('Failed to fetch') || eStr.includes('Network')) {
-                    errMsg = '網路連線問題';
-                }
-                setDriveError(errMsg);
-                setStor({ state: 'error', msg: '⚠️ Drive 同步失敗', detail: errMsg });
+                setStor({ state: 'error', msg: '⚠️ 雲端同步失敗：' + String(e.message || e).slice(0,40) });
             }
-            // 不重複呼叫 doLoadMonth，由 curYear/curMonth useEffect 負責
         })();
-    }, [authed]);
+    }, [authed, firebaseUid]);
     async function doSync() {
+        if (!firebaseUid) {
+            setStor({ state: 'error', msg: '⚠️ 請先登入再同步' });
+            return;
+        }
         setDriveStatus('syncing');
         try {
             const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
@@ -3081,8 +2932,12 @@ function App() {
                 if (v)
                     snap[k] = v;
             }
-            const ok = await saveDrive(snap);
-            if (ok) {
+            var saveOk = true;
+            for (var fk in snap) {
+                var r = await window.fsSet(firebaseUid, fk, snap[fk]);
+                if (!r) saveOk = false;
+            }
+            if (saveOk) {
                 markSynced();
                 setDriveStatus('ok');
                 return keys.length;
@@ -3296,13 +3151,14 @@ function App() {
                     if (v)
                         snap[k] = v;
                 }
-                const ok = await saveDrive(snap);
-                if (ok) {
-                    setDriveStatus("ok");
-                    markSynced();
-                }
-                else {
-                    setDriveStatus("error");
+                if (firebaseUid) {
+                    var fsOk = true;
+                    for (var fsk in snap) {
+                        var r = await window.fsSet(firebaseUid, fsk, snap[fsk]);
+                        if (!r) fsOk = false;
+                    }
+                    if (fsOk) { setDriveStatus("ok"); markSynced(); }
+                    else { setDriveStatus("error"); }
                 }
             }
             catch (_a) {
@@ -3612,14 +3468,8 @@ function App() {
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
-                    var _isPWALogin = false;
-                    try { _isPWALogin = window.navigator.standalone === true || window.matchMedia('(display-mode:standalone)').matches; } catch(ex) {}
-                    if (_isPWALogin) {
-                        var _t = null;
-                        try { _t = localStorage.getItem('hw5ren:tok'); } catch(ex) {}
-                        if (_t && _t.length > 20) { setAuthed(true); return; }
-                        showError('PWA 模式請先在 Safari 瀏覽器登入 Google，再回主畫面打開 App', '#1a1a0a');
-                        return;
+
+    
                     }
                     gSignIn().then(function(tok) {
                         if (tok !== null) setAuthed(true);
