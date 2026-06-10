@@ -2875,18 +2875,31 @@ function App() {
         }, 5000);
 
         var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
-            clearTimeout(_authTimer);
-            if (user) {
-                _writeLog && _writeLog('step', 'Firebase user: ' + user.email);
-                setFirebaseUid(user.uid);
-                setAuthed(true);
-            } else {
-                _writeLog && _writeLog('step', 'Firebase: not logged in');
-                setAuthed(false);
-                setFirebaseUid(null);
-            }
-            setAuthLoading(false);
-        });
+
+    clearTimeout(_authTimer);
+
+    if (user) {
+
+        console.log('LOGIN SUCCESS');
+        console.log(user);
+
+        _writeLog('step', 'Firebase user: ' + user.email);
+
+        setFirebaseUid(user.uid);
+        setAuthed(true);
+
+    } else {
+
+        console.log('NO USER');
+
+        _writeLog('step', 'Firebase: not logged in');
+
+        setAuthed(false);
+        setFirebaseUid(null);
+    }
+
+    setAuthLoading(false);
+});
         return function() { try { unsubscribe(); } catch(e) {} };
     }, []);
 
