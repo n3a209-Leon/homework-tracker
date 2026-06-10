@@ -1499,7 +1499,7 @@ async function gSignIn() {
 
   var provider = new firebase.auth.GoogleAuthProvider();
 
-  return firebase.auth().signInWithRedirect(provider);
+  return firebase.auth().signInWithPopup(provider);
 }
 window.gSignIn = gSignIn;
 debugStep('GOOGLE API READY');
