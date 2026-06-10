@@ -3913,7 +3913,7 @@ function App() {
                     React.createElement("p", { className: "custom-hw-label" }, isNerv ? "// PRESET //" : "預設"),
                     React.createElement("div", { className: "pg" }, PRESET_HW.map(hw => (React.createElement("button", { key: hw, className: "pb2"+(pendingHw===hw?" act":""), onClick: () => { setPendingHw(hw); setInputText(hw); } }, hw)))),
                     React.createElement("div", { className: "ir" },
-                        React.createElement("input", { className: "hi2", value: inputText, placeholder: isNerv ? "[ MANUAL INPUT ]" : "手動輸入（自動記憶）", onChange: e => { setInputText(e.target.value); setPendingHw(e.target.value); }, onKeyDown: e => e.key === "Enter" && (modal.gid !== null ? handleConfirmInput() : null), autoFocus: true })),
+                        React.createElement("input", { className: "hi2", value: inputText, placeholder: isNerv ? "[ MANUAL INPUT ]" : "手動輸入（自動記憶）", onChange: e => { setInputText(e.target.value); setPendingHw(e.target.value); }, onKeyDown: e => e.key === "Enter" && (modal && modal.ri != null && modal.gid != null ? handleConfirmInput() : null), autoFocus: true })),
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeModal }, "\u53D6\u6D88"),
                         React.createElement("button", { className: "bk", onClick: handleConfirmInput }, "\u78BA\u8A8D")))),
