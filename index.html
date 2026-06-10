@@ -1171,6 +1171,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" crossorigin="anonymous"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" crossorigin="anonymous"></script>
   <script>
   (function() {
     var firebaseConfig = {
@@ -1480,12 +1481,8 @@ function safeKey(i) {
 window._safeLS = { get: safeGet, set: safeSet, remove: safeRemove, length: safeLength, key: safeKey };
 
 // Google OAuth 已改用 Firebase Auth
-function getDriveFilename(year, cls) {
-  if (!year && !cls) return 'hw-5renren-ALL.json';
-  const safe = (cls||'').replace(/\s/g,'').slice(0,10);
-  return 'hw-'+(year||'unknown')+'-'+(safe||'class')+'.json';
-}
-let accessToken = null, driveFileId = null;
+// getDriveFilename 已移除
+
 function loadGSI() { return Promise.resolve(); }
 async function gSignIn() {
 
@@ -1499,7 +1496,7 @@ async function gSignIn() {
 
   var provider = new firebase.auth.GoogleAuthProvider();
 
-  return firebase.auth().signInWithPopup(provider);
+  return firebase.auth().signInWithRedirect(provider);
 }
 window.gSignIn = gSignIn;
 debugStep('GOOGLE API READY');
@@ -1644,10 +1641,8 @@ const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 const COUNSEL_PERIODS = ["早自習", "第1節", "第2節", "第3節", "第4節", "午休", "第5節", "第6節", "放學後"];
 const COUNSEL_TYPES = ["學習", "行為", "情緒", "人際", "家庭", "其他"];
 const COUNSEL_FOLLOWUP = ["需追蹤", "已處理", "轉介"];
-// ── Drive stubs（Artifact 模式下不實際連 Drive，PWA 版會覆蓋）──
+// ── Drive 已改用 Firestore ──
 const gSignIn = typeof window !== "undefined" && window.gSignIn ? window.gSignIn : async () => { throw new Error("請使用 PWA 版本登入 Google"); };
-const loadDrive = async () => null;
-const saveDrive = async () => false;
 const LEAVE_TYPES = [
     { id: "personal", label: "事假", color: "#f57c00", bg: "#fff3e0" },
     { id: "sick", label: "病假", color: "#1565c0", bg: "#e3f2fd" },
@@ -2856,6 +2851,7 @@ function App() {
     // ── Drive / Auth ──
     const [authed, setAuthed] = useState(false);
     const [firebaseUid, setFirebaseUid] = useState(null);
+    const [userEmail, setUserEmail] = useState('');
     const [authLoading, setAuthLoading] = useState(true); // 等待 Firebase 確認
 
     // Firebase Auth 狀態監聽（自動登入）
@@ -3005,19 +3001,14 @@ function App() {
     // ── 備份狀態 ──
     const todayStr = today();
     const [lastSyncTime, setLastSyncTime] = useState(() => safeGet("hw5ren:lastSync") || "");
-    function getDriveFilename(year, cls) {
-        if (!year && !cls)
-            return 'hw-5renren-ALL.json';
-        const safe = (cls || '').replace(/\s/g, '').slice(0, 10);
-        return "hw-"+(year||"unknown")+"-"+(safe||"class")+".json";
-    }
+    // getDriveFilename 已移除
     function saveYearRecord(year, school, cls) {
         if (!year && !cls)
             return;
         const key = year+"-"+school+"-"+cls;
         setYearRecords(prev => {
             const filtered = prev.filter(r => r.year+"-"+r.school+"-"+r.className !== key);
-            const rec = { year, school, className: cls, driveFile: getDriveFilename(year, cls), savedAt: new Date().toLocaleDateString('zh-TW') };
+            const rec = { year, school, className: cls, savedAt: new Date().toLocaleDateString('zh-TW') };
             const updated = [rec, ...filtered].slice(0, 20);
             _sl.set('hw5ren:years', JSON.stringify(updated));
             return updated;
@@ -3539,7 +3530,7 @@ function App() {
                 }, style: { display: "flex", alignItems: "center", gap: 12, background: isNerv ? "rgba(255,102,0,.1)" : "#fff", color: isNerv ? "#ff6600" : "#1e3a5f", border: isNerv ? "1px solid #ff6600" : "none", borderRadius: isNerv ? 2 : 50, padding: "16px 32px", fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isNerv ? "0 0 20px rgba(255,102,0,.3)" : "0 8px 24px rgba(0,0,0,.2)", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", letterSpacing: isNerv ? 2 : 0 } },
                 React.createElement("span", { style: { fontWeight: 900, fontSize: 18 } }, "G"),
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
-            React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Google Drive")));
+            React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Firebase")));
     }
     return (React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
@@ -3628,12 +3619,13 @@ function App() {
                         } }),
                     React.createElement("div", { style:{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:1} },
                         React.createElement("span", null,
-                            driveStatus === "ok" ? "Drive ✓" :
-                            driveStatus === "syncing" ? "同步中…" :
-                            driveStatus === "error" ? "Drive ✗" : "Drive"),
+                            driveStatus === "ok" ? "🔥 Firebase 已同步" :
+                            driveStatus === "syncing" ? "🟡 Firebase 同步中" :
+                            driveStatus === "error" ? "🔴 Firebase 同步失敗" : "⚪ 尚未登入"),
                         driveStatus === "ok" && lastSyncTime && React.createElement("span", { style:{fontSize:9,opacity:.6} }, lastSyncTime),
                         driveStatus === "error" && driveError && React.createElement("span", { style:{fontSize:9,color:"#ff8a80",maxWidth:100,textAlign:"right",lineHeight:1.2} }, driveError)
                     ))),
+            userEmail && React.createElement("div", { style:{padding:"3px 20px 4px",fontSize:11,color:"rgba(255,255,255,.55)",background:"rgba(0,0,0,.2)"} }, "👤 " + userEmail),
             React.createElement("div", { className: "backup-warn"+(isNerv?" backup-warn-nerv":""), style: {
                     background: driveStatus === "ok"
                         ? (isNerv ? "#001a00" : "#f0faf4")
@@ -3664,20 +3656,20 @@ function App() {
                             : "marquee 18s linear infinite",
                     } },
                     driveStatus === "ok" && (isNerv
-                        ? "✦ DRIVE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED // ✦ DRIVE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED //"
-                        : "✅ Drive 同步完成　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存　✅ Drive 同步完成　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存"),
+                        ? "✦ FIREBASE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED // ✦ DRIVE SYNC COMPLETE // 最後同步："+(lastSyncTime||"—")+" // ALL DATA SECURED //"
+                        : "🔥 Firebase 已同步　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存　🔥 Firebase 已同步　最後同步："+(lastSyncTime||"尚未同步")+"　資料已安全儲存"),
                     driveStatus === "syncing" && (isNerv
                         ? "⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 // ⏳ SYNCING TO MAGI DATABASE... // 同步中 // 請稍候 //"
-                        : "⏳ 正在同步到 Drive…　請稍候　⏳ 正在同步到 Drive…　請稍候"),
+                        : "⏳ 正在同步到 Firebase…　請稍候　⏳ 正在同步到 Firebase…　請稍候"),
                     driveStatus === "error" && (isNerv
                         ? "⚠ DRIVE SYNC FAILED // 請檢查網路連線 // 資料已儲存於本機 // ⚠ DRIVE SYNC FAILED // 請檢查網路連線 //"
-                        : "⚠️ Drive 同步失敗　請檢查網路連線　資料已儲存於本機　⚠️ Drive 同步失敗　請檢查網路連線"),
+                        : "⚠️ Firebase 同步失敗　請檢查網路連線　資料已儲存於本機　⚠️ Firebase 同步失敗　請檢查網路連線"),
                     driveStatus === "offline" && (isNerv
                         ? "◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 // ◈ DRIVE OFFLINE // 本機儲存中 // 登入後自動同步 //"
-                        : "🔌 Drive 未連線　資料儲存於本機　登入後自動同步　🔌 Drive 未連線　資料儲存於本機"))),
+                        : "🔌 未連線　資料儲存於本機　登入後自動同步　🔌 未連線　資料儲存於本機"))),
             React.createElement("div", { className: "nav-bar" },
-                (view === "day" || view === "settings" || view === "archive" || counselView) && (React.createElement("button", { className: "back-btn", onClick: () => { setView("month"); setCounselView(false); } }, isNerv ? "⬡ HOME" : "🏠")),
-                view === "day" && (React.createElement("button", { className: "back-btn", onClick: () => setView("month") }, isNerv ? "◀ RETURN" : "← 月曆")),
+                React.createElement("button", { className: "back-btn", onClick: () => { setCounselView(false); setView("month"); } }, isNerv ? "◀ HOME" : "🏠 首頁"),
+                React.createElement("button", { className: "back-btn", onClick: handleThemeToggle }, isNerv ? "🔄 MODE" : "🔄 切換模式"),
                 React.createElement("button", { className: "nav-btn", onClick: prevMonth }, "\u2039"),
                 React.createElement("span", { className: "month-label" }, isNerv
                     ? React.createElement(React.Fragment, null,
@@ -3756,31 +3748,12 @@ function App() {
                             setImportMsg("✅ 已從本機搶救 "+lsKeys.length+" 天！");
                         }
                         setTimeout(() => setImportMsg(""), 8000);
-                    } }, "\uD83D\uDD0D \u8A3A\u65B7"),
-                React.createElement("button", { className: "excel-btn backup-btn", onClick: async () => {
-                        setImportMsg("⏳ 打包所有資料…");
-                        try {
-                            const allKeys = (await idbKeys()).filter(k => k.startsWith("day:2"));
-                            if (allKeys.length === 0) {
-                                setImportMsg("⚠️ 尚無資料");
-                                return;
-                            }
-                            const snapshot = {};
-                            for (const k of allKeys) {
-                                const v = await idbGet(k);
-                                if (v)
-                                    snapshot[k] = v;
-                            }
-                            setBackupJson(JSON.stringify(snapshot));
-                            setShowBackup(true);
-                            markSynced();
-                            setImportMsg("✅ "+allKeys.length+" 天已打包");
-                        }
-                        catch (e) {
-                            setImportMsg("❌ " + String(e).slice(0, 50));
-                        }
-                    } }, "\uD83D\uDCE4 \u5099\u4EFD"),
-                React.createElement("button", { className: "excel-btn import-btn2", onClick: () => setShowImport(true) }, "\uD83D\uDCE5 \u532F\u5165"))),
+                    } }, "🔍 診斷"),
+                React.createElement("button", { className: "excel-btn", onClick: async () => {
+                    try { await doSync(); setImportMsg("✅ 已同步到 Firebase"); }
+                    catch(e) { setImportMsg("❌ Firebase 同步失敗"); }
+                    setTimeout(() => setImportMsg(""), 3000);
+                } }, "☁️ 同步"))),
         view === "month" && (React.createElement("main", null, loading ? (React.createElement("div", { className: "loading-wrap" },
             React.createElement("div", { className: "loading-spinner" }),
             React.createElement("p", { className: "loading-text" }, isNerv ? "LOADING TACTICAL DATA…" : "載入中…"))) : (React.createElement(React.Fragment, null,
@@ -3855,11 +3828,11 @@ function App() {
                             }),
                             React.createElement("td", { className: "dc" },
                                 React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "\u00D7"))))),
-                        dayRows.length < MAX_ROWS && (React.createElement("tr", { className: "ar", onClick: addRow },
+                        dayRows.length < MAX_ROWS && (React.createElement("tr", { className: "ar", onClick: () => { setModal({ phase: "input" }); setPendingHw(""); setNewHwName(""); } },
                             React.createElement("td", { colSpan: 7 },
                                 React.createElement("span", { className: "ai" }, "\uFF0B"),
                                 " ",
-                                isNerv ? "[ ADD MISSION LOG ]" : "新增作業列")))))),
+                                isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課")))))),
             dayRows.some(r => r.hwName) && (React.createElement("div", { className: "exempt-panel" },
                 React.createElement("div", { className: "exempt-header" },
                     React.createElement("span", { className: "exempt-title" }, isNerv ? "◈ EXEMPTION LOG" : "📋 作業抵免"),
@@ -3923,37 +3896,11 @@ function App() {
                         React.createElement("div", { className: "att-nums" }, nums.map(n => (React.createElement("span", { key: n, className: "att-num", style: { background: lt.bg, color: lt.color, borderColor: lt.color } }, n))))));
                 }),
                 !((_a = dayAtt.personal) === null || _a === void 0 ? void 0 : _a.size) && !((_b = dayAtt.sick) === null || _b === void 0 ? void 0 : _b.size) && !((_c = dayAtt.public) === null || _c === void 0 ? void 0 : _c.size) && (React.createElement("p", { className: "att-empty" }, isNerv ? "▸ ALL PILOTS PRESENT ◂" : "今日全員到齊"))),
-            React.createElement("button", { className: "day-backup-btn", onClick: async () => {
-                    try {
-                        // 收集所有天數資料
-                        const allKeys = (await idbKeys()).filter(k => k.startsWith("day:2"));
-                        // 確保包含今日最新資料
-                        let raw = await idbGet("day:"+selDate);
-                        if (!raw)
-                            raw = safeGet("hw5ren:"+selDate);
-                        const snapshot = {};
-                        for (const k of allKeys) {
-                            const v = await idbGet(k);
-                            if (v)
-                                snapshot[k] = v;
-                        }
-                        if (raw)
-                            snapshot["day:"+selDate] = raw;
-                        if (Object.keys(snapshot).length === 0) {
-                            setImportMsg("⚠️ 尚無資料可備份");
-                            setTimeout(() => setImportMsg(""), 3000);
-                            return;
-                        }
-                        const payload = JSON.stringify(snapshot);
-                        setBackupJson(payload);
-                        setShowBackup(true);
-                        markSynced();
-                        setImportMsg("✅ "+Object.keys(snapshot).length+" 天資料已打包");
-                    }
-                    catch (e) {
-                        setImportMsg("❌ " + String(e).slice(0, 40));
-                    }
-                } }, "\uD83D\uDCE4 \u5099\u4EFD\u5168\u90E8\u5230 Drive"))),
+            React.createElement("button", { className: "day-backup-btn", style:{background:"linear-gradient(135deg,#1a5276,#2471a3)"}, onClick: async () => {
+                    try { await doSync(); setImportMsg("✅ 已同步到 Firebase"); }
+                    catch(e) { setImportMsg("❌ Firebase 同步失敗"); }
+                    setTimeout(() => setImportMsg(""), 3000);
+                } }, "☁️ 同步到 Firebase"))),
         modal && (React.createElement("div", { className: "ov", onClick: closeModal },
             React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
                 modal.phase === "input" && (React.createElement(React.Fragment, null,
