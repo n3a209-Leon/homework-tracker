@@ -2984,19 +2984,22 @@ function App() {
         return !!(tok && tok.length > 20);
     });
 
-    // Firebase 自動登入監聽（補強 token 過期問題）
+    // Firebase 自動登入監聽（App 啟動時自動恢復登入）
     useEffect(function() {
-        if (authed) return; // 已登入就不需要
+        if (authed) return;
         try {
             if (typeof firebase === 'undefined' || !firebase.auth) return;
             var unsubscribe = firebase.auth().onAuthStateChanged(function(user) {
                 if (user) {
-                    var tok = null;
-                    try { tok = localStorage.getItem('hw5ren:tok'); } catch(e) {}
-                    if (tok && tok.length > 20) {
-                        _writeLog && _writeLog('step', 'Firebase auto-restore authed');
+                    _writeLog && _writeLog('step', 'Firebase auto-auth: ' + (user.email || 'ok'));
+                    // Firebase 用戶存在就直接設為已登入
+                    // 同時嘗試取得最新 access token（給 Drive 用）
+                    user.getIdToken(false).then(function() {
                         setAuthed(true);
-                    }
+                    }).catch(function() {
+                        // getIdToken 失敗也設為已登入（離線模式）
+                        setAuthed(true);
+                    });
                 }
             });
             return function() { try { unsubscribe(); } catch(e) {} };
