@@ -1164,106 +1164,118 @@
 
 
         /* ══ SPLASH OVERLAY ═══════════════════════════════════════════ */
-        @keyframes spl-float {
-          0%   { transform: translateY(0) scale(1); }
-          50%  { transform: translateY(-10px) scale(1.03); }
-          100% { transform: translateY(0) scale(1); }
+        /* ══ SPLASH ANIMATIONS ══════════════════════════════════════ */
+        /* 圖片本身只有 opacity 動畫，不做任何 transform */
+        @keyframes spl-img-fade-in {
+          0%   { opacity:0; }
+          100% { opacity:1; }
         }
-        @keyframes spl-img-in {
-          0%   { opacity:0; transform:scale(1.18) translateY(20px); filter:blur(8px) brightness(.5); }
-          70%  { opacity:1; transform:scale(1.02) translateY(-4px); filter:blur(0) brightness(1); }
-          100% { opacity:1; transform:scale(1) translateY(0); filter:blur(0) brightness(1); }
-        }
-        @keyframes spl-img-in-quick {
-          0%   { opacity:0; transform:scale(1.08); filter:blur(3px); }
-          100% { opacity:1; transform:scale(1); filter:blur(0); }
+        @keyframes spl-img-fade-in-quick {
+          0%   { opacity:0; }
+          100% { opacity:1; }
         }
         @keyframes spl-title-in {
-          0%   { opacity:0; transform:translateY(16px) scale(.95); }
-          100% { opacity:1; transform:translateY(0) scale(1); }
+          0%   { opacity:0; transform:translateY(14px); }
+          100% { opacity:1; transform:translateY(0); }
         }
-        @keyframes spl-glow-pulse {
-          0%,100% { box-shadow: 0 0 30px rgba(200,160,255,.2), 0 0 0px rgba(255,200,240,.1); }
-          50%     { box-shadow: 0 0 70px rgba(200,140,255,.5), 0 0 120px rgba(255,180,240,.2); }
+        /* 光暈 glow：作用於 overlay 的 pseudo-element，不作用於圖片 */
+        @keyframes spl-glow-breathe {
+          0%,100% { opacity:.18; }
+          50%     { opacity:.45; }
         }
         @keyframes spl-star {
-          0%,100% { opacity:.3; transform:scale(.8); }
-          50%     { opacity:1; transform:scale(1.2); }
+          0%,100% { opacity:.25; transform:scale(.8); }
+          50%     { opacity:1;   transform:scale(1.3); }
         }
         @keyframes spl-fadeout {
           0%   { opacity:1; }
           100% { opacity:0; }
         }
         @keyframes spl-status-blink {
-          0%,100% { opacity:.4; } 50% { opacity:1; }
+          0%,100% { opacity:.35; } 50% { opacity:1; }
         }
 
+        /* ── Overlay（全螢幕深紫底）── */
         .spl-overlay {
           position:fixed; inset:0; z-index:999999;
-          background:radial-gradient(ellipse at 50% 60%, #1a0b2e 0%, #08040f 100%);
+          background:#07040f;
           display:flex; flex-direction:column;
-          align-items:center; justify-content:center;
+          align-items:center; justify-content:flex-start;
           overflow:hidden;
           pointer-events:all;
           -webkit-tap-highlight-color:transparent;
         }
         .spl-overlay.spl-exit {
-          animation: spl-fadeout .6s ease-in forwards;
+          animation: spl-fadeout .5s ease-in forwards;
         }
-        /* 背景星點 */
+        /* 光暈層（覆蓋在圖片下方，柔和呼吸） */
+        .spl-overlay::before {
+          content:''; position:absolute;
+          top:0; left:50%; transform:translateX(-50%);
+          width:100%; height:70%;
+          background:radial-gradient(ellipse at 50% 40%,
+            rgba(180,120,255,.28) 0%,
+            rgba(120,80,200,.12) 40%,
+            transparent 70%);
+          z-index:1; pointer-events:none;
+          animation: spl-glow-breathe 4s ease-in-out 1s infinite;
+        }
+        /* 星點 */
         .spl-stars {
-          position:absolute; inset:0; pointer-events:none;
+          position:absolute; inset:0; pointer-events:none; z-index:2;
         }
         .spl-star {
-          position:absolute; width:3px; height:3px;
-          border-radius:50%; background:#fff;
+          position:absolute; width:2px; height:2px;
+          border-radius:50%; background:#e8d8ff;
           animation: spl-star var(--d,2s) ease-in-out var(--delay,0s) infinite;
         }
-        /* 圖片 */
+        /* ── 圖片容器：全螢幕直式，完整顯示整張圖 ── */
         .spl-img-wrap {
-          position:relative; z-index:2;
-          width:min(68vw,260px); height:min(68vw,260px);
-          border-radius:50%; overflow:hidden;
-          animation: spl-img-in 1.1s cubic-bezier(.16,1,.3,1) forwards,
-                     spl-glow-pulse 3s ease-in-out 1.2s infinite,
-                     spl-float 5s ease-in-out 1.5s infinite;
+          position:absolute; inset:0; z-index:3;
+          /* 不設任何 border-radius，不裁切 */
+          border-radius:0; overflow:visible;
+          display:flex; align-items:flex-start; justify-content:center;
+          /* 只做 opacity 淡入，絕不 transform */
+          animation: spl-img-fade-in 1s ease-out forwards;
         }
         .spl-img-wrap.spl-quick {
-          animation: spl-img-in-quick .5s cubic-bezier(.16,1,.3,1) forwards,
-                     spl-glow-pulse 3s ease-in-out .6s infinite,
-                     spl-float 5s ease-in-out .8s infinite;
+          animation: spl-img-fade-in-quick .45s ease-out forwards;
         }
         .spl-img-wrap img {
-          width:100%; height:100%; object-fit:cover; display:block;
+          /* 全螢幕高度，保持原始比例，黑色背景補白邊 */
+          width:100%;
+          height:100%;
+          object-fit:contain;
+          object-position:center top;
+          display:block;
         }
-        .spl-img-wrap::after {
-          content:''; position:absolute; inset:0; border-radius:50%;
-          background:radial-gradient(circle at 40% 30%, rgba(255,240,255,.15), transparent 60%);
-          pointer-events:none;
-        }
-        /* 標題 */
+        /* 不需要 ::after 光暈（已移到 overlay::before）*/
+        /* ── 文字與狀態覆蓋在圖片底部 ── */
         .spl-titles {
-          position:relative; z-index:2; margin-top:28px; text-align:center;
-          animation: spl-title-in .8s ease .7s both;
+          position:absolute; bottom:80px; left:0; right:0;
+          z-index:5; text-align:center;
+          animation: spl-title-in .8s ease .8s both;
         }
         .spl-titles.spl-quick {
           animation: spl-title-in .4s ease .3s both;
         }
         .spl-title-main {
           font-family:'Noto Sans TC',sans-serif;
-          font-size:21px; font-weight:900; letter-spacing:4px;
-          color:#f5e8ff;
-          text-shadow: 0 0 24px rgba(220,160,255,.8), 0 2px 8px rgba(0,0,0,.4);
+          font-size:20px; font-weight:900; letter-spacing:4px;
+          color:#f0e4ff;
+          text-shadow: 0 0 20px rgba(200,150,255,.9), 0 2px 8px rgba(0,0,0,.7);
         }
         .spl-title-sub {
           font-family:'Noto Sans TC',sans-serif;
           font-size:12px; font-weight:500; letter-spacing:5px;
-          color:rgba(210,170,255,.6); margin-top:8px;
+          color:rgba(200,165,255,.6); margin-top:6px;
+          text-shadow: 0 1px 6px rgba(0,0,0,.6);
         }
         .spl-status {
-          position:relative; z-index:2;
-          margin-top:24px; font-size:11px; letter-spacing:2px;
-          color:rgba(190,150,240,.5);
+          position:absolute; bottom:50px; left:0; right:0;
+          z-index:5; text-align:center;
+          font-size:11px; letter-spacing:2px;
+          color:rgba(180,145,240,.5);
           font-family:'Share Tech Mono',monospace;
           animation: spl-status-blink 1.6s ease-in-out infinite;
           min-height:16px;
