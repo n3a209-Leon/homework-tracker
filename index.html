@@ -1616,9 +1616,6 @@ window._safeLS = { get: safeGet, set: safeSet, remove: safeRemove, length: safeL
 
 function loadGSI() { return Promise.resolve(); }
 async function gSignIn() {
-
-  alert('開始 Google 登入');
-
   _writeLog('step', 'gSignIn start (Firebase redirect)');
 
   if (typeof firebase === 'undefined' || !firebase.auth) {
@@ -2800,9 +2797,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
 function App() {
     var _a, _b, _c, _d, _e;
     // ── Splash state ──
-    // Show splash only when page first loads; after done, auth flow continues normally
     const [splashDone, setSplashDone] = React.useState(false);
-    const [splashStarted, setSplashStarted] = React.useState(true);
     // Render complete marker（mount 後）
     useEffect(function() {
         try {
@@ -2952,41 +2947,12 @@ function App() {
         }
         // 先處理 redirect 登入結果
         firebase.auth().getRedirectResult().then(function(result) {
-
-    if (result && result.user) {
-
-        alert(
-          'Redirect Success\n' +
-          result.user.email
-        );
-
-        _writeLog &&
-        _writeLog(
-          'step',
-          'redirect login: ' + result.user.email
-        );
-
-    } else {
-
-        alert('Redirect Empty');
-
-    }
-
-}).catch(function(e) {
-
-    alert(
-      'Redirect Error\n' +
-      (e.code || e.message)
-    );
-
-    _writeLog &&
-    _writeLog(
-      'error',
-      'getRedirectResult: ' +
-      String(e.code || e.message).slice(0,60)
-    );
-
-});
+            if (result && result.user) {
+                try { window._writeLog && window._writeLog('step', 'redirect login: ' + result.user.email); } catch(e) {}
+            }
+        }).catch(function(e) {
+            try { window._writeLog && window._writeLog('error', 'getRedirectResult: ' + String(e.code || e.message).slice(0,60)); } catch(e2) {}
+        });
 
         // 監聽登入狀態
         var _authTimer = setTimeout(function() {
@@ -3707,9 +3673,8 @@ function App() {
         const wd = new Date(+y, +m - 1, +d).getDay();
         return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
     }
-    // ── Splash Screen（overlay mode - runs on top of auth flow）──
     // 等待 Firebase 確認登入狀態
-    if (authLoading && splashDone) {
+    if (authLoading) {
         return (React.createElement("div", { style: {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             height: '100vh', background: '#0a0e1a', flexDirection: 'column', gap: 16,
@@ -3718,11 +3683,6 @@ function App() {
             React.createElement("div", { style: { width: 40, height: 40, border: '3px solid rgba(255,255,255,.1)', borderTop: '3px solid #6c8ebf', borderRadius: '50%', animation: 'spin 1s linear infinite' } }),
             React.createElement("p", { style: { color: 'rgba(255,255,255,.5)', fontSize: 14 } }, '確認登入狀態...')
         ));
-    }
-
-    // ── Splash overlay (shown on top of real content while animating) ──
-    if (!splashDone) {
-        return React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } });
     }
 
     if (!authed) {
@@ -3742,7 +3702,9 @@ function App() {
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
             React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Firebase")));
     }
-    return (React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
+    return (React.createElement(React.Fragment, null,
+        !splashDone && React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } }),
+        React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
             React.createElement("div", { className: "hi" },
                 React.createElement("div", { className: "hi-row1" },
@@ -4364,7 +4326,7 @@ function App() {
                     theme === t.id && React.createElement("span", { style: { marginLeft: 'auto', fontSize: 18, color: theme === 'nerv' ? '#ff6600' : theme === 'nebula' ? '#a080ff' : '#1e3a5f' } }, "\u2713"))))))),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
-        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid }))));
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
     debugStep('RENDER START');
@@ -4581,7 +4543,7 @@ function handleCredentialResponse(token) {
   localStorage.setItem('user_token', token);
   
   // 2. 彈出歡迎訊息
-  alert("PWA 登入成功！歡迎使用作業記錄功能。");
+  // PWA 登入成功
   
   // 3. 重新整理網頁，讓主程式重新讀取狀態
   window.location.reload();
