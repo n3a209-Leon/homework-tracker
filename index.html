@@ -1590,7 +1590,7 @@ window._safeLS = { get: safeGet, set: safeSet, remove: safeRemove, length: safeL
 
 function loadGSI() { return Promise.resolve(); }
 async function gSignIn() {
-  _writeLog('step', 'gSignIn start (Firebase redirect)');
+  _writeLog('step', 'gSignIn start (Firebase popup)');
 
   if (typeof firebase === 'undefined' || !firebase.auth) {
     throw new Error('Firebase 未載入，請確認網路連線');
@@ -1598,7 +1598,19 @@ async function gSignIn() {
 
   var provider = new firebase.auth.GoogleAuthProvider();
 
-  return firebase.auth().signInWithRedirect(provider);
+  try {
+    // Popup 方式：iOS Safari 相容，不依賴 redirect cookie
+    var result = await firebase.auth().signInWithPopup(provider);
+    _writeLog('step', 'popup login ok: ' + (result.user && result.user.email));
+    return result;
+  } catch(e) {
+    // popup 被封鎖時備援 redirect
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+      _writeLog('step', 'popup blocked, fallback to redirect');
+      return firebase.auth().signInWithRedirect(provider);
+    }
+    throw e;
+  }
 }
 window.gSignIn = gSignIn;
 debugStep('GOOGLE API READY');
@@ -3628,9 +3640,11 @@ function App() {
             React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 48, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
-                    gSignIn().then(function(tok) {
-                        if (tok !== null) setAuthed(true);
+                    gSignIn().then(function(result) {
+                        // popup 登入成功：onAuthStateChanged 會自動觸發 setAuthed(true)
+                        _writeLog && _writeLog('step', 'login btn: popup result ok');
                     }).catch(function(err) {
+                        if (err && err.code === 'auth/popup-closed-by-user') return; // 用戶自行關閉，不顯示錯誤
                         var em = err ? (err.message || String(err)) : '登入失敗';
                         showError('Google 登入失敗\\n\\n' + em, '#1a1a0a');
                     });
