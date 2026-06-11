@@ -2123,15 +2123,23 @@ function daySummary(rows, groups) {
           return setTimeout(function() { setStatus(s[1]); }, s[0]);
         });
 
-        // 動畫結束：300ms 淡出後進入主畫面
-        var exitTimer = setTimeout(function() {
+        // 動畫結束：淡出後進入主畫面
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
           setExiting(true);
-          setTimeout(onDone, 320);
-        }, dur);
+          setTimeout(function() { try { onDone(); } catch(e) {} }, 320);
+        }
+
+        var exitTimer = setTimeout(finish, dur);
+        // 保底 fallback：無論如何 4 秒後強制進 App（防止 PWA/Safari 卡住）
+        var fallbackTimer = setTimeout(function() { try { onDone(); } catch(e) {} }, 4000);
 
         return function() {
           timers.forEach(clearTimeout);
           clearTimeout(exitTimer);
+          clearTimeout(fallbackTimer);
         };
       }, []);
 
@@ -3684,16 +3692,9 @@ function App() {
         const wd = new Date(+y, +m - 1, +d).getDay();
         return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
     }
-    // 等待 Firebase 確認登入狀態
-    if (authLoading) {
-        return (React.createElement("div", { style: {
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: '100vh', background: '#0a0e1a', flexDirection: 'column', gap: 16,
-            position: 'relative', zIndex: 10
-        }},
-            React.createElement("div", { style: { width: 40, height: 40, border: '3px solid rgba(255,255,255,.1)', borderTop: '3px solid #6c8ebf', borderRadius: '50%', animation: 'spin 1s linear infinite' } }),
-            React.createElement("p", { style: { color: 'rgba(255,255,255,.5)', fontSize: 14 } }, '確認登入狀態...')
-        ));
+    // 等待 Firebase 確認登入狀態 或 Splash 尚未完成：顯示 Splash（early return，不渲染 App）
+    if (authLoading || !splashDone) {
+        return React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } });
     }
 
     if (!authed) {
@@ -3719,7 +3720,6 @@ function App() {
             React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Firebase")));
     }
     return (React.createElement(React.Fragment, null,
-        !splashDone && React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } }),
         React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
             React.createElement("div", { className: "hi" },
