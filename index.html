@@ -2800,7 +2800,9 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
 function App() {
     var _a, _b, _c, _d, _e;
     // ── Splash state ──
+    // Show splash only when page first loads; after done, auth flow continues normally
     const [splashDone, setSplashDone] = React.useState(false);
+    const [splashStarted, setSplashStarted] = React.useState(true);
     // Render complete marker（mount 後）
     useEffect(function() {
         try {
@@ -3705,12 +3707,9 @@ function App() {
         const wd = new Date(+y, +m - 1, +d).getDay();
         return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
     }
-    // ── Splash Screen（first render gate）──
-    if (!splashDone) {
-        return React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } });
-    }
+    // ── Splash Screen（overlay mode - runs on top of auth flow）──
     // 等待 Firebase 確認登入狀態
-    if (authLoading) {
+    if (authLoading && splashDone) {
         return (React.createElement("div", { style: {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             height: '100vh', background: '#0a0e1a', flexDirection: 'column', gap: 16,
@@ -3719,6 +3718,11 @@ function App() {
             React.createElement("div", { style: { width: 40, height: 40, border: '3px solid rgba(255,255,255,.1)', borderTop: '3px solid #6c8ebf', borderRadius: '50%', animation: 'spin 1s linear infinite' } }),
             React.createElement("p", { style: { color: 'rgba(255,255,255,.5)', fontSize: 14 } }, '確認登入狀態...')
         ));
+    }
+
+    // ── Splash overlay (shown on top of real content while animating) ──
+    if (!splashDone) {
+        return React.createElement(SplashScreen, { onDone: function() { setSplashDone(true); } });
     }
 
     if (!authed) {
