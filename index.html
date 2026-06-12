@@ -1698,6 +1698,59 @@
         [data-theme="nerv"] .gr-search {
           background:#0f1a0f; border-color:#00cc55; color:#00ff66;
         }
+
+        /* 單日頁輔導紀錄列表 */
+        .gr-day-list {
+          margin:10px 0 6px;
+          border-radius:10px;
+          overflow:hidden;
+          border:1px solid rgba(156,39,176,.2);
+        }
+        [data-theme="nerv"] .gr-day-list {
+          border-color:rgba(0,200,80,.2);
+        }
+        .gr-day-list-title {
+          display:flex; align-items:center; justify-content:space-between;
+          padding:8px 12px;
+          background:rgba(156,39,176,.12);
+          font-size:12px; font-weight:600; letter-spacing:.5px;
+        }
+        [data-theme="nerv"] .gr-day-list-title {
+          background:rgba(0,200,80,.08);
+          color:#00cc55; font-family:'Share Tech Mono',monospace;
+        }
+        .gr-day-list-count {
+          font-size:11px; opacity:.6;
+          background:rgba(156,39,176,.25);
+          padding:1px 7px; border-radius:10px;
+        }
+        .gr-day-item {
+          padding:9px 12px;
+          border-top:1px solid rgba(255,255,255,.05);
+        }
+        .gr-day-item:first-of-type { border-top:none; }
+        [data-theme="nerv"] .gr-day-item {
+          border-top-color:rgba(0,200,80,.08);
+        }
+        .gr-day-item-header {
+          display:flex; align-items:center; gap:8px;
+          margin-bottom:4px;
+        }
+        .gr-day-item-cat {
+          font-size:11px; font-weight:700;
+          background:rgba(156,39,176,.3);
+          padding:1px 8px; border-radius:10px;
+          color:inherit;
+        }
+        [data-theme="nerv"] .gr-day-item-cat {
+          background:rgba(0,200,80,.2); color:#00ff66;
+        }
+        .gr-day-item-seats {
+          font-size:11px; opacity:.55;
+        }
+        .gr-day-item-content {
+          font-size:13px; line-height:1.5; opacity:.9;
+        }
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
 
 
@@ -4741,6 +4794,26 @@ function App() {
                     catch(e) { setImportMsg("❌ Firebase 同步失敗"); }
                     setTimeout(() => setImportMsg(""), 3000);
                 } }, "☁️ 同步到 Firebase"),
+            (function() {
+                var todayRecs = grRecords.filter(function(r) { return r.date === selDate; });
+                return todayRecs.length > 0
+                    ? React.createElement("div", { className: "gr-day-list" },
+                        React.createElement("div", { className: "gr-day-list-title" },
+                            isNerv ? "◈ GUIDANCE LOG — " + selDate : "💬 今日輔導紀錄",
+                            React.createElement("span", { className: "gr-day-list-count" }, todayRecs.length + " 筆")
+                        ),
+                        todayRecs.map(function(r) {
+                            return React.createElement("div", { key: r.id, className: "gr-day-item" },
+                                React.createElement("div", { className: "gr-day-item-header" },
+                                    React.createElement("span", { className: "gr-day-item-cat" }, r.category),
+                                    React.createElement("span", { className: "gr-day-item-seats" }, "座號 " + (r.studentSeats || []).join("、"))
+                                ),
+                                React.createElement("div", { className: "gr-day-item-content" }, r.content)
+                            );
+                        })
+                    )
+                    : null;
+            })(),
             React.createElement("button", {
                 className: "gr-add-btn",
                 onClick: function() { setGrDialog(true); setGrSeats([]); setGrCat('學習'); setGrContent(''); setGrMsg(''); }
