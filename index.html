@@ -4132,8 +4132,7 @@ function App() {
             allComplete && React.createElement("span", { className: "cal-ok" }, "\u2713"),
             absentCount > 0 && React.createElement("span", { className: "cal-absent" },
                 absentCount,
-                "\u8ACB"),
-            hasCounsel && (React.createElement("span", { className: "cal-counsel", title: "\u6709\u8F14\u5C0E\u7D00\u9304", onClick: e => { e.stopPropagation(); openCounsel(dateStr); } }, isNerv ? "◈" : "💬"))));
+                "\u8ACB")));
     }
     // ── NERV Intro Animation ──
     const [intro, setIntro] = useState(() => {
@@ -4384,8 +4383,7 @@ function App() {
                         " ",
                         React.createElement("em", null, "作業系統")) : "作業繳交紀錄"),
                     React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
-                    React.createElement("button", { className: "theme-btn", onClick: () => openCounsel(selDate || today()), title: "輔導記錄", style: { background: Object.keys(counselMonth).length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "◈" : "💬"),
-                        React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "▣" : "📋"),
+                    React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "▣" : "📋"),
                     React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "設定" }, isNerv ? "⚙" : "⚙️"),
                     React.createElement("button", { className: "theme-btn", onClick: () => setView("archive"), title: "歷年檔案室", style:{fontSize:15} }, isNerv ? "◫" : "🗂")
                 ),
