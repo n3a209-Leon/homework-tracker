@@ -1453,43 +1453,46 @@
         /* 外層容器：負責邊緣漸層遮罩 */
         .galaxy-transition-wrap {
           position:relative;
-          /* 直向比例：寬88vw，高依圖片原始比例 843:960 ≈ 1:1.14 */
-          width:min(88vw, 400px);
-          height:min(calc(88vw * 1.14), 456px);
+          /* 直向比例 843:960，寬度 75vw 讓圖片不要太佔版面 */
+          width:min(75vw, 340px);
+          height:min(calc(75vw * 1.14), 388px);
           opacity:0;
-          transform:scale(0.12);
-          animation: galaxy-burst 0.44s cubic-bezier(.22,1,.36,1) forwards;
-          /* 邊緣遮罩：橢圓形，中央大範圍保留，邊緣柔和淡出 */
-          -webkit-mask-image: radial-gradient(ellipse 88% 92% at 50% 48%,
-            rgba(0,0,0,1)   50%,
-            rgba(0,0,0,.92) 65%,
-            rgba(0,0,0,.55) 80%,
-            rgba(0,0,0,.1)  92%,
+          transform:scale(0.10);
+          animation: galaxy-burst 0.50s cubic-bezier(.16,1,.3,1) forwards;
+          /* 柔和邊緣：大範圍保留中央，外圍很長的漸層淡出 */
+          -webkit-mask-image: radial-gradient(ellipse 80% 85% at 50% 45%,
+            rgba(0,0,0,1)   30%,
+            rgba(0,0,0,.95) 50%,
+            rgba(0,0,0,.7)  65%,
+            rgba(0,0,0,.3)  80%,
+            rgba(0,0,0,.05) 92%,
             rgba(0,0,0,0)   100%
           );
-          mask-image: radial-gradient(ellipse 88% 92% at 50% 48%,
-            rgba(0,0,0,1)   50%,
-            rgba(0,0,0,.92) 65%,
-            rgba(0,0,0,.55) 80%,
-            rgba(0,0,0,.1)  92%,
+          mask-image: radial-gradient(ellipse 80% 85% at 50% 45%,
+            rgba(0,0,0,1)   30%,
+            rgba(0,0,0,.95) 50%,
+            rgba(0,0,0,.7)  65%,
+            rgba(0,0,0,.3)  80%,
+            rgba(0,0,0,.05) 92%,
             rgba(0,0,0,0)   100%
           );
         }
         .galaxy-transition-img {
           width:100%; height:100%;
           border-radius:0;
-          object-fit:cover;
-          /* 垂直置中偏上：讓女神頭、臉、手、星雲都在可視範圍內 */
-          object-position:center 20%;
+          /* contain：完整保留比例，不壓縮不裁切 */
+          object-fit:contain;
+          object-position:center center;
           display:block;
-          mix-blend-mode: screen;
-          filter: brightness(1.7) saturate(1.45) contrast(1.05);
+          /* 移除 mix-blend-mode，保留原始顏色 */
+          filter: brightness(1.05) saturate(1.1);
         }
         @keyframes galaxy-burst {
-          0%   { opacity:0;    transform:scale(0.12); filter:blur(10px); }
-          40%  { opacity:1;    transform:scale(0.95); filter:blur(0px);  }
-          68%  { opacity:1;    transform:scale(1.0);  filter:blur(0px);  }
-          100% { opacity:0;    transform:scale(1.25); filter:blur(5px);  }
+          0%   { opacity:0;    transform:scale(0.10); filter:blur(14px); }
+          35%  { opacity:0.95; transform:scale(0.9);  filter:blur(1px);  }
+          60%  { opacity:1;    transform:scale(1.0);  filter:blur(0px);  }
+          80%  { opacity:0.9;  transform:scale(1.05); filter:blur(0px);  }
+          100% { opacity:0;    transform:scale(1.3);  filter:blur(8px);  }
         }
         /* ══ END GALAXY TRANSITION ══════════════════════════════════ */
 
