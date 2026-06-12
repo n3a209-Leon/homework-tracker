@@ -3405,9 +3405,22 @@ function App() {
     const [showClassDropdown, setShowClassDropdown] = useState(false);
 
     // 儲存 classes
+    async function saveSettingsToFirebase(cn, sn, sy, cls) {
+        if (!firebaseUid) return;
+        try {
+            await window.fsSet(firebaseUid, 'settings:main', {
+                className:  cn  !== undefined ? cn  : className,
+                schoolName: sn  !== undefined ? sn  : schoolName,
+                schoolYear: sy  !== undefined ? sy  : schoolYear,
+                classes:    cls !== undefined ? cls : classes,
+                updatedAt:  new Date().toISOString()
+            });
+        } catch(e) {}
+    }
     function saveClasses(updated) {
         setClasses(updated);
         _sl.set("hw5ren:classes", JSON.stringify(updated));
+        saveSettingsToFirebase(undefined, undefined, undefined, updated);
     }
 
     // 切換班級
@@ -3420,6 +3433,7 @@ function App() {
         _sl.set("hw5ren:className", cls.className);
         _sl.set("hw5ren:school", cls.school);
         _sl.set("hw5ren:year", cls.year);
+        saveSettingsToFirebase(cls.className, cls.school, cls.year, undefined);
         setShowClassDropdown(false);
         // 重新載入該班級的分組
         try {
@@ -3555,6 +3569,18 @@ function App() {
             setDriveStatus('syncing');
             setStor(function(s) { return Object.assign({}, s, { msg: '☁️ 從雲端載入…' }); });
             try {
+                // ── 設定資料：從 Firebase 還原 className / schoolName / schoolYear / classes ──
+                var savedSettings = await window.fsGet(firebaseUid, 'settings:main');
+                if (savedSettings) {
+                    if (savedSettings.className)  { setClassName(savedSettings.className);   try { _sl.set('hw5ren:className', savedSettings.className); } catch(ex) {} }
+                    if (savedSettings.schoolName) { setSchoolName(savedSettings.schoolName); try { _sl.set('hw5ren:school',    savedSettings.schoolName); } catch(ex) {} }
+                    if (savedSettings.schoolYear) { setSchoolYear(savedSettings.schoolYear); try { _sl.set('hw5ren:year',      savedSettings.schoolYear); } catch(ex) {} }
+                    if (savedSettings.classes && Array.isArray(savedSettings.classes)) {
+                        setClasses(savedSettings.classes);
+                        try { _sl.set('hw5ren:classes', JSON.stringify(savedSettings.classes)); } catch(ex) {}
+                    }
+                }
+                // ── 作業資料 ──
                 var allData = await window.fsGetAll(firebaseUid, 'day:');
                 var c = 0;
                 for (var k in allData) {
@@ -5145,7 +5171,7 @@ function App() {
         ),
         grMsg && !grDialog && React.createElement("div", { style:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"rgba(76,175,80,.9)",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,zIndex:9600,pointerEvents:"none"} }, grMsg),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
