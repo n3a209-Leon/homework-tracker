@@ -1444,55 +1444,56 @@
         /* ══ END DAY NAV BAR ════════════════════════════════════════ */
 
         /* ══ GALAXY TRANSITION ══════════════════════════════════════ */
+        /* ── Galaxy 過場：全螢幕浮現，無邊框無輪廓 ── */
         .galaxy-transition {
           position:fixed; inset:0; z-index:8000;
           pointer-events:none;
           display:flex; align-items:center; justify-content:center;
           background:transparent;
         }
-        /* 外層容器：負責邊緣漸層遮罩 */
+        /* 容器：全螢幕，圖片在正中央，mask 做成超大柔和橢圓 */
         .galaxy-transition-wrap {
-          position:relative;
-          /* 直向比例 843:960，寬度 75vw 讓圖片不要太佔版面 */
-          width:min(75vw, 340px);
-          height:min(calc(75vw * 1.14), 388px);
+          position:absolute; inset:0;
+          display:flex; align-items:center; justify-content:center;
           opacity:0;
-          transform:scale(0.10);
-          animation: galaxy-burst 0.50s cubic-bezier(.16,1,.3,1) forwards;
-          /* 柔和邊緣：大範圍保留中央，外圍很長的漸層淡出 */
-          -webkit-mask-image: radial-gradient(ellipse 80% 85% at 50% 45%,
-            rgba(0,0,0,1)   30%,
-            rgba(0,0,0,.95) 50%,
-            rgba(0,0,0,.7)  65%,
-            rgba(0,0,0,.3)  80%,
-            rgba(0,0,0,.05) 92%,
-            rgba(0,0,0,0)   100%
-          );
-          mask-image: radial-gradient(ellipse 80% 85% at 50% 45%,
-            rgba(0,0,0,1)   30%,
-            rgba(0,0,0,.95) 50%,
-            rgba(0,0,0,.7)  65%,
-            rgba(0,0,0,.3)  80%,
-            rgba(0,0,0,.05) 92%,
-            rgba(0,0,0,0)   100%
-          );
+          animation: galaxy-burst 0.55s cubic-bezier(.16,1,.3,1) forwards;
         }
         .galaxy-transition-img {
-          width:100%; height:100%;
-          border-radius:0;
-          /* contain：完整保留比例，不壓縮不裁切 */
-          object-fit:contain;
-          object-position:center center;
+          /* 固定高度 70vh，寬度自動跟隨比例，女神完整顯示 */
+          width:auto;
+          height:70vh;
+          max-width:90vw;
           display:block;
-          /* 移除 mix-blend-mode，保留原始顏色 */
-          filter: brightness(1.05) saturate(1.1);
+          object-fit:contain;
+          /* 超大柔和橢圓遮罩：從圖片中央往外很長才消失 */
+          -webkit-mask-image: radial-gradient(ellipse 70% 78% at 50% 48%,
+            black  0%,
+            black  28%,
+            rgba(0,0,0,.96) 40%,
+            rgba(0,0,0,.82) 52%,
+            rgba(0,0,0,.55) 63%,
+            rgba(0,0,0,.25) 74%,
+            rgba(0,0,0,.07) 84%,
+            transparent     95%
+          );
+          mask-image: radial-gradient(ellipse 70% 78% at 50% 48%,
+            black  0%,
+            black  28%,
+            rgba(0,0,0,.96) 40%,
+            rgba(0,0,0,.82) 52%,
+            rgba(0,0,0,.55) 63%,
+            rgba(0,0,0,.25) 74%,
+            rgba(0,0,0,.07) 84%,
+            transparent     95%
+          );
+          filter: brightness(1.05) saturate(1.08);
         }
         @keyframes galaxy-burst {
-          0%   { opacity:0;    transform:scale(0.10); filter:blur(14px); }
-          35%  { opacity:0.95; transform:scale(0.9);  filter:blur(1px);  }
-          60%  { opacity:1;    transform:scale(1.0);  filter:blur(0px);  }
-          80%  { opacity:0.9;  transform:scale(1.05); filter:blur(0px);  }
-          100% { opacity:0;    transform:scale(1.3);  filter:blur(8px);  }
+          0%   { opacity:0;   transform:scale(0.08); filter:blur(18px); }
+          30%  { opacity:.9;  transform:scale(0.88); filter:blur(2px);  }
+          58%  { opacity:1;   transform:scale(1.0);  filter:blur(0px);  }
+          78%  { opacity:.95; transform:scale(1.04); filter:blur(0px);  }
+          100% { opacity:0;   transform:scale(1.28); filter:blur(10px); }
         }
         /* ══ END GALAXY TRANSITION ══════════════════════════════════ */
 
@@ -4573,7 +4574,8 @@ function App() {
                 React.createElement("img", {
                     className: "galaxy-transition-img",
                     src: _GALAXY_IMG,
-                    alt: ""
+                    alt: "",
+                    draggable: false
                 })
             )
         ),
