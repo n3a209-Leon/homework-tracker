@@ -1453,23 +1453,25 @@
         /* 外層容器：負責邊緣漸層遮罩 */
         .galaxy-transition-wrap {
           position:relative;
-          width:min(80vw, 360px); height:min(80vw, 360px);
+          /* 直向比例：寬88vw，高依圖片原始比例 843:960 ≈ 1:1.14 */
+          width:min(88vw, 400px);
+          height:min(calc(88vw * 1.14), 456px);
           opacity:0;
           transform:scale(0.12);
           animation: galaxy-burst 0.44s cubic-bezier(.22,1,.36,1) forwards;
-          /* 邊緣放射狀漸層遮罩：中央100%顯示，邊緣淡出 */
-          -webkit-mask-image: radial-gradient(ellipse 85% 90% at 50% 42%,
-            rgba(0,0,0,1)   45%,
-            rgba(0,0,0,.9)  60%,
-            rgba(0,0,0,.5)  75%,
-            rgba(0,0,0,.1)  90%,
+          /* 邊緣遮罩：橢圓形，中央大範圍保留，邊緣柔和淡出 */
+          -webkit-mask-image: radial-gradient(ellipse 88% 92% at 50% 48%,
+            rgba(0,0,0,1)   50%,
+            rgba(0,0,0,.92) 65%,
+            rgba(0,0,0,.55) 80%,
+            rgba(0,0,0,.1)  92%,
             rgba(0,0,0,0)   100%
           );
-          mask-image: radial-gradient(ellipse 85% 90% at 50% 42%,
-            rgba(0,0,0,1)   45%,
-            rgba(0,0,0,.9)  60%,
-            rgba(0,0,0,.5)  75%,
-            rgba(0,0,0,.1)  90%,
+          mask-image: radial-gradient(ellipse 88% 92% at 50% 48%,
+            rgba(0,0,0,1)   50%,
+            rgba(0,0,0,.92) 65%,
+            rgba(0,0,0,.55) 80%,
+            rgba(0,0,0,.1)  92%,
             rgba(0,0,0,0)   100%
           );
         }
@@ -1477,11 +1479,11 @@
           width:100%; height:100%;
           border-radius:0;
           object-fit:cover;
-          object-position:center top; /* 從頭頂開始，確保女神頭臉完整 */
+          /* 垂直置中偏上：讓女神頭、臉、手、星雲都在可視範圍內 */
+          object-position:center 20%;
           display:block;
           mix-blend-mode: screen;
-          /* 提高亮度讓粉色頭髮、肌膚也能透過 screen 顯示 */
-          filter: brightness(1.6) saturate(1.4) contrast(1.05);
+          filter: brightness(1.7) saturate(1.45) contrast(1.05);
         }
         @keyframes galaxy-burst {
           0%   { opacity:0;    transform:scale(0.12); filter:blur(10px); }
