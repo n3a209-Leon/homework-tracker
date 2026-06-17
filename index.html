@@ -2270,8 +2270,9 @@ function loadGroups() {
         return DEFAULT_GROUPS;
     }
 }
-const PRESET_HW = ["國習", "數習", "國乙", "國甲", "聽寫", "小日記", "小作文", "作文段落", "作文", "數習題", "國卷", "數卷", "聯絡簿", "回條", "國習題"];
-const MAX_ROWS = 6;
+const PRESET_HW = ["國習", "數習", "國乙", "國甲", "聽寫", "小日記", "小作文", "作文段落", "作文", "數習題", "國卷", "數卷", "回條", "國習題"];
+const NO_EXEMPT_HW = new Set(["聯絡簿", "國卷", "數卷"]); // 這些作業不顯示抵免
+const MAX_ROWS = 999; // 無上限
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 const COUNSEL_PERIODS = ["早自習", "第1節", "第2節", "第3節", "第4節", "午休", "第5節", "第6節", "放學後"];
 const COUNSEL_TYPES = ["學習", "行為", "情緒", "人際", "家庭", "其他"];
@@ -3795,7 +3796,13 @@ function App() {
     async function openDay(ds) {
         setLoading(true);
         const res = await loadDay(ds);
-        const initRows = res.rows.length ? res.rows : [{ hwName: "", groupData: {} }];
+        // 自動帶入聯絡簿：若當天完全沒有資料，預填聯絡簿
+        var initRows;
+        if (res.rows.length > 0) {
+            initRows = res.rows;
+        } else {
+            initRows = [{ hwName: "聯絡簿", groupData: {} }];
+        }
         setDayRows(initRows);
         setDayAtt(res.attendance);
         setDayExempt(res.exempt || {});
@@ -4066,8 +4073,6 @@ function App() {
     }
     function closeModal() { setModal(null); setMarked(new Set()); }
     function addRow() {
-        if (dayRows.length >= MAX_ROWS)
-            return;
         updRows(p => [...p, { hwName: "", groupData: {} }]);
     }
     function delRow(i) { updRows(p => p.filter((_, j) => j !== i)); }
@@ -4781,7 +4786,7 @@ function App() {
                             }),
                             React.createElement("td", { className: "dc" },
                                 React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "\u00D7"))))),
-                        dayRows.length < MAX_ROWS && (React.createElement("tr", { className: "ar", onClick: () => {
+                        React.createElement("tr", { className: "ar", onClick: () => {
                                 // 先新增一列（取得正確的 ri）
                                 const newRi = dayRows.length;
                                 updRows(p => [...p, { hwName: "", groupData: {} }]);
@@ -4791,12 +4796,12 @@ function App() {
                                 setModal({ phase: "input", ri: newRi, gid: null });
                             } },
                             React.createElement("td", { colSpan: 7 },
-                                isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課")))))),
-            dayRows.some(r => r.hwName) && (React.createElement("div", { className: "exempt-panel" },
+                                isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課")))))
+            dayRows.some(r => r.hwName && !NO_EXEMPT_HW.has(r.hwName)) && (React.createElement("div", { className: "exempt-panel" },
                 React.createElement("div", { className: "exempt-header" },
                     React.createElement("span", { className: "exempt-title" }, isNerv ? "◈ EXEMPTION LOG" : "📋 作業抵免"),
                     React.createElement("span", { className: "exempt-hint" }, isNerv ? "// TAP MISSION THEN SEAT //" : "點作業 → 點座號直接抵免")),
-                dayRows.filter(r => r.hwName).map((row, ri) => {
+                dayRows.filter(r => r.hwName && !NO_EXEMPT_HW.has(r.hwName)).map((row, ri) => {
                     var _a;
                     const exemptSet = (_a = dayExempt[row.hwName]) !== null && _a !== void 0 ? _a : new Set();
                     const isOpen = (exemptModal === null || exemptModal === void 0 ? void 0 : exemptModal.hwName) === row.hwName;
