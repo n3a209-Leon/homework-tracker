@@ -361,7 +361,7 @@
         thead{background:#1e3a5f}
         th{color:#c8dff5;font-size:12px;font-weight:700;letter-spacing:1px;padding:10px 4px;text-align:center}
         .th-hw{text-align:left;padding-left:12px;width:80px} .th-d{width:28px}
-        .gl{display:inline-block;padding:2px 4px;border-radius:20px;background:rgba(255,255,255,.1);font-size:11px}
+        .gl{display:inline-block;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.1);font-size:15px;font-weight:700}
         tbody tr{border-bottom:1px solid #e8eef5;transition:background .15s}
         tbody tr:hover{background:#f7fafd}
         .hwc{padding:10px 4px 10px 12px;font-weight:700;font-size:14px;cursor:pointer;color:#1e3a5f;white-space:nowrap;transition:color .15s}
@@ -4121,7 +4121,8 @@ function App() {
         return g.members.filter(m => !done.has(m) && exemptSet.has(m));
     }
     const resMissing = (modal === null || modal === void 0 ? void 0 : modal.phase) === "result" ? getMissing(modal.ri, modal.gid) : [];
-    const resGroup = groups.find(g => g.id === (modal === null || modal === void 0 ? void 0 : modal.gid));
+    const _resRealGid = modal && typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : (modal === null || modal === void 0 ? void 0 : modal.gid);
+    const resGroup = groups.find(g => g.id === _resRealGid);
     const [importMsg, setImportMsg] = useState("");
     // ── Month navigation ──
     function prevMonth() {
@@ -4966,10 +4967,18 @@ function App() {
                         React.createElement("span", { className: "mh" }, modal.hw),
                         React.createElement("span", { className: "mg" },
                             "\u2014 ",
-                            isNerv ? React.createElement("span", { className: "nerv-unit-label" },
-                                React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(modal.gid))) : (_d = groups.find(g => g.id === modal.gid)) === null || _d === void 0 ? void 0 : _d.label)),
+                            (function() {
+                                var realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
+                                var dualType = typeof modal.gid === 'string' && modal.gid.includes('_') ? modal.gid.split('_')[1] : null;
+                                var grpLabel = (groups.find(g => g.id === realGid) || {}).label || String(realGid);
+                                var typeLabel = dualType === 'fix' ? ' 訂正' : dualType === 'sign' ? ' 簽名' : '';
+                                return isNerv
+                                    ? React.createElement("span", { className: "nerv-unit-label" }, React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(realGid)))
+                                    : grpLabel + typeLabel;
+                            })())),
                     (() => {
-                        const grp = groups.find(g => g.id === modal.gid);
+                        var _realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
+                        const grp = groups.find(g => g.id === _realGid);
                         const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.every(n => marked.has(n));
                         const members = (grp === null || grp === void 0 ? void 0 : grp.members) || [];
                         // 蜂巢排列：每行交錯偏移，奇數行往右偏半格
