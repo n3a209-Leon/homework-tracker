@@ -4082,7 +4082,10 @@ function App() {
         const row = dayRows[ri];
         if (!row || !row.hwName)
             return "empty";
-        const g = groups.find(g => g.id === gid);
+        // 支援 dual gid（格式 "groupId_type_ri"）：取第一段為真實 groupId
+        var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
+        const g = groups.find(g => g.id === realGid);
+        if (!g) return "untouched";
         const recorded = Object.prototype.hasOwnProperty.call(row.groupData || {}, gid);
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
@@ -4090,7 +4093,6 @@ function App() {
             return "untouched";
         if (done.size === 0 && exemptSet.size === 0)
             return "allabsent";
-        // count members not done and not exempt
         const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
         if (realMissing.length === 0)
             return "complete";
@@ -4101,7 +4103,9 @@ function App() {
         const row = dayRows[ri];
         if (!row)
             return [];
-        const g = groups.find(g => g.id === gid);
+        var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
+        const g = groups.find(g => g.id === realGid);
+        if (!g) return [];
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
         return g.members.filter(m => !done.has(m) && !exemptSet.has(m));
@@ -4422,7 +4426,7 @@ function App() {
                         React.createElement("span", { className: "nerv-slash" }, "//"),
                         " ",
                         React.createElement("em", null, "作業系統")) : "作業繳交紀錄"),
-                    view === "day" && React.createElement("button", { className: "theme-btn", onClick: () => { setCounselView(false); setView("month"); }, title: "回月曆", style: { background: "rgba(255,255,255,.15)" } }, isNerv ? "◀" : "🏠"),
+                    view !== "month" && React.createElement("button", { className: "theme-btn", onClick: () => { setCounselView(false); setView("month"); }, title: "回月曆", style: { background: "rgba(255,255,255,.15)" } }, isNerv ? "◀" : "🏠"),
                     React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                     React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "▣" : "📋"),
                     React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "設定" }, isNerv ? "⚙" : "⚙️"),
