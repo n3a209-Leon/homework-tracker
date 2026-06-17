@@ -4122,7 +4122,9 @@ function App() {
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
         if (!recorded)
             return "untouched";
-        if (done.size === 0 && exemptSet.size === 0)
+        // dual gid（含 _）不使用 exemptSet，直接判斷
+        var isDualKey = typeof gid === 'string' && gid.includes('_');
+        if (done.size === 0 && (exemptSet.size === 0 || isDualKey))
             return "allabsent";
         const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
         if (realMissing.length === 0)
@@ -4827,6 +4829,7 @@ function App() {
                                                 React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "訂正"),
                                                 s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
                                                 s === "partial" && React.createElement("span", { className: "badge pb" }, "✗"),
+                                                s === "allabsent" && React.createElement("span", { className: "badge ab" }, "✗"),
                                                 s === "untouched" && React.createElement("span", { className: "badge ub" }, "−"),
                                                 s === "partial" && ms.length > 0 && React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n)))
                                             );
@@ -4843,6 +4846,7 @@ function App() {
                                                 React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "簽名"),
                                                 s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
                                                 s === "partial" && React.createElement("span", { className: "badge pb" }, "✗"),
+                                                s === "allabsent" && React.createElement("span", { className: "badge ab" }, "✗"),
                                                 s === "untouched" && React.createElement("span", { className: "badge ub" }, "−"),
                                                 s === "partial" && ms.length > 0 && React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n)))
                                             );
