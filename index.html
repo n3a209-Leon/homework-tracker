@@ -3997,6 +3997,11 @@ function App() {
     const [pendingHw, setPendingHw] = useState("");
     const [marked, setMarked] = useState(new Set());
     const [noneFired, setNoneFired] = useState(false);
+    // 雙排作業（國卷/數卷）獨立 state
+    const [markedFix, setMarkedFix] = useState(new Set());
+    const [markedSign, setMarkedSign] = useState(new Set());
+    const [noneFixFired, setNoneFixFired] = useState(false);
+    const [noneSignFired, setNoneSignFired] = useState(false);
     // ── Attendance modal ──
     const [attModal, setAttModal] = useState(null);
     // ── Exempt modal ──
@@ -4042,9 +4047,19 @@ function App() {
             setModal({ ri, gid, phase: "input" });
             setInputText("");
             setPendingHw("");
-        }
-        else
+        } else if (DUAL_HW.has(hw)) {
+            // 雙排作業：解析真實 groupId，開啟 dualMark
+            var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
+            var fixKey = realGid + '_fix_' + ri;
+            var signKey = realGid + '_sign_' + ri;
+            var gd = (dayRows[ri] || {}).groupData || {};
+            setMarkedFix(new Set(gd[fixKey] || []));
+            setMarkedSign(new Set(gd[signKey] || []));
+            setNoneFixFired(false); setNoneSignFired(false);
+            setModal({ ri, gid: realGid, phase: 'dualMark', hw });
+        } else {
             openMark(ri, gid, hw);
+        }
     }
     function openMark(ri, gid, hw) {
         var _a, _b, _c;
@@ -4072,7 +4087,23 @@ function App() {
         });
         setModal(m => (Object.assign(Object.assign({}, m), { phase: "result" })));
     }
-    function closeModal() { setModal(null); setMarked(new Set()); }
+    function confirmDualMark() {
+        var ri = modal.ri, realGid = modal.gid;
+        var fixKey = realGid + '_fix_' + ri;
+        var signKey = realGid + '_sign_' + ri;
+        updRows(prev => {
+            const n = [...prev], r = Object.assign({}, n[ri]);
+            r.groupData = Object.assign(Object.assign({}, r.groupData), {
+                [fixKey]: new Set(markedFix),
+                [signKey]: new Set(markedSign)
+            });
+            n[ri] = r;
+            return n;
+        });
+        setModal(null);
+        setMarkedFix(new Set()); setMarkedSign(new Set());
+    }
+    function closeModal() { setModal(null); setMarked(new Set()); setMarkedFix(new Set()); setMarkedSign(new Set()); }
     function addRow() {
         updRows(p => [...p, { hwName: "", groupData: {} }]);
     }
@@ -4790,7 +4821,7 @@ function App() {
                                         groups.map(g => {
                                             var s = dualStatus(g.id, "fix"), ms = dualMissing(g.id, "fix");
                                             return React.createElement("td", { key: g.id, className: "gc s-"+s,
-                                                onClick: () => openCell(ri, dualGid(g.id, "fix")),
+                                                onClick: () => openCell(ri, g.id),
                                                 style: { borderBottom: "1px dashed rgba(255,255,255,.1)" }
                                             },
                                                 React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "訂正"),
@@ -4807,7 +4838,7 @@ function App() {
                                         groups.map(g => {
                                             var s = dualStatus(g.id, "sign"), ms = dualMissing(g.id, "sign");
                                             return React.createElement("td", { key: g.id, className: "gc s-"+s,
-                                                onClick: () => openCell(ri, dualGid(g.id, "sign"))
+                                                onClick: () => openCell(ri, g.id)
                                             },
                                                 React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "簽名"),
                                                 s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
@@ -4962,6 +4993,68 @@ function App() {
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeModal }, "\u53D6\u6D88"),
                         React.createElement("button", { className: "bk", onClick: handleConfirmInput }, "\u78BA\u8A8D")))),
+                modal.phase === "dualMark" && (function() {
+                    var realGid = modal.gid;
+                    var grp = groups.find(g => g.id === realGid);
+                    if (!grp) return null;
+                    var members = grp.members || [];
+                    function MemberRow(markedSet, setMarkedSet, noneFlag, setNoneFlag) {
+                        return React.createElement("div", { className: "ng", style:{marginBottom:8} },
+                            members.map(function(n) {
+                                return React.createElement("div", { key: n, className: "nw" },
+                                    React.createElement("button", {
+                                        className: "nb" + (noneFlag && !markedSet.has(n) ? " none-fired" : "") + (markedSet.has(n) ? " sub" : "") + (n === grp.leader ? " ldr" : "") + (n === grp.secretary ? " sec" : ""),
+                                        onClick: function() { var s = new Set(markedSet); s.has(n) ? s.delete(n) : s.add(n); setMarkedSet(s); }
+                                    }, n),
+                                    n === grp.leader && React.createElement("span", { className: "rt lt" }, "組長"),
+                                    n === grp.secretary && React.createElement("span", { className: "rt st" }, "秘書")
+                                );
+                            })
+                        );
+                    }
+                    return React.createElement(React.Fragment, null,
+                        React.createElement("h2", { className: "mt" },
+                            React.createElement("span", { className: "mh" }, modal.hw),
+                            React.createElement("span", { className: "mg" }, "— " + (grp.label || String(realGid)))
+                        ),
+                        // 訂正區塊
+                        React.createElement("div", { style:{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 12px",marginBottom:10} },
+                            React.createElement("div", { className: "mark-toolbar", style:{marginBottom:6} },
+                                React.createElement("div", { style:{fontSize:13,fontWeight:700,opacity:.85,flex:1} }, "訂正"),
+                                React.createElement("div", { className: "toolbar-btns" },
+                                    React.createElement("button", { className: "all-btn"+(markedFix.size===members.length?" all-undo":""),
+                                        onClick: function() { markedFix.size===members.length ? setMarkedFix(new Set()) : (setMarkedFix(new Set(members)), setNoneFixFired(false)); }
+                                    }, markedFix.size===members.length ? "↩ 取消" : "✓ 全交"),
+                                    React.createElement("button", { className: "all-btn all-none"+(noneFixFired?" active-none":""),
+                                        onClick: function() { setMarkedFix(new Set()); setNoneFixFired(true); }
+                                    }, "✗ 未交")
+                                ),
+                                React.createElement("span", { className: "mark-count" }, markedFix.size + "/" + members.length + "人")
+                            ),
+                            MemberRow(markedFix, setMarkedFix, noneFixFired, setNoneFixFired)
+                        ),
+                        // 簽名區塊
+                        React.createElement("div", { style:{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 12px",marginBottom:14} },
+                            React.createElement("div", { className: "mark-toolbar", style:{marginBottom:6} },
+                                React.createElement("div", { style:{fontSize:13,fontWeight:700,opacity:.85,flex:1} }, "簽名"),
+                                React.createElement("div", { className: "toolbar-btns" },
+                                    React.createElement("button", { className: "all-btn"+(markedSign.size===members.length?" all-undo":""),
+                                        onClick: function() { markedSign.size===members.length ? setMarkedSign(new Set()) : (setMarkedSign(new Set(members)), setNoneSignFired(false)); }
+                                    }, markedSign.size===members.length ? "↩ 取消" : "✓ 全交"),
+                                    React.createElement("button", { className: "all-btn all-none"+(noneSignFired?" active-none":""),
+                                        onClick: function() { setMarkedSign(new Set()); setNoneSignFired(true); }
+                                    }, "✗ 未交")
+                                ),
+                                React.createElement("span", { className: "mark-count" }, markedSign.size + "/" + members.length + "人")
+                            ),
+                            MemberRow(markedSign, setMarkedSign, noneSignFired, setNoneSignFired)
+                        ),
+                        React.createElement("div", { className: "ma" },
+                            React.createElement("button", { className: "bc", onClick: closeModal }, "取消"),
+                            React.createElement("button", { className: "bk", onClick: confirmDualMark }, "完成")
+                        )
+                    );
+                })(),
                 modal.phase === "mark" && (React.createElement(React.Fragment, null,
                     React.createElement("h2", { className: "mt" },
                         React.createElement("span", { className: "mh" }, modal.hw),
