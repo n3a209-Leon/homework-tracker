@@ -2272,6 +2272,7 @@ function loadGroups() {
 }
 const PRESET_HW = ["國習", "數習", "國乙", "國甲", "聽寫", "小日記", "小作文", "作文段落", "作文", "數習題", "國卷", "數卷", "回條", "國習題"];
 const NO_EXEMPT_HW = new Set(["聯絡簿", "國卷", "數卷"]); // 這些作業不顯示抵免
+const DUAL_HW = new Set(["國卷", "數卷"]); // 雙排作業（訂正+簽名）
 const MAX_ROWS = 999; // 無上限
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 const COUNSEL_PERIODS = ["早自習", "第1節", "第2節", "第3節", "第4節", "午休", "第5節", "第6節", "放學後"];
@@ -4762,30 +4763,80 @@ function App() {
                                 React.createElement("span", { className: "gl" }, isNerv
                                     ? React.createElement("span", { className: "nerv-unit-label" },
                                         React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(g.id)))
-                                    : g.label))),
+                                    : String(g.id)))),
                             React.createElement("th", { className: "th-d" }))),
                     React.createElement("tbody", null,
-                        dayRows.map((row, ri) => (React.createElement("tr", { key: ri },
-                            React.createElement("td", { className: "hwc "+(!row.hwName?"hwe":""), onClick: () => { setModal({ ri, gid: null, phase: "input" }); setInputText(row.hwName || ""); setPendingHw(row.hwName || ""); } }, row.hwName
-                                ? isNerv ? React.createElement(React.Fragment, null,
-                                    React.createElement("span", { className: "nerv-row-idx" },
-                                        String(ri + 1).padStart(2, "0"),
-                                        " \u25B8"),
-                                    " ",
-                                    row.hwName) : row.hwName
-                                : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")),
-                            groups.map(g => {
-                                const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
-                                return (React.createElement("td", { key: g.id, className: "gc s-"+s, onClick: () => row.hwName && openCell(ri, g.id) },
-                                    s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
-                                    s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
-                                    s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
-                                    s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
-                                    ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
-                                    s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
-                            }),
-                            React.createElement("td", { className: "dc" },
-                                React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "\u00D7"))))),
+                        dayRows.map((row, ri) => {
+                            var isDual = DUAL_HW.has(row.hwName);
+                            // 雙排子列的 gid key: g.id + "_fix" / g.id + "_sign"
+                            function dualGid(gid, type) { return gid + "_" + type + "_" + ri; }
+                            function dualStatus(gid, type) {
+                                var key = dualGid(gid, type);
+                                return rowStatus(ri, key);
+                            }
+                            function dualMissing(gid, type) { return getMissing(ri, dualGid(gid, type)); }
+                            if (isDual && row.hwName) {
+                                return React.createElement(React.Fragment, { key: ri },
+                                    React.createElement("tr", null,
+                                        React.createElement("td", { className: "hwc", rowSpan: 2,
+                                            onClick: () => { setModal({ ri, gid: null, phase: "input" }); setInputText(row.hwName); setPendingHw(row.hwName); },
+                                            style: { verticalAlign: "middle", fontWeight: 700 }
+                                        }, isNerv ? row.hwName : row.hwName),
+                                        groups.map(g => {
+                                            var s = dualStatus(g.id, "fix"), ms = dualMissing(g.id, "fix");
+                                            return React.createElement("td", { key: g.id, className: "gc s-"+s,
+                                                onClick: () => openCell(ri, dualGid(g.id, "fix")),
+                                                style: { borderBottom: "1px dashed rgba(255,255,255,.1)" }
+                                            },
+                                                React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "訂正"),
+                                                s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
+                                                s === "partial" && React.createElement("span", { className: "badge pb" }, "✗"),
+                                                s === "untouched" && React.createElement("span", { className: "badge ub" }, "−"),
+                                                s === "partial" && ms.length > 0 && React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n)))
+                                            );
+                                        }),
+                                        React.createElement("td", { className: "dc", rowSpan: 2 },
+                                            React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "×"))
+                                    ),
+                                    React.createElement("tr", null,
+                                        groups.map(g => {
+                                            var s = dualStatus(g.id, "sign"), ms = dualMissing(g.id, "sign");
+                                            return React.createElement("td", { key: g.id, className: "gc s-"+s,
+                                                onClick: () => openCell(ri, dualGid(g.id, "sign"))
+                                            },
+                                                React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "簽名"),
+                                                s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
+                                                s === "partial" && React.createElement("span", { className: "badge pb" }, "✗"),
+                                                s === "untouched" && React.createElement("span", { className: "badge ub" }, "−"),
+                                                s === "partial" && ms.length > 0 && React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n)))
+                                            );
+                                        })
+                                    )
+                                );
+                            }
+                            // 一般作業（原始渲染）
+                            return React.createElement("tr", { key: ri },
+                                React.createElement("td", { className: "hwc "+(!row.hwName?"hwe":""), onClick: () => { setModal({ ri, gid: null, phase: "input" }); setInputText(row.hwName || ""); setPendingHw(row.hwName || ""); } }, row.hwName
+                                    ? isNerv ? React.createElement(React.Fragment, null,
+                                        React.createElement("span", { className: "nerv-row-idx" },
+                                            String(ri + 1).padStart(2, "0"),
+                                            " \u25B8"),
+                                        " ",
+                                        row.hwName) : row.hwName
+                                    : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")),
+                                groups.map(g => {
+                                    const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
+                                    return (React.createElement("td", { key: g.id, className: "gc s-"+s, onClick: () => row.hwName && openCell(ri, g.id) },
+                                        s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
+                                        s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
+                                        s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
+                                        s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
+                                        ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
+                                        s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
+                                }),
+                                React.createElement("td", { className: "dc" },
+                                    React.createElement("button", { className: "db", onClick: () => delRow(ri) }, "\u00D7")));
+                        }),
                         React.createElement("tr", { className: "ar", onClick: () => {
                                 // 先新增一列（取得正確的 ri）
                                 const newRi = dayRows.length;
