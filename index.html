@@ -3681,6 +3681,7 @@ function App() {
     const [wpInputDay, setWpInputDay] = useState('');
     const [wpInputType, setWpInputType] = useState('hw');
     const [wpInputText, setWpInputText] = useState('');
+    const [wpInputNote, setWpInputNote] = useState('');
     const [wpSaving, setWpSaving] = useState(false);
     const [grFormalText, setGrFormalText] = useState('');
     const [grCopied, setGrCopied] = useState(false);
@@ -4496,11 +4497,11 @@ function App() {
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
         setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
     }
-    function wpAddItem(day, content, type) {
+    function wpAddItem(day, content, note, type) {
         if (!content.trim()) return;
         setWpDays(function(prev) {
             var next = Object.assign({}, prev);
-            next[day] = (next[day] || []).concat([{content: content.trim(), type: type}]);
+            next[day] = (next[day] || []).concat([{content: content.trim(), note: (note||'').trim(), type: type}]);
             return next;
         });
     }
@@ -4512,22 +4513,26 @@ function App() {
         });
     }
     async function wpSavePlan() {
-        if (!firebaseUid) return;
+        if (!firebaseUid) { alert('尚未登入'); return; }
         setWpSaving(true);
-        var plan = {
-            id: 'wp_' + wpWeekStart,
-            weekStart: wpWeekStart,
-            days: wpDays,
-            updatedAt: Date.now()
-        };
-        var ok = await window.wpSave(firebaseUid, plan);
-        if (ok) {
-            setWpPlans(function(prev) {
-                var filtered = prev.filter(function(p){ return p.weekStart !== wpWeekStart; });
-                return [plan].concat(filtered);
+        try {
+            var cleanDays = {};
+            Object.keys(wpDays).forEach(function(ds) {
+                cleanDays[ds] = (wpDays[ds] || []).map(function(item) {
+                    return { content: item.content || '', note: item.note || '', type: item.type || 'hw' };
+                });
             });
-            setWpOpen(false);
-        }
+            var plan = { id: 'wp_' + wpWeekStart, weekStart: wpWeekStart, days: cleanDays, updatedAt: Date.now() };
+            var ok = await window.wpSave(firebaseUid, plan);
+            if (ok) {
+                setWpPlans(function(prev) {
+                    var filtered = prev.filter(function(p){ return p.weekStart !== wpWeekStart; });
+                    return [plan].concat(filtered);
+                });
+                setWpDays(cleanDays);
+                setWpOpen(false);
+            } else { alert('儲存失敗，請重試'); }
+        } catch(e) { alert('儲存錯誤：' + String(e.message || e)); }
         setWpSaving(false);
     }
     async function wpLoadPlans() {
@@ -5773,14 +5778,19 @@ function App() {
                                                 className: "wp-item-text " + item.type,
                                                 onClick: function() {
                                                     setWpInputDay(ds); setWpInputType(item.type);
-                                                    setWpInputText(item.content); setWpInputOpen(true);
+                                                    setWpInputText(item.content);
+                                                    setWpInputNote(item.note || '');
+                                                    setWpInputOpen(true);
                                                 }
-                                            }, item.content),
+                                            },
+                                                item.content,
+                                                item.note ? React.createElement("span", { style:{opacity:.6,fontSize:10,display:"block"} }, item.note) : null
+                                            ),
                                             React.createElement("button", { className: "wp-del-btn", onClick: function() { wpDelItem(ds, idx); } }, "×")
                                         );
                                     }),
                                     React.createElement("button", { className: "wp-add-btn",
-                                        onClick: function() { setWpInputDay(ds); setWpInputType("hw"); setWpInputText(""); setWpInputOpen(true); }
+                                        onClick: function() { setWpInputDay(ds); setWpInputType("hw"); setWpInputText(""); setWpInputNote(""); setWpInputOpen(true); }
                                     }, "+")
                                 );
                             })
@@ -5820,16 +5830,23 @@ function App() {
                 ),
                 React.createElement("input", {
                     className: "wp-input-field",
-                    placeholder: wpInputType === "hw" ? "輸入作業名稱…" : "輸入提醒內容…",
+                    placeholder: wpInputType === "hw" ? "作業名稱（如：國習）" : "提醒內容…",
                     value: wpInputText,
                     onChange: function(e) { setWpInputText(e.target.value); },
                     autoFocus: true
                 }),
+                React.createElement("input", {
+                    className: "wp-input-field",
+                    style: { marginTop: -6 },
+                    placeholder: "補充說明（如：L3生字×5、P.34-35）",
+                    value: wpInputNote,
+                    onChange: function(e) { setWpInputNote(e.target.value); }
+                }),
                 React.createElement("div", { className: "wp-input-btns" },
-                    React.createElement("button", { className: "wp-input-btn cancel", onClick: function() { setWpInputOpen(false); } }, "取消"),
+                    React.createElement("button", { className: "wp-input-btn cancel", onClick: function() { setWpInputOpen(false); setWpInputNote(''); } }, "取消"),
                     React.createElement("button", { className: "wp-input-btn confirm", onClick: function() {
-                        wpAddItem(wpInputDay, wpInputText, wpInputType);
-                        setWpInputText(""); setWpInputOpen(false);
+                        wpAddItem(wpInputDay, wpInputText, wpInputNote, wpInputType);
+                        setWpInputText(""); setWpInputNote(""); setWpInputOpen(false);
                     } }, "加入")
                 )
             )
