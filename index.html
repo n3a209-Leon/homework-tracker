@@ -1779,177 +1779,6 @@
         .gr-gen-btn{background:none;border:1px solid rgba(180,120,255,.35);border-radius:6px;color:rgba(180,130,255,.8);font-size:11px;padding:3px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .15s}
         .gr-gen-btn:active{background:rgba(156,39,176,.25)}
         /* ══ END GUIDANCE TIME + FORMAL ════════════════════════════ */
-
-        /* ══ WEEKLY PLAN ═══════════════════════════════════════════ */
-        .wp-overlay {
-          position:fixed; inset:0; z-index:9200;
-          background:rgba(0,0,0,.65);
-          display:flex; align-items:flex-end; justify-content:center;
-        }
-        .wp-box {
-          width:100%; max-width:560px;
-          background:var(--card-bg,#1a1e2e);
-          border-radius:18px 18px 0 0;
-          padding:16px 14px 32px;
-          max-height:92vh; overflow-y:auto;
-          box-shadow:0 -4px 32px rgba(0,0,0,.5);
-        }
-        [data-theme="nerv"] .wp-box {
-          background:#0a0f0a; border-top:1px solid #00cc55; border-radius:0;
-        }
-        .wp-header {
-          display:flex; align-items:center; justify-content:space-between;
-          margin-bottom:12px;
-        }
-        .wp-title { font-size:15px; font-weight:700; letter-spacing:1px; }
-        .wp-week-nav {
-          display:flex; align-items:center; gap:8px; margin-bottom:14px;
-          justify-content:center;
-        }
-        .wp-week-label {
-          font-size:13px; font-weight:600; opacity:.8; min-width:160px; text-align:center;
-        }
-        .wp-week-btn {
-          width:30px; height:30px; border-radius:8px; border:none;
-          background:rgba(255,255,255,.1); color:inherit;
-          font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-week-btn:active { background:rgba(255,255,255,.22); }
-        /* 週視圖表格 */
-        .wp-table { width:100%; border-collapse:collapse; }
-        .wp-th {
-          font-size:11px; font-weight:700; text-align:center;
-          padding:6px 2px; opacity:.7;
-          border-bottom:1px solid rgba(255,255,255,.08);
-        }
-        .wp-th.today-col { color:#a78bfa; opacity:1; }
-        .wp-td {
-          vertical-align:top; padding:4px 3px; width:18%;
-          border-right:1px solid rgba(255,255,255,.05);
-        }
-        .wp-td:last-child { border-right:none; }
-        .wp-item {
-          display:flex; align-items:center; gap:3px;
-          margin-bottom:4px;
-        }
-        .wp-item-text {
-          font-size:12px; flex:1; padding:4px 6px;
-          border-radius:6px; cursor:pointer; line-height:1.3;
-          word-break:break-all;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-item-text.hw { background:rgba(100,160,255,.18); color:#a8c8ff; }
-        .wp-item-text.note { background:rgba(255,160,60,.15); color:#ffcc80; }
-        .wp-item-text.hw:active { background:rgba(100,160,255,.35); }
-        .wp-item-text.note:active { background:rgba(255,160,60,.3); }
-        .wp-del-btn {
-          width:16px; height:16px; border-radius:50%; border:none;
-          background:rgba(255,80,80,.25); color:rgba(255,120,120,.8);
-          font-size:10px; cursor:pointer; flex-shrink:0;
-          display:flex; align-items:center; justify-content:center;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-add-btn {
-          width:100%; padding:5px 0; border:none; border-radius:6px;
-          background:rgba(255,255,255,.06); color:inherit;
-          font-size:18px; cursor:pointer; opacity:.45;
-          -webkit-tap-highlight-color:transparent;
-          margin-top:2px;
-        }
-        .wp-add-btn:active { opacity:.8; background:rgba(255,255,255,.12); }
-        /* 新增 item dialog */
-        .wp-input-overlay {
-          position:fixed; inset:0; z-index:9400;
-          background:rgba(0,0,0,.6);
-          display:flex; align-items:center; justify-content:center;
-          padding:0 20px;
-        }
-        .wp-input-box {
-          width:100%; max-width:400px;
-          background:var(--card-bg,#1a1e2e);
-          border-radius:14px; padding:18px 16px;
-          box-shadow:0 8px 32px rgba(0,0,0,.5);
-        }
-        .wp-input-title { font-size:13px; font-weight:700; margin-bottom:12px; opacity:.7; }
-        .wp-type-row { display:flex; gap:8px; margin-bottom:12px; }
-        .wp-type-btn {
-          flex:1; padding:8px; border-radius:8px; border:none;
-          font-size:13px; font-weight:600; cursor:pointer; color:inherit;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-type-btn.hw { background:rgba(100,160,255,.25); }
-        .wp-type-btn.hw.sel { background:rgba(100,160,255,.6); color:#fff; }
-        .wp-type-btn.note { background:rgba(255,160,60,.2); }
-        .wp-type-btn.note.sel { background:rgba(255,160,60,.55); color:#fff; }
-        .wp-preset-row {
-          display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;
-        }
-        .wp-preset-tag {
-          padding:4px 10px; border-radius:14px; border:none;
-          background:rgba(255,255,255,.1); color:inherit;
-          font-size:12px; cursor:pointer;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-preset-tag:active { background:rgba(255,255,255,.22); }
-        .wp-input-field {
-          width:100%; padding:9px 10px; border-radius:8px;
-          border:1px solid rgba(255,255,255,.12);
-          background:rgba(255,255,255,.06); color:inherit;
-          font-size:14px; outline:none; box-sizing:border-box;
-          margin-bottom:12px;
-        }
-        [data-theme="nerv"] .wp-input-field {
-          background:#0f1a0f; border-color:#00cc55; color:#00ff66;
-        }
-        .wp-input-btns { display:flex; gap:8px; }
-        .wp-input-btn {
-          flex:1; padding:10px; border-radius:8px; border:none;
-          font-size:13px; font-weight:600; cursor:pointer;
-        }
-        .wp-input-btn.cancel { background:rgba(255,255,255,.08); color:inherit; }
-        .wp-input-btn.confirm { background:#6366f1; color:#fff; }
-        [data-theme="nerv"] .wp-input-btn.confirm { background:#00cc55; color:#000; }
-        /* 底部按鈕 */
-        .wp-footer { display:flex; gap:8px; margin-top:14px; }
-        .wp-footer-btn {
-          flex:1; padding:11px; border-radius:10px; border:none;
-          font-size:13px; font-weight:600; cursor:pointer;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .wp-footer-btn.save { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; }
-        .wp-footer-btn.cancel { background:rgba(255,255,255,.08); color:inherit; }
-        /* 今天欄高亮 */
-        .wp-today-badge {
-          font-size:9px; background:#a78bfa; color:#fff;
-          border-radius:4px; padding:1px 4px; margin-left:3px;
-        }
-
-        /* ══ WP LIST + DETAIL VIEW ════════════════════════════════ */
-        .wp-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.05);margin-bottom:8px;cursor:pointer;border:1px solid rgba(255,255,255,.06);-webkit-tap-highlight-color:transparent;transition:background .15s}
-        .wp-list-item:active{background:rgba(255,255,255,.1)}
-        .wp-list-item.has-plan{border-color:rgba(100,160,255,.25)}
-        .wp-list-week{font-size:13px;font-weight:700}
-        .wp-list-sub{font-size:11px;opacity:.5;margin-top:2px}
-        .wp-list-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(100,160,255,.25);color:#a8c8ff;flex-shrink:0}
-        .wp-list-empty{text-align:center;opacity:.4;font-size:13px;padding:20px 0}
-        .wp-new-btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;-webkit-tap-highlight-color:transparent}
-        .wp-detail-row{display:flex;gap:0;margin-bottom:10px;background:rgba(255,255,255,.04);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
-        .wp-detail-day{width:72px;flex-shrink:0;padding:10px 8px;text-align:center;background:rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.06);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-        .wp-detail-day .date{font-size:11px;opacity:.6}
-        .wp-detail-day.today{background:rgba(100,160,255,.12);color:#a8c8ff}
-        .wp-detail-items{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
-        .wp-detail-hw{font-size:13px;display:flex;align-items:baseline;gap:6px}
-        .wp-detail-num{font-size:10px;opacity:.4;flex-shrink:0;min-width:14px}
-        .wp-detail-name{font-weight:600}
-        .wp-detail-note{font-size:11px;opacity:.55}
-        .wp-detail-type-note{color:#ffcc80}
-        .wp-detail-empty{font-size:12px;opacity:.3;padding:4px 0}
-        .wp-detail-edit-btn{width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,.08);color:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;-webkit-tap-highlight-color:transparent}
-        .wp-back-btn{background:none;border:none;color:inherit;font-size:22px;cursor:pointer;padding:0 8px 0 0;opacity:.7;-webkit-tap-highlight-color:transparent}
-        /* ══ END WP LIST + DETAIL VIEW ════════════════════════════ */
-        /* ══ END WEEKLY PLAN ════════════════════════════════════════ */
-
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
 
 
@@ -2013,22 +1842,15 @@
     } catch(e) { return {}; }
   };
 
-  // ── 週計畫 Firestore ──────────────────────────────────────────────────
   window.wpSave = async function(uid, plan) {
-    try {
-      await firebase.firestore().collection('users').doc(uid).collection('weeklyPlans').doc(plan.id).set(plan);
-      return true;
-    } catch(e) { return false; }
+    try { await firebase.firestore().collection('users').doc(uid).collection('weeklyPlans').doc(plan.id).set(plan); return true; }
+    catch(e) { return false; }
   };
   window.wpGetAll = async function(uid) {
     try {
       var snap = await firebase.firestore().collection('users').doc(uid).collection('weeklyPlans').orderBy('weekStart','desc').get();
       var r = []; snap.forEach(function(d){ r.push(d.data()); }); return r;
     } catch(e) { return []; }
-  };
-  window.wpDelete = async function(uid, id) {
-    try { await firebase.firestore().collection('users').doc(uid).collection('weeklyPlans').doc(id).delete(); return true; }
-    catch(e) { return false; }
   };
   window.grSave = async function(uid, record) {
     try {
@@ -3696,13 +3518,12 @@ function App() {
     const [grEditTarget, setGrEditTarget] = useState(null);
     const [grTime, setGrTime] = useState('');
     const [grFormalTarget, setGrFormalTarget] = useState(null);
-    // ── 週計畫 State ──────────────────────────────────────────────────
     const [wpOpen, setWpOpen] = useState(false);
-    const [wpView, setWpView] = useState('list');  // 'list'|'edit'
-    const [wpSelWeek, setWpSelWeek] = useState(''); // 總覽選中的週
+    const [wpView, setWpView] = useState('list');
+    const [wpSelWeek, setWpSelWeek] = useState('');
     const [wpPlans, setWpPlans] = useState([]);
-    const [wpWeekStart, setWpWeekStart] = useState('');  // 週一日期 YYYY-MM-DD
-    const [wpDays, setWpDays] = useState({});            // { 'YYYY-MM-DD': [{content,type},...] }
+    const [wpWeekStart, setWpWeekStart] = useState('');
+    const [wpDays, setWpDays] = useState({});
     const [wpInputOpen, setWpInputOpen] = useState(false);
     const [wpInputDay, setWpInputDay] = useState('');
     const [wpInputType, setWpInputType] = useState('hw');
@@ -4031,20 +3852,6 @@ function App() {
             initRows = [{ hwName: "聯絡簿", groupData: {} }];
         }
         setDayRows(initRows);
-        // 若當天為空，帶入作業計畫（含週五→週一邏輯）
-        if (!res.rows.length) {
-            // 找對應計畫日：若當天是週一，查上週五的計畫
-            var dt = new Date(ds);
-            var dayOfWeek = dt.getDay();
-            var planDay = ds; // 預設查當天
-            // 若今天是週一(1)，查上週五(往前3天)
-            if (dayOfWeek === 1) {
-                var fri = new Date(dt); fri.setDate(fri.getDate() - 3);
-                planDay = fri.getFullYear() + "-" + String(fri.getMonth()+1).padStart(2,"0") + "-" + String(fri.getDate()).padStart(2,"0");
-            }
-            // 從計畫帶入（setTimeout 確保 state 更新後執行）
-            setTimeout(function() { wpApplyPlan(planDay); }, 50);
-        }
         setDayAtt(res.attendance);
         setDayExempt(res.exempt || {});
         setSelDate(ds);
@@ -4485,35 +4292,28 @@ function App() {
         return (+m)+"月"+(+d)+"日（"+WEEKDAYS[wd]+"）";
     }
     // ── Guidance Records functions ────────────────────────────────
-    // ── 週計畫 Functions ─────────────────────────────────────────────────
     function wpGetMonday(ds) {
-        var d = new Date(ds || Date.now());
-        var day = d.getDay(); // 0=Sun
-        var diff = day === 0 ? -6 : 1 - day;
-        d.setDate(d.getDate() + diff);
+        var d = new Date(ds || Date.now()); var day = d.getDay();
+        var diff = day === 0 ? -6 : 1 - day; d.setDate(d.getDate() + diff);
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
     function wpAddDays(ds, n) {
-        var d = new Date(ds);
-        d.setDate(d.getDate() + n);
+        var d = new Date(ds); d.setDate(d.getDate() + n);
         return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
-    function wpWeekDays(monday) {
-        return [0,1,2,3,4].map(function(i){ return wpAddDays(monday, i); });
-    }
+    function wpWeekDays(monday) { return [0,1,2,3,4].map(function(i){ return wpAddDays(monday, i); }); }
     function wpFmtDate(ds) {
         if (!ds) return '';
         var p = ds.split('-'); var d = new Date(+p[0],+p[1]-1,+p[2]);
         var wd = ['日','一','二','三','四','五','六'][d.getDay()];
-        return (p[1].replace(/^0/,'')) + '/' + (p[2].replace(/^0/,'')) + '\n' + '週' + wd;
+        return (+p[1]) + '/' + (+p[2]) + '\n' + '週' + wd;
     }
     function wpOpenPlan(ds) {
         var monday = wpGetMonday(ds);
         setWpWeekStart(monday);
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
         setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
-        setWpView('list');
-        setWpOpen(true);
+        setWpView('list'); setWpOpen(true);
     }
     function wpOpenEdit(monday) {
         setWpWeekStart(monday);
@@ -4522,8 +4322,7 @@ function App() {
         setWpView('edit');
     }
     function wpShiftWeek(delta) {
-        var d = new Date(wpWeekStart);
-        d.setDate(d.getDate() + delta * 7);
+        var d = new Date(wpWeekStart); d.setDate(d.getDate() + delta * 7);
         var monday = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         setWpWeekStart(monday);
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
@@ -4558,61 +4357,32 @@ function App() {
             var ok = await window.wpSave(firebaseUid, plan);
             if (ok) {
                 setWpPlans(function(prev) {
-                    var filtered = prev.filter(function(p){ return p.weekStart !== wpWeekStart; });
-                    return [plan].concat(filtered);
+                    return [plan].concat(prev.filter(function(p){ return p.weekStart !== wpWeekStart; }));
                 });
                 setWpDays(cleanDays);
-                // ── 儲存後立刻帶入隔天作業 ────────────────────────────
-                var weekDays = wpWeekDays(wpWeekStart); // 週一~週五
+                var weekDays = wpWeekDays(wpWeekStart);
                 var applyPromises = weekDays.map(async function(planDay) {
-                    var hwItems = (cleanDays[planDay] || []).filter(function(i){ return i.type === "hw"; });
+                    var hwItems = (cleanDays[planDay] || []).filter(function(i){ return i.type === 'hw'; });
                     if (hwItems.length === 0) return;
-                    // 決定帶入目標日
-                    var d = new Date(planDay);
-                    var dow = d.getDay(); // 1=Mon ... 5=Fri
-                    if (dow === 0 || dow === 6) return; // 週六日不處理
-                    var targetDate;
-                    if (dow === 5) {
-                        // 週五 → 下週一
-                        var next = new Date(d); next.setDate(next.getDate() + 3);
-                        targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
-                    } else {
-                        // 週一~週四 → 隔天
-                        var next = new Date(d); next.setDate(next.getDate() + 1);
-                        targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
-                    }
-                    // 讀取目標日現有作業
+                    var d = new Date(planDay); var dow = d.getDay();
+                    if (dow === 0 || dow === 6) return;
+                    var next = new Date(d); next.setDate(next.getDate() + (dow === 5 ? 3 : 1));
+                    var targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
                     var existing = await loadDay(targetDate);
                     var existRows = existing.rows || [];
-                    // 追加新作業（重複也保留，依序命名）
                     var nameCount = {};
-                    existRows.forEach(function(r) {
-                        if (r.hwName) nameCount[r.hwName] = (nameCount[r.hwName] || 0) + 1;
-                    });
+                    existRows.forEach(function(r) { if (r.hwName) nameCount[r.hwName] = (nameCount[r.hwName] || 0) + 1; });
                     var newRows = existRows.slice();
                     hwItems.forEach(function(item) {
-                        var name = item.content;
-                        var cnt = nameCount[name] || 0;
+                        var name = item.content; var cnt = nameCount[name] || 0;
                         var finalName = cnt === 0 ? name : name + (cnt + 1);
                         nameCount[name] = cnt + 1;
                         newRows.push({ hwName: finalName, groupData: {} });
                     });
-                    // 寫回 Firestore
-                    var dayKey = 'day:' + targetDate;
-                    var snap = {};
-                    snap[dayKey] = { rows: newRows };
-                    await window.fsSet(firebaseUid, dayKey, { rows: newRows });
-                });
-                await Promise.all(applyPromises);
-                // 若目標日就是今天已開啟的單日頁，重新載入
-                weekDays.forEach(function(planDay) {
-                    var d = new Date(planDay); var dow = d.getDay();
-                    if (dow === 0 || dow === 6) return;
-                    var next = new Date(d);
-                    next.setDate(next.getDate() + (dow === 5 ? 3 : 1));
-                    var targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+                    await window.fsSet(firebaseUid, 'day:' + targetDate, { rows: newRows });
                     if (targetDate === selDate) { openDay(selDate); }
                 });
+                await Promise.all(applyPromises);
                 setWpOpen(false);
             } else { alert('儲存失敗，請重試'); }
         } catch(e) { alert('儲存錯誤：' + String(e.message || e)); }
@@ -4622,20 +4392,6 @@ function App() {
         if (!firebaseUid) return;
         var plans = await window.wpGetAll(firebaseUid);
         setWpPlans(plans);
-    }
-    // 帶入計畫到當日作業（隔天帶入：開啟單日頁時自動執行）
-    function wpApplyPlan(ds) {
-        var existing = wpPlans.find(function(p){
-            var days = wpWeekDays(p.weekStart);
-            return days.indexOf(ds) !== -1;
-        });
-        if (!existing) return;
-        var items = (existing.days[ds] || []).filter(function(i){ return i.type === 'hw'; });
-        if (items.length === 0) return;
-        updRows(function(prev) {
-            var newItems = items.map(function(i){ return {hwName: i.content, groupData: {}}; });
-            return prev.concat(newItems);
-        });
     }
     function grNowTime() {
         var n = new Date();
@@ -5776,7 +5532,46 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                          wpOpen && React.createElement("div", { className: "wp-overlay",
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                ),
+                                React.createElement("div", { className: "gr-record-content" }, r.content),
+                                React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
+                            );
+                        })
+                    )
+                )
+            )
+        ),
+        grMsg && !grDialog && React.createElement("div", { style:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"rgba(76,175,80,.9)",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,zIndex:9600,pointerEvents:"none"} }, grMsg),
+        grFormalTarget && React.createElement("div", { className: "gr-formal-overlay",
+            onClick: function(e) { if (e.target===e.currentTarget) { setGrFormalTarget(null); setGrFormalText(""); setGrCopied(false); } }
+        },
+            React.createElement("div", { className: "gr-formal-box" },
+                React.createElement("div", { className: "gr-formal-title" }, "📄 正式輔導紀錄 Prompt"),
+                grCopied && React.createElement("div", { style:{background:"rgba(76,175,80,.15)",border:"1px solid rgba(76,175,80,.3)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#81c784",textAlign:"center"} },
+                    "✅ Prompt 已複製！請開啟 Claude 貣上即可生成正式紀錄"
+                ),
+                React.createElement("div", { className: "gr-formal-content" }, grFormalText),
+                React.createElement("div", { className: "gr-formal-btns" },
+                    React.createElement("button", {
+                        className: "gr-formal-btn copy"+(grCopied?" copied":""),
+                        onClick: function() {
+                            if (navigator.clipboard) {
+                                navigator.clipboard.writeText(grFormalText).then(function() {
+                                    setGrCopied(true);
+                                    setTimeout(function(){setGrCopied(false);},3000);
+                                });
+                            }
+                        }
+                    }, grCopied ? "✓ 已複製" : "📋 複製 Prompt"),
+                    React.createElement("button", {
+                        className: "gr-formal-btn close",
+                        onClick: function() { setGrFormalTarget(null); setGrFormalText(""); setGrCopied(false); }
+                    }, "關閉")
+                )
+            )
+        ),
+        wpOpen && React.createElement("div", { className: "wp-overlay",
             onClick: function(e) { if (e.target === e.currentTarget) { setWpOpen(false); setWpView('list'); } }
         },
             React.createElement("div", { className: "wp-box" },
@@ -5789,11 +5584,10 @@ function App() {
                         ? React.createElement("div", { className: "wp-list-empty" }, "尚無任何週計畫")
                         : wpPlans.map(function(plan) {
                             var days = wpWeekDays(plan.weekStart);
-                            var lastDay = days[4];
                             var totalHw = days.reduce(function(acc, ds) {
                                 return acc + (plan.days[ds] || []).filter(function(i){ return i.type === 'hw'; }).length;
                             }, 0);
-                            var ws = plan.weekStart.split('-'); var le = lastDay ? lastDay.split('-') : ws;
+                            var ws = plan.weekStart.split('-'); var le = days[4].split('-');
                             var label = (+ws[1]) + '/' + (+ws[2]) + ' — ' + (+le[1]) + '/' + (+le[2]);
                             return React.createElement("div", {
                                 key: plan.weekStart,
@@ -5832,13 +5626,12 @@ function App() {
                         var wdLabels = ['週日','週一','週二','週三','週四','週五','週六'];
                         return React.createElement(React.Fragment, null,
                             days.map(function(ds) {
-                                var p = ds.split('-'); var d = new Date(+p[0],+p[1]-1,+p[2]);
-                                var wd = wdLabels[d.getDay()];
+                                var p2 = ds.split('-'); var d2 = new Date(+p2[0],+p2[1]-1,+p2[2]);
+                                var wd = wdLabels[d2.getDay()];
                                 var items = plan.days[ds] || [];
-                                var isToday = ds === today();
                                 return React.createElement("div", { key: ds, className: "wp-detail-row" },
-                                    React.createElement("div", { className: "wp-detail-day" + (isToday ? " today" : "") },
-                                        React.createElement("div", { className: "date" }, (+p[1]) + '/' + (+p[2])),
+                                    React.createElement("div", { className: "wp-detail-day" + (ds === today() ? " today" : "") },
+                                        React.createElement("div", { className: "date" }, (+p2[1]) + '/' + (+p2[2])),
                                         React.createElement("div", null, wd)
                                     ),
                                     React.createElement("div", { className: "wp-detail-items" },
@@ -5864,8 +5657,8 @@ function App() {
                     React.createElement("div", { className: "wp-header" },
                         React.createElement("button", { className: "wp-back-btn",
                             onClick: function() {
-                                setWpView(wpPlans.find(function(p){return p.weekStart===wpWeekStart;}) ? 'detail' : 'list');
-                                setWpSelWeek(wpWeekStart);
+                                var hasSaved = wpPlans.some(function(p){ return p.weekStart === wpWeekStart; });
+                                setWpSelWeek(wpWeekStart); setWpView(hasSaved ? 'detail' : 'list');
                             }
                         }, "‹"),
                         React.createElement("div", { className: "wp-title" }, "✏️ 編輯週計畫"),
@@ -5875,10 +5668,9 @@ function App() {
                         React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(-1); } }, "◄"),
                         React.createElement("div", { className: "wp-week-label" },
                             (function() {
-                                var days = wpWeekDays(wpWeekStart);
-                                if (!days[0]) return '';
-                                var s = days[0].split('-'); var e2 = days[4] ? days[4].split('-') : s;
-                                return s[0] + '/' + (+s[1]) + '/' + (+s[2]) + ' — ' + (+e2[1]) + '/' + (+e2[2]);
+                                var days = wpWeekDays(wpWeekStart); if (!days[0]) return '';
+                                var s2 = days[0].split('-'); var e2 = days[4].split('-');
+                                return s2[0] + '/' + (+s2[1]) + '/' + (+s2[2]) + ' — ' + (+e2[1]) + '/' + (+e2[2]);
                             })()
                         ),
                         React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(1); } }, "►")
@@ -5888,11 +5680,9 @@ function App() {
                             React.createElement("tr", null,
                                 wpWeekDays(wpWeekStart).map(function(ds) {
                                     var isToday = ds === today();
-                                    var parts = wpFmtDate(ds).split('\n');
+                                    var pts = wpFmtDate(ds).split('\n');
                                     return React.createElement("th", { key: ds, className: "wp-th" + (isToday ? " today-col" : "") },
-                                        parts[0],
-                                        React.createElement("br", null),
-                                        parts[1],
+                                        pts[0], React.createElement("br", null), pts[1],
                                         isToday && React.createElement("span", { className: "wp-today-badge" }, "今")
                                     );
                                 })
@@ -5909,8 +5699,7 @@ function App() {
                                                     className: "wp-item-text " + item.type,
                                                     onClick: function() {
                                                         setWpInputDay(ds); setWpInputType(item.type);
-                                                        setWpInputText(item.content);
-                                                        setWpInputNote(item.note || '');
+                                                        setWpInputText(item.content); setWpInputNote(item.note || '');
                                                         setWpInputOpen(true);
                                                     }
                                                 },
@@ -5935,50 +5724,12 @@ function App() {
                 )
             )
         ),
-       )
-                    ),
-                    React.createElement("tbody", null,
-                        React.createElement("tr", null,
-                            wpWeekDays(wpWeekStart).map(function(ds) {
-                                var items = wpDays[ds] || [];
-                                return React.createElement("td", { key: ds, className: "wp-td" },
-                                    items.map(function(item, idx) {
-                                        return React.createElement("div", { key: idx, className: "wp-item" },
-                                            React.createElement("div", {
-                                                className: "wp-item-text " + item.type,
-                                                onClick: function() {
-                                                    setWpInputDay(ds); setWpInputType(item.type);
-                                                    setWpInputText(item.content);
-                                                    setWpInputNote(item.note || '');
-                                                    setWpInputOpen(true);
-                                                }
-                                            },
-                                                item.content,
-                                                item.note ? React.createElement("span", { style:{opacity:.6,fontSize:10,display:"block"} }, item.note) : null
-                                            ),
-                                            React.createElement("button", { className: "wp-del-btn", onClick: function() { wpDelItem(ds, idx); } }, "×")
-                                        );
-                                    }),
-                                    React.createElement("button", { className: "wp-add-btn",
-                                        onClick: function() { setWpInputDay(ds); setWpInputType("hw"); setWpInputText(""); setWpInputNote(""); setWpInputOpen(true); }
-                                    }, "+")
-                                );
-                            })
-                        )
-                    )
-                ),
-                React.createElement("div", { className: "wp-footer" },
-                    React.createElement("button", { className: "wp-footer-btn cancel", onClick: function() { setWpOpen(false); } }, "取消"),
-                    React.createElement("button", { className: "wp-footer-btn save", disabled: wpSaving, onClick: wpSavePlan }, wpSaving ? "儲存中…" : "💾 儲存本週計畫")
-                )
-            )
-        ),
         wpInputOpen && React.createElement("div", { className: "wp-input-overlay",
             onClick: function(e) { if (e.target === e.currentTarget) setWpInputOpen(false); }
         },
             React.createElement("div", { className: "wp-input-box" },
                 React.createElement("div", { className: "wp-input-title" },
-                    (function() { var p = wpInputDay.split('-'); return (+p[1]) + '/' + (+p[2]); })() + " 新增項目"
+                    (function() { var p3 = wpInputDay.split('-'); return (+p3[1]) + '/' + (+p3[2]); })() + " 新增項目"
                 ),
                 React.createElement("div", { className: "wp-type-row" },
                     React.createElement("button", {
@@ -5991,11 +5742,11 @@ function App() {
                     }, "🔔 提醒事項")
                 ),
                 React.createElement("div", { className: "wp-preset-row" },
-                    PRESET_HW.map(function(p) {
+                    PRESET_HW.map(function(p4) {
                         return React.createElement("button", {
-                            key: p, className: "wp-preset-tag",
-                            onClick: function() { setWpInputText(p); }
-                        }, p);
+                            key: p4, className: "wp-preset-tag",
+                            onClick: function() { setWpInputText(p4); }
+                        }, p4);
                     })
                 ),
                 React.createElement("input", {
@@ -6023,7 +5774,7 @@ function App() {
         ),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
-        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))))));}
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
     debugStep('RENDER START');
