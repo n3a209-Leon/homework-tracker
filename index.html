@@ -16,7 +16,7 @@
 
 
 
-        /* Google Fonts loaded via <link> below for Safari compatibility */
+        /* Google Fonts loaded via <link> below for Safari compatibility */A
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         /* PWA standalone 模式 touch 修正 */
         html{-webkit-text-size-adjust:100%;touch-action:manipulation}
@@ -4239,11 +4239,11 @@ function App() {
     }
     function hwPickerOpen(ri) {
         hwPickerReset();
-        setModal({ ri, gid: null, phase: 'hwpicker' });
+        setModal({ ri: ri, gid: null, phase: 'hwpicker' });
     }
     function hwPickerBuildName() {
         var t = hwPickerType;
-        var ll = [...hwPickerLessons].sort(function(a,b){ return a-b; });
+        var ll = Array.from(hwPickerLessons).sort(function(a,b){ return a-b; });
         var lstr = ll.map(function(n){ return 'L'+n; }).join('+');
         if (t === 'guojia' || t === 'guoyi') {
             var label = t === 'guojia' ? '國甲' : '國乙';
@@ -4265,10 +4265,10 @@ function App() {
         var name = hwPickerBuildName().trim();
         if (!name) return;
         var t = hwPickerType;
-        var ll = [...hwPickerLessons];
+        var ll = Array.from(hwPickerLessons);
         if (ll.length > 0) hwPickerRecordLesson(t, ll);
         addToCustomHW(name); addToRecentHW(name);
-        updRows(function(p){ var n=[...p]; n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
+        updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
         closeModal();
     }
     const [marked, setMarked] = useState(new Set());
@@ -5478,17 +5478,17 @@ function App() {
                                         style:{padding:"6px 12px",borderRadius:20,border:"1px solid #dde5ee",background:"#f6f9fc",color:"#2d4a6a",fontSize:13,cursor:"pointer"},
                                         onClick:function(){
                                             addToCustomHW(hw); addToRecentHW(hw);
-                                            updRows(function(p){ var n=[...p]; n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                            updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
                                             closeModal();
                                         }
                                     }, hw);
                                 })
                             ),
                             // 手動輸入
-                            React.createElement("input", { className:"hi2", value:inputText, placeholder:"手動輸入作業名稱…", onChange:function(e){ setInputText(e.target.value); }, onKeyDown:function(e){ if(e.key==="Enter"&&inputText.trim()){ addToCustomHW(inputText.trim()); addToRecentHW(inputText.trim()); updRows(function(p){ var n=[...p]; n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:inputText.trim()}); return n; }); closeModal(); } } }),
+                            React.createElement("input", { className:"hi2", value:inputText, placeholder:"手動輸入作業名稱…", onChange:function(e){ setInputText(e.target.value); }, onKeyDown:function(e){ if(e.key==="Enter"&&inputText.trim()){ addToCustomHW(inputText.trim()); addToRecentHW(inputText.trim()); updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:inputText.trim()}); return n; }); closeModal(); } } }),
                             React.createElement("div", { className:"ma" },
                                 React.createElement("button", { className:"bc", onClick:closeModal }, "取消"),
-                                inputText.trim() && React.createElement("button", { className:"bk", onClick:function(){ var hw=inputText.trim(); addToCustomHW(hw); addToRecentHW(hw); updRows(function(p){ var n=[...p]; n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; }); closeModal(); } }, "確認")
+                                inputText.trim() && React.createElement("button", { className:"bk", onClick:function(){ var hw=inputText.trim(); addToCustomHW(hw); addToRecentHW(hw); updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; }); closeModal(); } }, "確認")
                             )
                         ),
                         // Step: lesson — pick lessons
@@ -5576,7 +5576,7 @@ function App() {
                             )
                         )
                     );
-                })()),
+                })(),
                 modal.phase === "input" && (React.createElement(React.Fragment, null,
                     React.createElement("h2", { className: "mt" }, isNerv ? "◈ INPUT MISSION CODE" : "輸入作業名稱"),
                     customHW.length > 0 && (React.createElement("div", { className: "custom-hw-section" },
