@@ -1924,6 +1924,30 @@
           font-size:9px; background:#a78bfa; color:#fff;
           border-radius:4px; padding:1px 4px; margin-left:3px;
         }
+
+        /* ══ WP LIST + DETAIL VIEW ════════════════════════════════ */
+        .wp-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.05);margin-bottom:8px;cursor:pointer;border:1px solid rgba(255,255,255,.06);-webkit-tap-highlight-color:transparent;transition:background .15s}
+        .wp-list-item:active{background:rgba(255,255,255,.1)}
+        .wp-list-item.has-plan{border-color:rgba(100,160,255,.25)}
+        .wp-list-week{font-size:13px;font-weight:700}
+        .wp-list-sub{font-size:11px;opacity:.5;margin-top:2px}
+        .wp-list-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(100,160,255,.25);color:#a8c8ff;flex-shrink:0}
+        .wp-list-empty{text-align:center;opacity:.4;font-size:13px;padding:20px 0}
+        .wp-new-btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;-webkit-tap-highlight-color:transparent}
+        .wp-detail-row{display:flex;gap:0;margin-bottom:10px;background:rgba(255,255,255,.04);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+        .wp-detail-day{width:72px;flex-shrink:0;padding:10px 8px;text-align:center;background:rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.06);font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+        .wp-detail-day .date{font-size:11px;opacity:.6}
+        .wp-detail-day.today{background:rgba(100,160,255,.12);color:#a8c8ff}
+        .wp-detail-items{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+        .wp-detail-hw{font-size:13px;display:flex;align-items:baseline;gap:6px}
+        .wp-detail-num{font-size:10px;opacity:.4;flex-shrink:0;min-width:14px}
+        .wp-detail-name{font-weight:600}
+        .wp-detail-note{font-size:11px;opacity:.55}
+        .wp-detail-type-note{color:#ffcc80}
+        .wp-detail-empty{font-size:12px;opacity:.3;padding:4px 0}
+        .wp-detail-edit-btn{width:100%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,.08);color:inherit;font-size:13px;font-weight:600;cursor:pointer;margin-top:10px;-webkit-tap-highlight-color:transparent}
+        .wp-back-btn{background:none;border:none;color:inherit;font-size:22px;cursor:pointer;padding:0 8px 0 0;opacity:.7;-webkit-tap-highlight-color:transparent}
+        /* ══ END WP LIST + DETAIL VIEW ════════════════════════════ */
         /* ══ END WEEKLY PLAN ════════════════════════════════════════ */
 
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
@@ -3674,6 +3698,8 @@ function App() {
     const [grFormalTarget, setGrFormalTarget] = useState(null);
     // ── 週計畫 State ──────────────────────────────────────────────────
     const [wpOpen, setWpOpen] = useState(false);
+    const [wpView, setWpView] = useState('list');  // 'list'|'edit'
+    const [wpSelWeek, setWpSelWeek] = useState(''); // 總覽選中的週
     const [wpPlans, setWpPlans] = useState([]);
     const [wpWeekStart, setWpWeekStart] = useState('');  // 週一日期 YYYY-MM-DD
     const [wpDays, setWpDays] = useState({});            // { 'YYYY-MM-DD': [{content,type},...] }
@@ -4484,10 +4510,16 @@ function App() {
     function wpOpenPlan(ds) {
         var monday = wpGetMonday(ds);
         setWpWeekStart(monday);
-        // 載入已有計畫
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
         setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
+        setWpView('list');
         setWpOpen(true);
+    }
+    function wpOpenEdit(monday) {
+        setWpWeekStart(monday);
+        var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
+        setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
+        setWpView('edit');
     }
     function wpShiftWeek(delta) {
         var d = new Date(wpWeekStart);
@@ -5744,79 +5776,166 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                          wpOpen && React.createElement("div", { className: "wp-overlay",
+            onClick: function(e) { if (e.target === e.currentTarget) { setWpOpen(false); setWpView('list'); } }
+        },
+            React.createElement("div", { className: "wp-box" },
+                wpView === 'list' && React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "wp-header" },
+                        React.createElement("div", { className: "wp-title" }, "📅 作業週計畫"),
+                        React.createElement("button", { style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"inherit",opacity:.6}, onClick: function() { setWpOpen(false); } }, "×")
+                    ),
+                    wpPlans.length === 0
+                        ? React.createElement("div", { className: "wp-list-empty" }, "尚無任何週計畫")
+                        : wpPlans.map(function(plan) {
+                            var days = wpWeekDays(plan.weekStart);
+                            var lastDay = days[4];
+                            var totalHw = days.reduce(function(acc, ds) {
+                                return acc + (plan.days[ds] || []).filter(function(i){ return i.type === 'hw'; }).length;
+                            }, 0);
+                            var ws = plan.weekStart.split('-'); var le = lastDay ? lastDay.split('-') : ws;
+                            var label = (+ws[1]) + '/' + (+ws[2]) + ' — ' + (+le[1]) + '/' + (+le[2]);
+                            return React.createElement("div", {
+                                key: plan.weekStart,
+                                className: "wp-list-item" + (totalHw > 0 ? " has-plan" : ""),
+                                onClick: function() { setWpSelWeek(plan.weekStart); setWpView('detail'); }
+                            },
+                                React.createElement("div", null,
+                                    React.createElement("div", { className: "wp-list-week" }, label),
+                                    React.createElement("div", { className: "wp-list-sub" }, "共 " + totalHw + " 項作業")
                                 ),
-                                React.createElement("div", { className: "gr-record-content" }, r.content),
-                                React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
+                                React.createElement("div", { className: "wp-list-badge" }, "查看 ▶")
                             );
-                        })
+                        }),
+                    React.createElement("button", { className: "wp-new-btn",
+                        onClick: function() { wpOpenEdit(wpGetMonday(today())); }
+                    }, "✚ 新增本週計畫")
+                ),
+                wpView === 'detail' && React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "wp-header" },
+                        React.createElement("button", { className: "wp-back-btn", onClick: function() { setWpView('list'); } }, "‹"),
+                        React.createElement("div", { className: "wp-title" },
+                            (function() {
+                                var plan = wpPlans.find(function(p){ return p.weekStart === wpSelWeek; });
+                                if (!plan) return '';
+                                var days = wpWeekDays(plan.weekStart);
+                                var ws = plan.weekStart.split('-'); var le = days[4].split('-');
+                                return (+ws[1]) + '/' + (+ws[2]) + ' — ' + (+le[1]) + '/' + (+le[2]);
+                            })()
+                        ),
+                        React.createElement("button", { style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"inherit",opacity:.6}, onClick: function() { setWpOpen(false); setWpView('list'); } }, "×")
+                    ),
+                    (function() {
+                        var plan = wpPlans.find(function(p){ return p.weekStart === wpSelWeek; });
+                        if (!plan) return null;
+                        var days = wpWeekDays(plan.weekStart);
+                        var wdLabels = ['週日','週一','週二','週三','週四','週五','週六'];
+                        return React.createElement(React.Fragment, null,
+                            days.map(function(ds) {
+                                var p = ds.split('-'); var d = new Date(+p[0],+p[1]-1,+p[2]);
+                                var wd = wdLabels[d.getDay()];
+                                var items = plan.days[ds] || [];
+                                var isToday = ds === today();
+                                return React.createElement("div", { key: ds, className: "wp-detail-row" },
+                                    React.createElement("div", { className: "wp-detail-day" + (isToday ? " today" : "") },
+                                        React.createElement("div", { className: "date" }, (+p[1]) + '/' + (+p[2])),
+                                        React.createElement("div", null, wd)
+                                    ),
+                                    React.createElement("div", { className: "wp-detail-items" },
+                                        items.length === 0
+                                            ? React.createElement("div", { className: "wp-detail-empty" }, "—無計畫—")
+                                            : items.map(function(item, idx) {
+                                                return React.createElement("div", { key: idx, className: "wp-detail-hw" },
+                                                    React.createElement("span", { className: "wp-detail-num" }, (idx+1) + '.'),
+                                                    React.createElement("span", { className: "wp-detail-name" }, item.content),
+                                                    item.note ? React.createElement("span", { className: "wp-detail-note" + (item.type === 'note' ? " wp-detail-type-note" : "") }, item.note) : null
+                                                );
+                                            })
+                                    )
+                                );
+                            }),
+                            React.createElement("button", { className: "wp-detail-edit-btn",
+                                onClick: function() { wpOpenEdit(wpSelWeek); }
+                            }, "✏️ 編輯此週計畫")
+                        );
+                    })()
+                ),
+                wpView === 'edit' && React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "wp-header" },
+                        React.createElement("button", { className: "wp-back-btn",
+                            onClick: function() {
+                                setWpView(wpPlans.find(function(p){return p.weekStart===wpWeekStart;}) ? 'detail' : 'list');
+                                setWpSelWeek(wpWeekStart);
+                            }
+                        }, "‹"),
+                        React.createElement("div", { className: "wp-title" }, "✏️ 編輯週計畫"),
+                        React.createElement("button", { style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"inherit",opacity:.6}, onClick: function() { setWpOpen(false); setWpView('list'); } }, "×")
+                    ),
+                    React.createElement("div", { className: "wp-week-nav" },
+                        React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(-1); } }, "◄"),
+                        React.createElement("div", { className: "wp-week-label" },
+                            (function() {
+                                var days = wpWeekDays(wpWeekStart);
+                                if (!days[0]) return '';
+                                var s = days[0].split('-'); var e2 = days[4] ? days[4].split('-') : s;
+                                return s[0] + '/' + (+s[1]) + '/' + (+s[2]) + ' — ' + (+e2[1]) + '/' + (+e2[2]);
+                            })()
+                        ),
+                        React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(1); } }, "►")
+                    ),
+                    React.createElement("table", { className: "wp-table" },
+                        React.createElement("thead", null,
+                            React.createElement("tr", null,
+                                wpWeekDays(wpWeekStart).map(function(ds) {
+                                    var isToday = ds === today();
+                                    var parts = wpFmtDate(ds).split('\n');
+                                    return React.createElement("th", { key: ds, className: "wp-th" + (isToday ? " today-col" : "") },
+                                        parts[0],
+                                        React.createElement("br", null),
+                                        parts[1],
+                                        isToday && React.createElement("span", { className: "wp-today-badge" }, "今")
+                                    );
+                                })
+                            )
+                        ),
+                        React.createElement("tbody", null,
+                            React.createElement("tr", null,
+                                wpWeekDays(wpWeekStart).map(function(ds) {
+                                    var items = wpDays[ds] || [];
+                                    return React.createElement("td", { key: ds, className: "wp-td" },
+                                        items.map(function(item, idx) {
+                                            return React.createElement("div", { key: idx, className: "wp-item" },
+                                                React.createElement("div", {
+                                                    className: "wp-item-text " + item.type,
+                                                    onClick: function() {
+                                                        setWpInputDay(ds); setWpInputType(item.type);
+                                                        setWpInputText(item.content);
+                                                        setWpInputNote(item.note || '');
+                                                        setWpInputOpen(true);
+                                                    }
+                                                },
+                                                    item.content,
+                                                    item.note ? React.createElement("span", { style:{opacity:.6,fontSize:10,display:"block"} }, item.note) : null
+                                                ),
+                                                React.createElement("button", { className: "wp-del-btn", onClick: function() { wpDelItem(ds, idx); } }, "×")
+                                            );
+                                        }),
+                                        React.createElement("button", { className: "wp-add-btn",
+                                            onClick: function() { setWpInputDay(ds); setWpInputType("hw"); setWpInputText(""); setWpInputNote(""); setWpInputOpen(true); }
+                                        }, "+")
+                                    );
+                                })
+                            )
+                        )
+                    ),
+                    React.createElement("div", { className: "wp-footer" },
+                        React.createElement("button", { className: "wp-footer-btn cancel", onClick: function() { setWpOpen(false); setWpView('list'); } }, "取消"),
+                        React.createElement("button", { className: "wp-footer-btn save", disabled: wpSaving, onClick: wpSavePlan }, wpSaving ? "儲存中…" : "💾 儲存本週計畫")
                     )
                 )
             )
         ),
-        grMsg && !grDialog && React.createElement("div", { style:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"rgba(76,175,80,.9)",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,zIndex:9600,pointerEvents:"none"} }, grMsg),
-        grFormalTarget && React.createElement("div", { className: "gr-formal-overlay",
-            onClick: function(e) { if (e.target===e.currentTarget) { setGrFormalTarget(null); setGrFormalText(""); setGrCopied(false); } }
-        },
-            React.createElement("div", { className: "gr-formal-box" },
-                React.createElement("div", { className: "gr-formal-title" }, "📄 正式輔導紀錄 Prompt"),
-                grCopied && React.createElement("div", { style:{background:"rgba(76,175,80,.15)",border:"1px solid rgba(76,175,80,.3)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#81c784",textAlign:"center"} },
-                    "✅ Prompt 已複製！請開啟 Claude 貣上即可生成正式紀錄"
-                ),
-                React.createElement("div", { className: "gr-formal-content" }, grFormalText),
-                React.createElement("div", { className: "gr-formal-btns" },
-                    React.createElement("button", {
-                        className: "gr-formal-btn copy"+(grCopied?" copied":""),
-                        onClick: function() {
-                            if (navigator.clipboard) {
-                                navigator.clipboard.writeText(grFormalText).then(function() {
-                                    setGrCopied(true);
-                                    setTimeout(function(){setGrCopied(false);},3000);
-                                });
-                            }
-                        }
-                    }, grCopied ? "✓ 已複製" : "📋 複製 Prompt"),
-                    React.createElement("button", {
-                        className: "gr-formal-btn close",
-                        onClick: function() { setGrFormalTarget(null); setGrFormalText(""); setGrCopied(false); }
-                    }, "關閉")
-                )
-            )
-        ),
-        wpOpen && React.createElement("div", { className: "wp-overlay",
-            onClick: function(e) { if (e.target === e.currentTarget) setWpOpen(false); }
-        },
-            React.createElement("div", { className: "wp-box" },
-                React.createElement("div", { className: "wp-header" },
-                    React.createElement("div", { className: "wp-title" }, "📅 作業週計畫"),
-                    React.createElement("button", { style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"inherit",opacity:.6}, onClick: function() { setWpOpen(false); } }, "×")
-                ),
-                React.createElement("div", { className: "wp-week-nav" },
-                    React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(-1); } }, "◀"),
-                    React.createElement("div", { className: "wp-week-label" },
-                        (function() {
-                            var days = wpWeekDays(wpWeekStart);
-                            if (!days[0]) return '';
-                            var s = days[0].split('-'); var e = days[4] ? days[4].split('-') : s;
-                            return s[0] + '/' + (+s[1]) + '/' + (+s[2]) + ' — ' + (+e[1]) + '/' + (+e[2]);
-                        })()
-                    ),
-                    React.createElement("button", { className: "wp-week-btn", onClick: function() { wpShiftWeek(1); } }, "▶")
-                ),
-                React.createElement("table", { className: "wp-table" },
-                    React.createElement("thead", null,
-                        React.createElement("tr", null,
-                            wpWeekDays(wpWeekStart).map(function(ds) {
-                                var isToday = ds === today();
-                                var parts = wpFmtDate(ds).split('\n');
-                                return React.createElement("th", { key: ds, className: "wp-th" + (isToday ? " today-col" : "") },
-                                    parts[0],
-                                    React.createElement("br", null),
-                                    parts[1],
-                                    isToday && React.createElement("span", { className: "wp-today-badge" }, "今")
-                                );
-                            })
-                        )
+       )
                     ),
                     React.createElement("tbody", null,
                         React.createElement("tr", null,
@@ -5904,7 +6023,7 @@ function App() {
         ),
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
-        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
+        view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))))));}
 }
 
     debugStep('RENDER START');
