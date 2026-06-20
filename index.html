@@ -4530,6 +4530,57 @@ function App() {
                     return [plan].concat(filtered);
                 });
                 setWpDays(cleanDays);
+                // ── 儲存後立刻帶入隔天作業 ────────────────────────────
+                var weekDays = wpWeekDays(wpWeekStart); // 週一~週五
+                var applyPromises = weekDays.map(async function(planDay) {
+                    var hwItems = (cleanDays[planDay] || []).filter(function(i){ return i.type === "hw"; });
+                    if (hwItems.length === 0) return;
+                    // 決定帶入目標日
+                    var d = new Date(planDay);
+                    var dow = d.getDay(); // 1=Mon ... 5=Fri
+                    if (dow === 0 || dow === 6) return; // 週六日不處理
+                    var targetDate;
+                    if (dow === 5) {
+                        // 週五 → 下週一
+                        var next = new Date(d); next.setDate(next.getDate() + 3);
+                        targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+                    } else {
+                        // 週一~週四 → 隔天
+                        var next = new Date(d); next.setDate(next.getDate() + 1);
+                        targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+                    }
+                    // 讀取目標日現有作業
+                    var existing = await loadDay(targetDate);
+                    var existRows = existing.rows || [];
+                    // 追加新作業（重複也保留，依序命名）
+                    var nameCount = {};
+                    existRows.forEach(function(r) {
+                        if (r.hwName) nameCount[r.hwName] = (nameCount[r.hwName] || 0) + 1;
+                    });
+                    var newRows = existRows.slice();
+                    hwItems.forEach(function(item) {
+                        var name = item.content;
+                        var cnt = nameCount[name] || 0;
+                        var finalName = cnt === 0 ? name : name + (cnt + 1);
+                        nameCount[name] = cnt + 1;
+                        newRows.push({ hwName: finalName, groupData: {} });
+                    });
+                    // 寫回 Firestore
+                    var dayKey = 'day:' + targetDate;
+                    var snap = {};
+                    snap[dayKey] = { rows: newRows };
+                    await window.fsSet(firebaseUid, dayKey, { rows: newRows });
+                });
+                await Promise.all(applyPromises);
+                // 若目標日就是今天已開啟的單日頁，重新載入
+                weekDays.forEach(function(planDay) {
+                    var d = new Date(planDay); var dow = d.getDay();
+                    if (dow === 0 || dow === 6) return;
+                    var next = new Date(d);
+                    next.setDate(next.getDate() + (dow === 5 ? 3 : 1));
+                    var targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+                    if (targetDate === selDate) { openDay(selDate); }
+                });
                 setWpOpen(false);
             } else { alert('儲存失敗，請重試'); }
         } catch(e) { alert('儲存錯誤：' + String(e.message || e)); }
