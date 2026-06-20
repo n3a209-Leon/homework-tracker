@@ -3494,7 +3494,7 @@ function App() {
     }
     const [curYear, setCurYear] = useState(() => new Date().getFullYear());
     const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
-    const [selDate, setSelDate] = useState(today);
+    const [selDate, setSelDate] = useState(today());
     // Day Nav Bar state
     const [dayAnimKey, setDayAnimKey] = useState(0);
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -4309,17 +4309,18 @@ function App() {
         return (+p[1]) + '/' + (+p[2]) + '\n' + '週' + wd;
     }
     function wpOpenPlan(ds) {
-        var monday = wpGetMonday(ds);
+        var monday = wpGetMonday((typeof ds === "string" ? ds : null) || today());
         setWpWeekStart(monday);
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
         setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
-        setWpView('list'); setWpOpen(true);
+        setWpView('list');
+        setWpOpen(true);
     }
     function wpOpenEdit(monday) {
         setWpWeekStart(monday);
         var existing = wpPlans.find(function(p){ return p.weekStart === monday; });
         setWpDays(existing ? JSON.parse(JSON.stringify(existing.days)) : {});
-        setWpView('edit');
+        setWpView('edit'); setWpOpen(true);
     }
     function wpShiftWeek(delta) {
         var d = new Date(wpWeekStart); d.setDate(d.getDate() + delta * 7);
