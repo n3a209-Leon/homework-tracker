@@ -5752,8 +5752,7 @@ function App() {
                         React.createElement("tr", null,
                             wpWeekDays(wpWeekStart).map(function(ds) {
                                 var isToday = ds === today();
-                                var parts = wpFmtDate(ds).split('
-');
+                                var parts = wpFmtDate(ds).split('\n');
                                 return React.createElement("th", { key: ds, className: "wp-th" + (isToday ? " today-col" : "") },
                                     parts[0],
                                     React.createElement("br", null),
