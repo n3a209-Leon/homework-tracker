@@ -1781,6 +1781,176 @@
         /* ══ END GUIDANCE TIME + FORMAL ════════════════════════════ */
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
 
+        /* ══ WEEKLY PLAN MODAL ══════════════════════════════════════ */
+        .wp-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,.65);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; box-sizing: border-box;
+        }
+        .wp-box {
+            background: #1a1a2e; border-radius: 18px;
+            width: 100%; max-width: 440px; max-height: 88vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 8px 40px rgba(0,0,0,.6);
+            overflow: hidden;
+        }
+        .wp-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 16px 16px 12px; flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .wp-title { flex: 1; font-size: 16px; font-weight: 700; color: #e8d5ff; }
+        .wp-back-btn {
+            background: none; border: none; font-size: 22px; cursor: pointer;
+            color: #b39ddb; padding: 0 6px 0 0; line-height: 1;
+        }
+        /* LIST VIEW */
+        .wp-list-empty { padding: 32px 16px; text-align: center; color: rgba(255,255,255,.35); font-size: 14px; }
+        .wp-list-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 13px 16px; cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            transition: background .15s;
+        }
+        .wp-list-item:hover { background: rgba(255,255,255,.05); }
+        .wp-list-item.has-plan .wp-list-week { color: #ce93d8; }
+        .wp-list-week { font-size: 15px; font-weight: 600; color: #e0e0e0; }
+        .wp-list-sub { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 2px; }
+        .wp-list-badge { font-size: 12px; color: #9c64d0; }
+        .wp-new-btn {
+            margin: 14px 16px; padding: 12px;
+            background: linear-gradient(135deg,#5e35b1,#7b1fa2);
+            color: #fff; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 32px);
+        }
+        /* DETAIL VIEW */
+        .wp-detail-row {
+            display: flex; gap: 0;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .wp-detail-day {
+            flex-shrink: 0; width: 56px; padding: 10px 8px;
+            text-align: center; font-size: 12px; color: rgba(255,255,255,.45);
+            background: rgba(255,255,255,.03);
+            display: flex; flex-direction: column; justify-content: flex-start; gap: 2px;
+        }
+        .wp-detail-day .date { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.7); }
+        .wp-detail-day.today .date { color: #ce93d8; }
+        .wp-detail-items { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .wp-detail-empty { font-size: 12px; color: rgba(255,255,255,.2); }
+        .wp-detail-hw { display: flex; align-items: baseline; gap: 5px; font-size: 13px; }
+        .wp-detail-num { color: rgba(255,255,255,.35); font-size: 11px; flex-shrink: 0; }
+        .wp-detail-name { color: #e0e0e0; }
+        .wp-detail-note { color: rgba(255,255,255,.4); font-size: 11px; }
+        .wp-detail-note.wp-detail-type-note { color: #ffcc80; }
+        .wp-detail-edit-btn {
+            margin: 14px 16px; padding: 10px;
+            background: rgba(103,58,183,.35); border: 1px solid rgba(103,58,183,.5);
+            color: #ce93d8; border-radius: 10px;
+            font-size: 13px; font-weight: 600; cursor: pointer; width: calc(100% - 32px);
+        }
+        /* EDIT VIEW */
+        .wp-week-nav {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 16px; flex-shrink: 0;
+        }
+        .wp-week-btn {
+            background: rgba(255,255,255,.06); border: none; border-radius: 6px;
+            color: #ce93d8; font-size: 14px; padding: 6px 10px; cursor: pointer;
+        }
+        .wp-week-label { flex: 1; text-align: center; font-size: 13px; color: rgba(255,255,255,.6); }
+        .wp-table { width: 100%; border-collapse: collapse; flex-shrink: 0; }
+        .wp-th {
+            padding: 6px 2px; text-align: center; font-size: 11px; font-weight: 600;
+            color: rgba(255,255,255,.5); border-bottom: 1px solid rgba(255,255,255,.08);
+            white-space: pre-line; line-height: 1.3;
+        }
+        .wp-th.today-col { color: #ce93d8; }
+        .wp-today-badge {
+            display: inline-block; background: #7b1fa2; color: #fff;
+            border-radius: 4px; font-size: 9px; padding: 0 4px; margin-left: 2px;
+        }
+        .wp-td {
+            vertical-align: top; padding: 6px 4px;
+            border-right: 1px solid rgba(255,255,255,.06);
+        }
+        .wp-td:last-child { border-right: none; }
+        .wp-item { display: flex; align-items: flex-start; gap: 2px; margin-bottom: 3px; }
+        .wp-item-text {
+            flex: 1; font-size: 11px; padding: 3px 5px; border-radius: 5px;
+            background: rgba(103,58,183,.25); color: #e0e0e0; cursor: pointer; word-break: break-all;
+            line-height: 1.3;
+        }
+        .wp-item-text.note { background: rgba(255,152,0,.18); color: #ffcc80; }
+        .wp-del-btn {
+            background: none; border: none; color: rgba(255,255,255,.3);
+            font-size: 13px; cursor: pointer; padding: 0 1px; flex-shrink: 0; line-height: 1;
+        }
+        .wp-add-btn {
+            width: 100%; background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.15);
+            border-radius: 5px; color: rgba(255,255,255,.4); font-size: 16px; cursor: pointer;
+            padding: 3px 0; margin-top: 2px;
+        }
+        .wp-footer {
+            display: flex; gap: 10px; padding: 12px 16px;
+            border-top: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
+        }
+        .wp-footer-btn {
+            flex: 1; padding: 11px; border-radius: 10px; border: none;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .wp-footer-btn.save {
+            background: linear-gradient(135deg,#5e35b1,#7b1fa2); color: #fff;
+        }
+        .wp-footer-btn.save:disabled { opacity: .5; cursor: default; }
+        .wp-footer-btn.cancel { background: rgba(255,255,255,.07); color: rgba(255,255,255,.6); }
+        /* INPUT POPUP */
+        .wp-input-overlay {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,.7);
+            display: flex; align-items: flex-end; justify-content: center;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .wp-input-box {
+            background: #1e1b3a; border-radius: 18px 18px 0 0;
+            width: 100%; max-width: 480px; padding: 20px 16px 28px;
+            box-shadow: 0 -4px 30px rgba(0,0,0,.5);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .wp-input-title { font-size: 15px; font-weight: 700; color: #ce93d8; }
+        .wp-type-row { display: flex; gap: 8px; }
+        .wp-type-btn {
+            flex: 1; padding: 9px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+            color: rgba(255,255,255,.5); font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .wp-type-btn.sel.hw { background: rgba(94,53,177,.5); border-color: #7b1fa2; color: #e0e0e0; }
+        .wp-type-btn.sel.note { background: rgba(230,126,34,.3); border-color: #e67e22; color: #ffcc80; }
+        .wp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .wp-preset-tag {
+            padding: 5px 10px; border-radius: 20px;
+            background: rgba(103,58,183,.3); border: 1px solid rgba(103,58,183,.4);
+            color: #ce93d8; font-size: 12px; cursor: pointer;
+        }
+        .wp-input-field {
+            width: 100%; padding: 10px 12px; border-radius: 10px; box-sizing: border-box;
+            background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+            color: #fff; font-size: 14px; outline: none;
+        }
+        .wp-input-field::placeholder { color: rgba(255,255,255,.3); }
+        .wp-input-btns { display: flex; gap: 8px; margin-top: 2px; }
+        .wp-input-btn {
+            flex: 1; padding: 11px; border-radius: 10px; border: none;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        .wp-input-btn.confirm { background: linear-gradient(135deg,#5e35b1,#7b1fa2); color: #fff; }
+        .wp-input-btn.cancel { background: rgba(255,255,255,.07); color: rgba(255,255,255,.5); }
+        /* scrollable body */
+        .wp-box > :not(.wp-header):not(.wp-footer):not(.wp-week-nav) {
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        /* ══ END WEEKLY PLAN MODAL ══════════════════════════════════ */
 
 
 </style>
