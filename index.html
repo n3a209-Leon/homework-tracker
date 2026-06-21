@@ -5414,169 +5414,284 @@ function App() {
                 className: "gr-add-btn",
                 onClick: function() { setGrDialog(true); setGrSeats([]); setGrCat('學習'); setGrContent(''); setGrTime(grNowTime()); setGrMsg(''); }
             }, isNerv ? "◈ ADD GUIDANCE LOG" : "＋ 新增輔導紀錄"))),
-        modal && (React.createElement("div", { className: "ov", onClick: closeModal },
-            React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
-                modal.phase === "hwpicker" && (function() {
+        modal && modal.phase === "hwpicker" && React.createElement("div", {
+            style: {
+                position:"fixed", inset:0, zIndex:200,
+                background:"rgba(0,0,0,.72)",
+                display:"flex", alignItems:"flex-end", justifyContent:"center",
+                padding:"0 0 env(safe-area-inset-bottom,0)"
+            },
+            onClick: closeModal
+        },
+            React.createElement("div", {
+                style: {
+                    background:"#1a1a2e", borderRadius:"18px 18px 0 0",
+                    width:"100%", maxWidth:460,
+                    maxHeight:"88vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
+                    padding:"0 0 16px", boxShadow:"0 -8px 40px rgba(0,0,0,.6)"
+                },
+                onClick: function(e){ e.stopPropagation(); }
+            },
+                (function() {
                     var LESSONS = [1,2,3,4,5,6,7,8,9,10,11,12];
                     var hist = hwPickerHistory[hwPickerType] || [];
                     var HW_TYPES = [
-                        { key:'guojia', label:'國甲', color:'#1565c0', bg:'rgba(21,101,192,.12)' },
-                        { key:'guoyi',  label:'國乙', color:'#1565c0', bg:'rgba(21,101,192,.12)' },
-                        { key:'guoxi',  label:'國習', color:'#2e7d32', bg:'rgba(46,125,50,.12)' },
-                        { key:'guojuan',label:'國卷', color:'#2e7d32', bg:'rgba(46,125,50,.12)' },
-                        { key:'ting',   label:'聽寫', color:'#6a1b9a', bg:'rgba(106,27,154,.12)' },
-                        { key:'shujuan',label:'數卷', color:'#e65100', bg:'rgba(230,81,0,.12)' },
-                        { key:'shuxi',  label:'數習/數課', color:'#e65100', bg:'rgba(230,81,0,.12)' },
+                        { key:'guojia',  label:'國甲',      color:'#90caf9', bg:'rgba(21,101,192,.25)' },
+                        { key:'guoyi',   label:'國乙',      color:'#90caf9', bg:'rgba(21,101,192,.25)' },
+                        { key:'guoxi',   label:'國習',      color:'#a5d6a7', bg:'rgba(46,125,50,.25)' },
+                        { key:'guojuan', label:'國卷',      color:'#a5d6a7', bg:'rgba(46,125,50,.25)' },
+                        { key:'ting',    label:'聽寫',      color:'#ce93d8', bg:'rgba(106,27,154,.25)' },
+                        { key:'shujuan', label:'數卷',      color:'#ffcc80', bg:'rgba(230,81,0,.25)' },
+                        { key:'shuxi',   label:'數習/數課', color:'#ffcc80', bg:'rgba(230,81,0,.25)' },
                     ];
-                    var cur = HW_TYPES.find(function(t){ return t.key === hwPickerType; });
-                    var needLesson = ['guojia','guoyi','guoxi','guojuan','ting','shujuan'].includes(hwPickerType);
-                    var needSub = ['guojia','guoyi'].includes(hwPickerType);
-                    var needPages = hwPickerType === 'shuxi';
-                    var PAGES = Array.from({length:100}, function(_,i){ return String(i+1); });
-                    // 預覽名稱
+                    var cur = HW_TYPES.filter(function(t){ return t.key === hwPickerType; })[0] || null;
+                    var PAGES = [];
+                    for(var _pi=1;_pi<=100;_pi++) PAGES.push(String(_pi));
                     var previewName = hwPickerStep !== 'main' ? hwPickerBuildName() : '';
-                    return React.createElement("div", { style:{display:"flex",flexDirection:"column",gap:0,minHeight:0} },
-                        // Header
-                        React.createElement("div", { style:{display:"flex",alignItems:"center",marginBottom:14} },
-                            hwPickerStep !== 'main' && React.createElement("button", {
-                                style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#666",padding:"0 8px 0 0"},
-                                onClick: function(){ setHwPickerStep('main'); setHwPickerLessons(new Set()); setHwPickerSub(''); setHwPickerTimes(''); setHwPickerPageFrom(''); setHwPickerPageTo(''); }
-                            }, "‹"),
-                            React.createElement("h2", { className:"mt", style:{margin:0,flex:1} },
-                                hwPickerStep === 'main' ? "選擇作業類型" :
-                                hwPickerStep === 'lesson' ? (cur ? cur.label + " — 選課次" : "選課次") :
-                                hwPickerStep === 'pages' ? "數習 — 填頁數" : "選擇作業"
-                            )
+                    // ── header bar ──
+                    var header = React.createElement("div", { style:{
+                        display:"flex", alignItems:"center", padding:"14px 16px 10px",
+                        borderBottom:"1px solid rgba(255,255,255,.08)"
+                    }},
+                        hwPickerStep !== 'main' && React.createElement("button", {
+                            style:{background:"none",border:"none",color:"rgba(255,255,255,.6)",fontSize:22,cursor:"pointer",padding:"0 10px 0 0",lineHeight:1},
+                            onClick:function(){ setHwPickerStep('main'); setHwPickerLessons(new Set()); setHwPickerSub(''); setHwPickerTimes(''); setHwPickerPageFrom(''); setHwPickerPageTo(''); }
+                        }, "‹"),
+                        React.createElement("div", { style:{flex:1,fontSize:15,fontWeight:700,color:"#e0e0e0"} },
+                            hwPickerStep === 'main' ? "📝 選擇作業類型" :
+                            hwPickerStep === 'lesson' ? (cur ? cur.label + " — 選課次（可複選）" : "選課次") :
+                            "數習 — 填頁數"
                         ),
-                        // Step: main — type selection
-                        hwPickerStep === 'main' && React.createElement("div", null,
-                            React.createElement("div", { style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14} },
-                                HW_TYPES.map(function(t) {
-                                    return React.createElement("button", {
-                                        key: t.key,
-                                        style:{
-                                            padding:"10px 4px", borderRadius:10,
-                                            border:"2px solid "+(t.color+'44'),
-                                            background: t.bg, color: t.color,
-                                            fontSize:13, fontWeight:700, cursor:"pointer"
-                                        },
-                                        onClick: function(){
-                                            setHwPickerType(t.key); setHwPickerLessons(new Set());
-                                            setHwPickerSub('生字'); setHwPickerTimes('');
-                                            setHwPickerPageFrom(''); setHwPickerPageTo('');
-                                            setHwPickerStep(t.key === 'shuxi' ? 'pages' : 'lesson');
-                                        }
-                                    }, t.label);
-                                })
-                            ),
-                            // 其他常用（聯絡簿等）
-                            React.createElement("p", { className:"custom-hw-label" }, "其他常用"),
-                            React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14} },
-                                ["聯絡簿","小日記","小作文","作文段落","作文","回條"].map(function(hw){
-                                    return React.createElement("button", {
-                                        key:hw,
-                                        style:{padding:"6px 12px",borderRadius:20,border:"1px solid #dde5ee",background:"#f6f9fc",color:"#2d4a6a",fontSize:13,cursor:"pointer"},
-                                        onClick:function(){
-                                            addToCustomHW(hw); addToRecentHW(hw);
-                                            updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
-                                            closeModal();
-                                        }
-                                    }, hw);
-                                })
-                            ),
-                            // 手動輸入
-                            React.createElement("input", { className:"hi2", value:inputText, placeholder:"手動輸入作業名稱…", onChange:function(e){ setInputText(e.target.value); }, onKeyDown:function(e){ if(e.key==="Enter"&&inputText.trim()){ addToCustomHW(inputText.trim()); addToRecentHW(inputText.trim()); updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:inputText.trim()}); return n; }); closeModal(); } } }),
-                            React.createElement("div", { className:"ma" },
-                                React.createElement("button", { className:"bc", onClick:closeModal }, "取消"),
-                                inputText.trim() && React.createElement("button", { className:"bk", onClick:function(){ var hw=inputText.trim(); addToCustomHW(hw); addToRecentHW(hw); updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; }); closeModal(); } }, "確認")
-                            )
-                        ),
-                        // Step: lesson — pick lessons
-                        hwPickerStep === 'lesson' && React.createElement("div", null,
-                            React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14} },
-                                LESSONS.map(function(l) {
-                                    var used = hist.includes(l);
-                                    var sel = hwPickerLessons.has(l);
-                                    return React.createElement("button", {
-                                        key:l,
-                                        style:{
-                                            width:44, height:44, borderRadius:10,
-                                            border: sel ? "2px solid "+(cur?cur.color:"#2d7dd2") : (used ? "2px solid #f9a825" : "2px solid #dde5ee"),
-                                            background: sel ? (cur?cur.bg:"rgba(45,125,210,.12)") : (used ? "rgba(249,168,37,.12)" : "#f6f9fc"),
-                                            color: sel ? (cur?cur.color:"#1a5fa8") : (used ? "#a07800" : "#2d4a6a"),
-                                            fontSize:14, fontWeight:700, cursor:"pointer"
-                                        },
-                                        onClick:function(){
-                                            setHwPickerLessons(function(prev){
-                                                var next=new Set(prev);
-                                                next.has(l) ? next.delete(l) : next.add(l);
-                                                return next;
-                                            });
-                                        }
-                                    }, "L"+l);
-                                })
-                            ),
-                            // 次類型選擇（生字/語詞 + 書寫次數）
-                            needSub && React.createElement("div", { style:{marginBottom:12} },
-                                React.createElement("p", { className:"custom-hw-label" }, "書寫類型"),
-                                React.createElement("div", { style:{display:"flex",gap:8,marginBottom:10} },
-                                    ["生字","語詞"].map(function(s){
-                                        return React.createElement("button", {
-                                            key:s,
-                                            style:{flex:1,padding:"8px",borderRadius:10,border:"2px solid "+(hwPickerSub===s?"#1565c0":"#dde5ee"),background:hwPickerSub===s?"rgba(21,101,192,.12)":"#f6f9fc",color:hwPickerSub===s?"#1565c0":"#2d4a6a",fontSize:13,fontWeight:700,cursor:"pointer"},
-                                            onClick:function(){ setHwPickerSub(s); }
-                                        }, s);
-                                    })
-                                ),
-                                React.createElement("p", { className:"custom-hw-label" }, "書寫次數（空白=不標示）"),
-                                React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:6} },
-                                    ["1","2","3","4","5","6","8","10"].map(function(n){
-                                        return React.createElement("button", {
-                                            key:n,
-                                            style:{padding:"5px 12px",borderRadius:20,border:"2px solid "+(hwPickerTimes===n?"#1565c0":"#dde5ee"),background:hwPickerTimes===n?"rgba(21,101,192,.12)":"#f6f9fc",color:hwPickerTimes===n?"#1565c0":"#2d4a6a",fontSize:13,fontWeight:700,cursor:"pointer"},
-                                            onClick:function(){ setHwPickerTimes(hwPickerTimes===n?"":n); }
-                                        }, n+"次");
-                                    })
-                                )
-                            ),
-                            previewName && React.createElement("div", { style:{background:"rgba(0,0,0,.04)",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:13,color:"#1e3a5f",fontWeight:600} },
-                                "預覽：", previewName
-                            ),
-                            React.createElement("div", { className:"ma" },
-                                React.createElement("button", { className:"bc", onClick:closeModal }, "取消"),
-                                React.createElement("button", { className:"bk", disabled:hwPickerLessons.size===0, onClick:hwPickerConfirm }, "確認加入")
-                            )
-                        ),
-                        // Step: pages — 數習頁數
-                        hwPickerStep === 'pages' && React.createElement("div", null,
-                            React.createElement("p", { className:"custom-hw-label", style:{marginBottom:8} }, "起始頁"),
-                            React.createElement("select", {
-                                className:"hi2", style:{marginBottom:12},
-                                value:hwPickerPageFrom,
-                                onChange:function(e){ setHwPickerPageFrom(e.target.value); if(!hwPickerPageTo) setHwPickerPageTo(e.target.value); }
-                            },
-                                React.createElement("option", {value:""}, "—選擇—"),
-                                PAGES.map(function(p){ return React.createElement("option", {key:p, value:p}, "P."+p); })
-                            ),
-                            React.createElement("p", { className:"custom-hw-label", style:{marginBottom:8} }, "結束頁（可與起始頁相同）"),
-                            React.createElement("select", {
-                                className:"hi2", style:{marginBottom:14},
-                                value:hwPickerPageTo,
-                                onChange:function(e){ setHwPickerPageTo(e.target.value); }
-                            },
-                                React.createElement("option", {value:""}, "—選擇—"),
-                                PAGES.map(function(p){ return React.createElement("option", {key:p, value:p}, "P."+p); })
-                            ),
-                            previewName && React.createElement("div", { style:{background:"rgba(0,0,0,.04)",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:13,color:"#1e3a5f",fontWeight:600} },
-                                "預覽：", previewName
-                            ),
-                            React.createElement("div", { className:"ma" },
-                                React.createElement("button", { className:"bc", onClick:closeModal }, "取消"),
-                                React.createElement("button", { className:"bk", disabled:!hwPickerPageFrom, onClick:hwPickerConfirm }, "確認加入")
-                            )
-                        )
+                        React.createElement("button", {
+                            style:{background:"none",border:"none",color:"rgba(255,255,255,.4)",fontSize:20,cursor:"pointer",padding:"0 0 0 10px",lineHeight:1},
+                            onClick: closeModal
+                        }, "×")
                     );
-                })(),
+                    // ── step: main ──
+                    var stepMain = hwPickerStep === 'main' && React.createElement("div", { style:{padding:"12px 14px 0"} },
+                        React.createElement("div", { style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14} },
+                            HW_TYPES.map(function(t) {
+                                return React.createElement("button", {
+                                    key:t.key,
+                                    style:{
+                                        padding:"11px 4px", borderRadius:10,
+                                        border:"1.5px solid "+t.color+"66",
+                                        background:t.bg, color:t.color,
+                                        fontSize:13, fontWeight:700, cursor:"pointer",
+                                        WebkitTapHighlightColor:"rgba(255,220,0,.5)",
+                                        transition:"filter .1s"
+                                    },
+                                    onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                    onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                    onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                    onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                    onClick: function(){
+                                        setHwPickerType(t.key);
+                                        setHwPickerLessons(new Set());
+                                        setHwPickerSub('生字');
+                                        setHwPickerTimes('');
+                                        setHwPickerPageFrom('');
+                                        setHwPickerPageTo('');
+                                        setHwPickerStep(t.key === 'shuxi' ? 'pages' : 'lesson');
+                                    }
+                                }, t.label);
+                            })
+                        ),
+                        React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:8,letterSpacing:1} }, "其他常用"),
+                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:14} },
+                            ["聯絡簿","小日記","小作文","作文段落","作文","回條"].map(function(hw){
+                                return React.createElement("button", {
+                                    key:hw,
+                                    style:{
+                                        padding:"7px 13px", borderRadius:20,
+                                        border:"1px solid rgba(255,255,255,.18)",
+                                        background:"rgba(255,255,255,.07)", color:"rgba(255,255,255,.8)",
+                                        fontSize:13, cursor:"pointer",
+                                        WebkitTapHighlightColor:"rgba(255,220,0,.5)",
+                                        transition:"filter .1s"
+                                    },
+                                    onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                    onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                    onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                    onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                    onClick: function(){
+                                        addToCustomHW(hw); addToRecentHW(hw);
+                                        updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                        closeModal();
+                                    }
+                                }, hw);
+                            })
+                        ),
+                        React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:6,letterSpacing:1} }, "手動輸入"),
+                        React.createElement("input", {
+                            className:"hi2",
+                            style:{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.18)",color:"#fff",borderRadius:10,padding:"10px 14px",width:"100%",boxSizing:"border-box",fontSize:15,fontFamily:"inherit",outline:"none"},
+                            value:inputText,
+                            placeholder:"輸入作業名稱…",
+                            onChange: function(e){ setInputText(e.target.value); },
+                            onKeyDown: function(e){
+                                if(e.key==="Enter" && inputText.trim()){
+                                    var hw=inputText.trim();
+                                    addToCustomHW(hw); addToRecentHW(hw);
+                                    updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                    closeModal();
+                                }
+                            }
+                        }),
+                        inputText.trim() && React.createElement("button", {
+                            style:{
+                                width:"100%", marginTop:8, padding:"11px",
+                                background:"linear-gradient(135deg,#5e35b1,#7b1fa2)", color:"#fff",
+                                border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:"pointer"
+                            },
+                            onClick: function(){
+                                var hw=inputText.trim();
+                                addToCustomHW(hw); addToRecentHW(hw);
+                                updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                closeModal();
+                            }
+                        }, "確認輸入")
+                    );
+                    // ── step: lesson ──
+                    var needSub = hwPickerType==='guojia'||hwPickerType==='guoyi';
+                    var stepLesson = hwPickerStep === 'lesson' && React.createElement("div", { style:{padding:"12px 14px 0"} },
+                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14} },
+                            LESSONS.map(function(l) {
+                                var used = hist.indexOf(l) >= 0;
+                                var sel = hwPickerLessons.has(l);
+                                var btnColor = sel ? (cur?cur.color:"#ce93d8") : (used?"#ffd700":"rgba(255,255,255,.55)");
+                                var btnBg = sel ? (cur?cur.bg:"rgba(94,53,177,.3)") : (used?"rgba(255,215,0,.12)":"rgba(255,255,255,.06)");
+                                var btnBorder = sel ? "2px solid "+(cur?cur.color:"#ce93d8") : (used?"2px solid #ffd70066":"1px solid rgba(255,255,255,.15)");
+                                return React.createElement("button", {
+                                    key:l,
+                                    style:{
+                                        width:48, height:48, borderRadius:10,
+                                        border:btnBorder, background:btnBg, color:btnColor,
+                                        fontSize:14, fontWeight:700, cursor:"pointer",
+                                        WebkitTapHighlightColor:"rgba(255,220,0,.5)",
+                                        transition:"filter .1s"
+                                    },
+                                    onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 8px #ffd700)"; },
+                                    onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                    onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 8px #ffd700)"; },
+                                    onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                    onClick: function(){
+                                        setHwPickerLessons(function(prev){
+                                            var next=new Set(prev);
+                                            if(next.has(l)) next.delete(l); else next.add(l);
+                                            return next;
+                                        });
+                                    }
+                                }, "L"+l);
+                            })
+                        ),
+                        needSub && React.createElement("div", { style:{marginBottom:12} },
+                            React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:8,letterSpacing:1} }, "書寫類型"),
+                            React.createElement("div", { style:{display:"flex",gap:8,marginBottom:10} },
+                                ["生字","語詞"].map(function(s){
+                                    var isSel = hwPickerSub===s;
+                                    return React.createElement("button", {
+                                        key:s,
+                                        style:{
+                                            flex:1, padding:"9px",
+                                            borderRadius:10,
+                                            border:"1.5px solid "+(isSel?"#90caf9":"rgba(255,255,255,.18)"),
+                                            background:isSel?"rgba(21,101,192,.35)":"rgba(255,255,255,.06)",
+                                            color:isSel?"#90caf9":"rgba(255,255,255,.6)",
+                                            fontSize:13, fontWeight:700, cursor:"pointer",
+                                            WebkitTapHighlightColor:"rgba(255,220,0,.5)",
+                                            transition:"filter .1s"
+                                        },
+                                        onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                        onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                        onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                        onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                        onClick: function(){ setHwPickerSub(s); }
+                                    }, s);
+                                })
+                            ),
+                            React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:8,letterSpacing:1} }, "書寫次數"),
+                            React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:6} },
+                                ["1","2","3","4","5","6","8","10"].map(function(n){
+                                    var isSel = hwPickerTimes===n;
+                                    return React.createElement("button", {
+                                        key:n,
+                                        style:{
+                                            padding:"5px 12px", borderRadius:20,
+                                            border:"1.5px solid "+(isSel?"#90caf9":"rgba(255,255,255,.18)"),
+                                            background:isSel?"rgba(21,101,192,.35)":"rgba(255,255,255,.06)",
+                                            color:isSel?"#90caf9":"rgba(255,255,255,.6)",
+                                            fontSize:13, fontWeight:700, cursor:"pointer",
+                                            WebkitTapHighlightColor:"rgba(255,220,0,.5)",
+                                            transition:"filter .1s"
+                                        },
+                                        onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                        onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                        onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                        onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                        onClick: function(){ setHwPickerTimes(hwPickerTimes===n?"":n); }
+                                    }, n+"次");
+                                })
+                            )
+                        ),
+                        previewName && React.createElement("div", {
+                            style:{background:"rgba(255,215,0,.12)",border:"1px solid rgba(255,215,0,.3)",borderRadius:8,padding:"8px 12px",marginTop:10,fontSize:14,color:"#ffd700",fontWeight:600}
+                        }, "預覽："+previewName),
+                        React.createElement("button", {
+                            style:{
+                                width:"100%", marginTop:12, padding:"12px",
+                                background: hwPickerLessons.size===0 ? "rgba(255,255,255,.08)" : "linear-gradient(135deg,#5e35b1,#7b1fa2)",
+                                color: hwPickerLessons.size===0 ? "rgba(255,255,255,.3)" : "#fff",
+                                border:"none", borderRadius:10, fontSize:14, fontWeight:700,
+                                cursor: hwPickerLessons.size===0 ? "default" : "pointer"
+                            },
+                            disabled: hwPickerLessons.size===0,
+                            onClick: hwPickerConfirm
+                        }, "✓ 確認加入")
+                    );
+                    // ── step: pages ──
+                    var stepPages = hwPickerStep === 'pages' && React.createElement("div", { style:{padding:"12px 14px 0"} },
+                        React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:6,letterSpacing:1} }, "起始頁"),
+                        React.createElement("select", {
+                            style:{width:"100%",marginBottom:12,padding:"10px 12px",background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.18)",color:"#fff",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"},
+                            value:hwPickerPageFrom,
+                            onChange:function(e){ setHwPickerPageFrom(e.target.value); if(!hwPickerPageTo) setHwPickerPageTo(e.target.value); }
+                        },
+                            React.createElement("option", {value:"",style:{background:"#1a1a2e"}}, "— 選擇起始頁 —"),
+                            PAGES.map(function(p){ return React.createElement("option", {key:p,value:p,style:{background:"#1a1a2e"}}, "P."+p); })
+                        ),
+                        React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:6,letterSpacing:1} }, "結束頁"),
+                        React.createElement("select", {
+                            style:{width:"100%",marginBottom:12,padding:"10px 12px",background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.18)",color:"#fff",borderRadius:10,fontSize:14,outline:"none",boxSizing:"border-box"},
+                            value:hwPickerPageTo,
+                            onChange:function(e){ setHwPickerPageTo(e.target.value); }
+                        },
+                            React.createElement("option", {value:"",style:{background:"#1a1a2e"}}, "— 同起始頁或選結束頁 —"),
+                            PAGES.map(function(p){ return React.createElement("option", {key:p,value:p,style:{background:"#1a1a2e"}}, "P."+p); })
+                        ),
+                        previewName && React.createElement("div", {
+                            style:{background:"rgba(255,215,0,.12)",border:"1px solid rgba(255,215,0,.3)",borderRadius:8,padding:"8px 12px",marginBottom:10,fontSize:14,color:"#ffd700",fontWeight:600}
+                        }, "預覽："+previewName),
+                        React.createElement("button", {
+                            style:{
+                                width:"100%", padding:"12px",
+                                background:!hwPickerPageFrom?"rgba(255,255,255,.08)":"linear-gradient(135deg,#5e35b1,#7b1fa2)",
+                                color:!hwPickerPageFrom?"rgba(255,255,255,.3)":"#fff",
+                                border:"none", borderRadius:10, fontSize:14, fontWeight:700,
+                                cursor:!hwPickerPageFrom?"default":"pointer"
+                            },
+                            disabled:!hwPickerPageFrom,
+                            onClick:hwPickerConfirm
+                        }, "✓ 確認加入")
+                    );
+                    return React.createElement("div", null, header, stepMain, stepLesson, stepPages);
+                })()
+            )
+        ),
+        modal && modal.phase !== "hwpicker" && (React.createElement("div", { className: "ov", onClick: closeModal },
+            React.createElement("div", { className: "mo", onClick: e => e.stopPropagation() },
+                modal.phase === "hwpicker_unused_placeholder" && null,
+
                 modal.phase === "input" && (React.createElement(React.Fragment, null,
                     React.createElement("h2", { className: "mt" }, isNerv ? "◈ INPUT MISSION CODE" : "輸入作業名稱"),
                     customHW.length > 0 && (React.createElement("div", { className: "custom-hw-section" },
