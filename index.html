@@ -381,22 +381,25 @@
         .db{background:none;border:none;color:#c0ccd8;font-size:20px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s,background .15s}
         .db:hover{color:#e53935;background:#fff0f0}
         /* 長按刪除模式 */
-        .hw-row-deleting { opacity: 0.35; transition: opacity .25s; position: relative; }
+        .hw-row-deleting { opacity: 0.35; transition: opacity .25s; }
         .hw-row-normal { transition: opacity .25s; }
-        .del-overlay {
-            position: absolute; inset: 0;
+        .del-fixed-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
             display: flex; align-items: center; justify-content: center;
-            z-index: 10; pointer-events: none;
+            z-index: 9000; pointer-events: none;
         }
-        .del-overlay-btn {
-            font-size: 52px; font-weight: 900; color: #e53935;
+        .del-fixed-btn {
+            font-size: 96px; font-weight: 900; color: #e53935;
             background: none; border: none; cursor: pointer;
             pointer-events: all; line-height: 1;
-            text-shadow: 0 0 20px rgba(229,57,53,.6);
+            text-shadow: 0 0 40px rgba(229,57,53,.8), 0 0 80px rgba(229,57,53,.4);
             -webkit-tap-highlight-color: rgba(255,220,0,.5);
             transition: transform .1s;
+            filter: drop-shadow(0 0 20px rgba(229,57,53,.6));
         }
-        .del-overlay-btn:active { transform: scale(1.2); }
+        .del-fixed-btn:active { transform: scale(1.15); }
+        .hw-table-wrap { -webkit-user-select: none; user-select: none; }
         .ar td{padding:14px;text-align:center;color:#7a90a8;font-size:14px;cursor:pointer;transition:background .15s,color .15s;border-top:2px dashed #dde5ee}
         .ar:hover td{background:#f0f7ff;color:#2d7dd2} .ai{font-size:18px;margin-right:6px}
 
@@ -5295,7 +5298,7 @@ function App() {
             className: isNerv ? "day-anim-term" : (theme === "nebula" ? "day-anim-float" : "day-anim-fade"),
             key: dayAnimKey
         },
-            React.createElement("div", { className: "table-wrapper" },
+            React.createElement("div", { className: "table-wrapper hw-table-wrap" },
                 React.createElement("table", null,
                     React.createElement("thead", null,
                         React.createElement("tr", null,
@@ -5318,43 +5321,52 @@ function App() {
                             function dualMissing(gid, type) { return getMissing(ri, dualGid(gid, type)); }
                             if (isDual && row.hwName) {
                                 var isDualDeleting = deletingRow === ri;
-                                var dualLpTimer = { id: null };
+                                var dualLpTimer = { id: null, moved: false };
                                 return React.createElement(React.Fragment, { key: ri },
+                                    isDualDeleting && React.createElement("div", { className: "del-fixed-overlay" },
+                                        React.createElement("button", {
+                                            className: "del-fixed-btn",
+                                            onClick: function(e) {
+                                                e.stopPropagation();
+                                                delRow(ri);
+                                                setDeletingRow(null);
+                                            }
+                                        }, "×")
+                                    ),
                                     React.createElement("tr", {
                                         className: isDualDeleting ? "hw-row-deleting" : "hw-row-normal",
                                         onClick: function(e) { if (isDualDeleting) { e.stopPropagation(); setDeletingRow(null); } }
                                     },
                                         React.createElement("td", {
                                             className: "hwc", rowSpan: 2,
-                                            style: { verticalAlign: "middle", fontWeight: 700, position: "relative" },
-                                            onTouchStart: function() {
+                                            style: { verticalAlign: "middle", fontWeight: 700 },
+                                            onContextMenu: function(e) { e.preventDefault(); },
+                                            onTouchStart: function(e) {
+                                                dualLpTimer.moved = false;
+                                                dualLpTimer.startX = e.touches[0].clientX;
+                                                dualLpTimer.startY = e.touches[0].clientY;
                                                 dualLpTimer.id = setTimeout(function() {
+                                                    if (dualLpTimer.moved) return;
                                                     if (navigator.vibrate) navigator.vibrate(50);
                                                     setDeletingRow(ri);
                                                 }, 500);
                                             },
-                                            onTouchEnd: function() { clearTimeout(dualLpTimer.id); },
-                                            onTouchMove: function() { clearTimeout(dualLpTimer.id); },
-                                            onMouseDown: function() {
-                                                dualLpTimer.id = setTimeout(function() { setDeletingRow(ri); }, 500);
+                                            onTouchMove: function(e) {
+                                                var dx = Math.abs(e.touches[0].clientX - dualLpTimer.startX);
+                                                var dy = Math.abs(e.touches[0].clientY - dualLpTimer.startY);
+                                                if (dx > 10 || dy > 10) {
+                                                    dualLpTimer.moved = true;
+                                                    clearTimeout(dualLpTimer.id);
+                                                }
                                             },
-                                            onMouseUp: function() { clearTimeout(dualLpTimer.id); },
+                                            onTouchEnd: function() { clearTimeout(dualLpTimer.id); },
                                             onClick: function(e) {
                                                 if (isDualDeleting) { e.stopPropagation(); return; }
+                                                if (dualLpTimer.moved) return;
                                                 hwPickerOpen(ri);
                                             }
                                         },
-                                            isNerv ? row.hwName : row.hwName,
-                                            isDualDeleting && React.createElement("div", { className: "del-overlay" },
-                                                React.createElement("button", {
-                                                    className: "del-overlay-btn",
-                                                    onClick: function(e) {
-                                                        e.stopPropagation();
-                                                        delRow(ri);
-                                                        setDeletingRow(null);
-                                                    }
-                                                }, "×")
-                                            )
+                                            isNerv ? row.hwName : row.hwName
                                         ),
                                         groups.map(g => {
                                             var s = dualStatus(g.id, "fix"), ms = dualMissing(g.id, "fix");
@@ -5372,11 +5384,14 @@ function App() {
                                         }),
                                         React.createElement("td", { style:{width:0,padding:0}, rowSpan: 2 })
                                     ),
-                                    React.createElement("tr", null,
+                                    React.createElement("tr", {
+                                        className: isDualDeleting ? "hw-row-deleting" : "hw-row-normal",
+                                        onClick: function(e) { if (isDualDeleting) { e.stopPropagation(); setDeletingRow(null); } }
+                                    },
                                         groups.map(g => {
                                             var s = dualStatus(g.id, "sign"), ms = dualMissing(g.id, "sign");
                                             return React.createElement("td", { key: g.id, className: "gc s-"+s,
-                                                onClick: () => openCell(ri, g.id)
+                                                onClick: () => { if (!isDualDeleting) openCell(ri, g.id); }
                                             },
                                                 React.createElement("div", { style:{fontSize:9,opacity:.55,marginBottom:2} }, "簽名"),
                                                 s === "complete" && React.createElement("span", { className: "badge cb" }, "✓"),
@@ -5391,66 +5406,75 @@ function App() {
                             }
                             // 一般作業（原始渲染）
                             var isDeleting = deletingRow === ri;
-                            var lpTimer = { id: null };
-                            return React.createElement("tr", {
-                                key: ri,
-                                className: isDeleting ? "hw-row-deleting" : "hw-row-normal",
-                                style: { position: "relative" },
-                                onClick: function(e) {
-                                    if (isDeleting) { e.stopPropagation(); setDeletingRow(null); }
-                                }
-                            },
-                                React.createElement("td", {
-                                    className: "hwc "+(!row.hwName?"hwe":""),
-                                    style: { position: "relative" },
-                                    onTouchStart: function() {
-                                        if (!row.hwName) return;
-                                        lpTimer.id = setTimeout(function() {
-                                            if (navigator.vibrate) navigator.vibrate(50);
-                                            setDeletingRow(ri);
-                                        }, 500);
-                                    },
-                                    onTouchEnd: function() { clearTimeout(lpTimer.id); },
-                                    onTouchMove: function() { clearTimeout(lpTimer.id); },
-                                    onMouseDown: function() {
-                                        if (!row.hwName) return;
-                                        lpTimer.id = setTimeout(function() { setDeletingRow(ri); }, 500);
-                                    },
-                                    onMouseUp: function() { clearTimeout(lpTimer.id); },
+                            var lpTimer = { id: null, moved: false };
+                            return React.createElement(React.Fragment, { key: ri },
+                                isDeleting && React.createElement("div", { className: "del-fixed-overlay" },
+                                    React.createElement("button", {
+                                        className: "del-fixed-btn",
+                                        onClick: function(e) {
+                                            e.stopPropagation();
+                                            delRow(ri);
+                                            setDeletingRow(null);
+                                        }
+                                    }, "×")
+                                ),
+                                React.createElement("tr", {
+                                    className: isDeleting ? "hw-row-deleting" : "hw-row-normal",
                                     onClick: function(e) {
-                                        if (isDeleting) { e.stopPropagation(); return; }
-                                        hwPickerOpen(ri);
+                                        if (isDeleting) { e.stopPropagation(); setDeletingRow(null); }
                                     }
                                 },
-                                    row.hwName
-                                        ? isNerv ? React.createElement(React.Fragment, null,
-                                            React.createElement("span", { className: "nerv-row-idx" },
-                                                String(ri + 1).padStart(2, "0"), " \u25B8"),
-                                            " ", row.hwName) : row.hwName
-                                        : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入"),
-                                    isDeleting && React.createElement("div", { className: "del-overlay" },
-                                        React.createElement("button", {
-                                            className: "del-overlay-btn",
-                                            onClick: function(e) {
-                                                e.stopPropagation();
-                                                delRow(ri);
-                                                setDeletingRow(null);
+                                    React.createElement("td", {
+                                        className: "hwc "+(!row.hwName?"hwe":""),
+                                        onContextMenu: function(e) { e.preventDefault(); },
+                                        onTouchStart: function(e) {
+                                            if (!row.hwName) return;
+                                            lpTimer.moved = false;
+                                            lpTimer.startX = e.touches[0].clientX;
+                                            lpTimer.startY = e.touches[0].clientY;
+                                            lpTimer.id = setTimeout(function() {
+                                                if (lpTimer.moved) return;
+                                                if (navigator.vibrate) navigator.vibrate(50);
+                                                setDeletingRow(ri);
+                                            }, 500);
+                                        },
+                                        onTouchMove: function(e) {
+                                            var dx = Math.abs(e.touches[0].clientX - lpTimer.startX);
+                                            var dy = Math.abs(e.touches[0].clientY - lpTimer.startY);
+                                            if (dx > 10 || dy > 10) {
+                                                lpTimer.moved = true;
+                                                clearTimeout(lpTimer.id);
                                             }
-                                        }, "×")
-                                    )
-                                ),
-                                groups.map(g => {
-                                    const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
-                                    return (React.createElement("td", { key: g.id, className: "gc s-"+s,
-                                        onClick: () => { if (!isDeleting && row.hwName) openCell(ri, g.id); } },
-                                        s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
-                                        s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
-                                        s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
-                                        s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
-                                        ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
-                                        s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
-                                }),
-                                React.createElement("td", { style:{width:0, padding:0} })
+                                        },
+                                        onTouchEnd: function() {
+                                            clearTimeout(lpTimer.id);
+                                        },
+                                        onClick: function(e) {
+                                            if (isDeleting) { e.stopPropagation(); return; }
+                                            if (lpTimer.moved) return;
+                                            hwPickerOpen(ri);
+                                        }
+                                    },
+                                        row.hwName
+                                            ? isNerv ? React.createElement(React.Fragment, null,
+                                                React.createElement("span", { className: "nerv-row-idx" },
+                                                    String(ri + 1).padStart(2, "0"), " \u25B8"),
+                                                " ", row.hwName) : row.hwName
+                                            : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")
+                                    ),
+                                    groups.map(g => {
+                                        const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
+                                        return (React.createElement("td", { key: g.id, className: "gc s-"+s,
+                                            onClick: () => { if (!isDeleting && row.hwName) openCell(ri, g.id); } },
+                                            s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
+                                            s === "partial" && React.createElement("span", { className: "badge pb" }, "\u2717"),
+                                            s === "allabsent" && React.createElement("span", { className: "badge ab" }, "\u2717"),
+                                            s === "untouched" && row.hwName && React.createElement("span", { className: "badge ub" }, "\u2212"),
+                                            ex.length > 0 && (React.createElement("div", { className: "ml" }, ex.map(n => React.createElement("span", { key: n, className: "mn mn-exempt" }, n)))),
+                                            s === "partial" && ms.length > 0 && (React.createElement("div", { className: "ml" }, ms.map(n => React.createElement("span", { key: n, className: "mn" }, n))))));
+                                    }),
+                                    React.createElement("td", { style:{width:0,padding:0} })
+                                )
                             );
                         }),
                         React.createElement("tr", { className: "ar", onClick: () => {
