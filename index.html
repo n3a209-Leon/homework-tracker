@@ -1924,7 +1924,9 @@
             flex: 1; padding: 9px; border-radius: 10px;
             border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
             color: rgba(255,255,255,.5); font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: filter .1s; -webkit-tap-highlight-color: rgba(255,220,0,.5);
         }
+        .wp-type-btn:active { filter: brightness(1.8) drop-shadow(0 0 6px #ffd700); }
         .wp-type-btn.sel.hw { background: rgba(94,53,177,.5); border-color: #7b1fa2; color: #e0e0e0; }
         .wp-type-btn.sel.note { background: rgba(230,126,34,.3); border-color: #e67e22; color: #ffcc80; }
         .wp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1932,7 +1934,9 @@
             padding: 5px 10px; border-radius: 20px;
             background: rgba(103,58,183,.3); border: 1px solid rgba(103,58,183,.4);
             color: #ce93d8; font-size: 12px; cursor: pointer;
+            transition: filter .1s; -webkit-tap-highlight-color: rgba(255,220,0,.5);
         }
+        .wp-preset-tag:active { filter: brightness(1.8) drop-shadow(0 0 6px #ffd700); }
         .wp-input-field {
             width: 100%; padding: 10px 12px; border-radius: 10px; box-sizing: border-box;
             background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
@@ -1943,7 +1947,9 @@
         .wp-input-btn {
             flex: 1; padding: 11px; border-radius: 10px; border: none;
             font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: filter .1s; -webkit-tap-highlight-color: rgba(255,220,0,.5);
         }
+        .wp-input-btn:active { filter: brightness(1.8) drop-shadow(0 0 6px #ffd700); }
         .wp-input-btn.confirm { background: linear-gradient(135deg,#5e35b1,#7b1fa2); color: #fff; }
         .wp-input-btn.cancel { background: rgba(255,255,255,.07); color: rgba(255,255,255,.5); }
         /* scrollable body */
@@ -4237,9 +4243,16 @@ function App() {
         setHwPickerStep('main'); setHwPickerType(''); setHwPickerLessons(new Set());
         setHwPickerSub(''); setHwPickerTimes(''); setHwPickerPageFrom(''); setHwPickerPageTo('');
     }
+    const [hwPickerWpDay, setHwPickerWpDay] = React.useState('');
     function hwPickerOpen(ri) {
         hwPickerReset();
+        setHwPickerWpDay('');
         setModal({ ri: ri, gid: null, phase: 'hwpicker' });
+    }
+    function hwPickerOpenForWp(day) {
+        hwPickerReset();
+        setHwPickerWpDay(day);
+        setModal({ ri: -1, gid: null, phase: 'hwpicker' });
     }
     function hwPickerBuildName() {
         var t = hwPickerType;
@@ -4268,8 +4281,15 @@ function App() {
         var ll = Array.from(hwPickerLessons);
         if (ll.length > 0) hwPickerRecordLesson(t, ll);
         addToCustomHW(name); addToRecentHW(name);
-        updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
-        closeModal();
+        if (hwPickerWpDay) {
+            // 週計畫模式：寫入 wpDays
+            wpAddItem(hwPickerWpDay, name, '', 'hw');
+            setHwPickerWpDay('');
+            closeModal();
+        } else {
+            updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
+            closeModal();
+        }
     }
     const [marked, setMarked] = useState(new Set());
     const [noneFired, setNoneFired] = useState(false);
@@ -5421,7 +5441,7 @@ function App() {
                 display:"flex", alignItems:"flex-end", justifyContent:"center",
                 padding:"0 0 env(safe-area-inset-bottom,0)"
             },
-            onClick: closeModal
+            onClick: function() { if (hwPickerWpDay) { setHwPickerWpDay(''); setWpInputOpen(true); } closeModal(); }
         },
             React.createElement("div", {
                 style: {
@@ -5464,7 +5484,7 @@ function App() {
                         ),
                         React.createElement("button", {
                             style:{background:"none",border:"none",color:"rgba(255,255,255,.4)",fontSize:20,cursor:"pointer",padding:"0 0 0 10px",lineHeight:1},
-                            onClick: closeModal
+                            onClick: function() { if (hwPickerWpDay) { setHwPickerWpDay(''); setWpInputOpen(true); } closeModal(); }
                         }, "×")
                     );
                     // ── step: main ──
@@ -6342,9 +6362,30 @@ function App() {
                 ),
                 React.createElement("div", { className: "wp-preset-row" },
                     PRESET_HW.map(function(p4) {
+                        var WP_PICKER_MAP = {
+                            '國習':'guoxi','國乙':'guoyi','國甲':'guojia',
+                            '聽寫':'ting','國卷':'guojuan','數卷':'shujuan',
+                            '數習':'shuxi','數習題':'shuxi'
+                        };
+                        var pickerKey = WP_PICKER_MAP[p4];
                         return React.createElement("button", {
                             key: p4, className: "wp-preset-tag",
-                            onClick: function() { setWpInputText(p4); }
+                            onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                            onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                            onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                            onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                            onClick: function() {
+                                if (pickerKey) {
+                                    // 跳進 hwpicker 三步驟
+                                    setWpInputOpen(false);
+                                    hwPickerReset();
+                                    setHwPickerType(pickerKey);
+                                    setHwPickerStep(pickerKey === 'shuxi' ? 'pages' : 'lesson');
+                                    hwPickerOpenForWp(wpInputDay);
+                                } else {
+                                    setWpInputText(p4);
+                                }
+                            }
                         }, p4);
                     })
                 ),
