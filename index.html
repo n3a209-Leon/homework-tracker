@@ -4242,8 +4242,21 @@ function App() {
     function hwPickerReset() {
         setHwPickerStep('main'); setHwPickerType(''); setHwPickerLessons(new Set());
         setHwPickerSub(''); setHwPickerTimes(''); setHwPickerPageFrom(''); setHwPickerPageTo('');
+        setHwPickerReminderMode(false); setHwPickerReminderText('');
     }
     const [hwPickerWpDay, setHwPickerWpDay] = React.useState('');
+    const [reminderHistory, setReminderHistory] = React.useState(function() {
+        try { var v = localStorage.getItem('hw5ren:reminderHistory'); return v ? JSON.parse(v) : []; } catch(e) { return []; }
+    });
+    function reminderRecordAdd(text) {
+        setReminderHistory(function(prev) {
+            var next = [text].concat(prev.filter(function(t){ return t !== text; })).slice(0, 10);
+            try { localStorage.setItem('hw5ren:reminderHistory', JSON.stringify(next)); } catch(e){}
+            return next;
+        });
+    }
+    const [hwPickerReminderMode, setHwPickerReminderMode] = React.useState(false);
+    const [hwPickerReminderText, setHwPickerReminderText] = React.useState('');
     function hwPickerOpen(ri) {
         hwPickerReset();
         setHwPickerWpDay('');
@@ -4282,7 +4295,6 @@ function App() {
         if (ll.length > 0) hwPickerRecordLesson(t, ll);
         addToCustomHW(name); addToRecentHW(name);
         if (hwPickerWpDay) {
-            // 週計畫模式：寫入 wpDays
             wpAddItem(hwPickerWpDay, name, '', 'hw');
             setHwPickerWpDay('');
             closeModal();
@@ -4290,6 +4302,19 @@ function App() {
             updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
             closeModal();
         }
+    }
+    function hwPickerReminderConfirm() {
+        var text = hwPickerReminderText.trim();
+        if (!text) return;
+        reminderRecordAdd(text);
+        if (hwPickerWpDay) {
+            wpAddItem(hwPickerWpDay, text, '', 'note');
+            setHwPickerWpDay('');
+            closeModal();
+        }
+        setHwPickerReminderText('');
+        setHwPickerReminderMode(false);
+        closeModal();
     }
     const [marked, setMarked] = useState(new Set());
     const [noneFired, setNoneFired] = useState(false);
@@ -5478,9 +5503,10 @@ function App() {
                             onClick:function(){ setHwPickerStep('main'); setHwPickerLessons(new Set()); setHwPickerSub(''); setHwPickerTimes(''); setHwPickerPageFrom(''); setHwPickerPageTo(''); }
                         }, "‹"),
                         React.createElement("div", { style:{flex:1,fontSize:15,fontWeight:700,color:"#e0e0e0"} },
-                            hwPickerStep === 'main' ? "📝 選擇作業類型" :
-                            hwPickerStep === 'lesson' ? (cur ? cur.label + " — 選課次（可複選）" : "選課次") :
-                            "數習 — 填頁數"
+                            hwPickerStep === 'main'
+                                ? (hwPickerWpDay ? (function(){ var p=hwPickerWpDay.split('-'); return (+p[1])+'/'+(+p[2])+' 新增項目'; })() : "📝 選擇作業類型")
+                                : hwPickerStep === 'lesson' ? (cur ? cur.label + " — 選課次（可複選）" : "選課次")
+                                : "數習 — 填頁數"
                         ),
                         React.createElement("button", {
                             style:{background:"none",border:"none",color:"rgba(255,255,255,.4)",fontSize:20,cursor:"pointer",padding:"0 0 0 10px",lineHeight:1},
@@ -5518,7 +5544,7 @@ function App() {
                             })
                         ),
                         React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:8,letterSpacing:1} }, "其他常用"),
-                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:14} },
+                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:7,marginBottom:10} },
                             ["聯絡簿","小日記","小作文","作文段落","作文","回條"].map(function(hw){
                                 return React.createElement("button", {
                                     key:hw,
@@ -5536,11 +5562,76 @@ function App() {
                                     onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
                                     onClick: function(){
                                         addToCustomHW(hw); addToRecentHW(hw);
-                                        updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
-                                        closeModal();
+                                        if (hwPickerWpDay) {
+                                            wpAddItem(hwPickerWpDay, hw, '', 'hw');
+                                            setHwPickerWpDay(''); closeModal();
+                                        } else {
+                                            updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                            closeModal();
+                                        }
                                     }
                                 }, hw);
                             })
+                        ),
+                        React.createElement("button", {
+                            style:{
+                                width:"100%", marginBottom:12, padding:"10px",
+                                background:hwPickerReminderMode?"rgba(230,126,34,.3)":"rgba(255,255,255,.05)",
+                                border:hwPickerReminderMode?"1.5px solid #e67e22":"1px solid rgba(255,255,255,.12)",
+                                color:hwPickerReminderMode?"#ffcc80":"rgba(255,255,255,.6)",
+                                borderRadius:10, fontSize:13, fontWeight:700, cursor:"pointer",
+                                WebkitTapHighlightColor:"rgba(255,220,0,.5)", transition:"filter .1s"
+                            },
+                            onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                            onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                            onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                            onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                            onClick: function(){ setHwPickerReminderMode(function(p){ return !p; }); setHwPickerReminderText(''); }
+                        }, hwPickerReminderMode ? "🔔 提醒事項（收起）" : "🔔 提醒事項"),
+                        hwPickerReminderMode && React.createElement("div", { style:{marginBottom:12} },
+                            reminderHistory.length > 0 && React.createElement(React.Fragment, null,
+                                React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:6,letterSpacing:1} }, "最近使用"),
+                                React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10} },
+                                    reminderHistory.map(function(rt){
+                                        return React.createElement("button", {
+                                            key:rt,
+                                            style:{
+                                                padding:"5px 12px", borderRadius:20,
+                                                background:"rgba(255,215,0,.12)", border:"1.5px solid #ffd70066",
+                                                color:"#ffd700", fontSize:12, cursor:"pointer",
+                                                WebkitTapHighlightColor:"rgba(255,220,0,.5)", transition:"filter .1s"
+                                            },
+                                            onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                            onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                            onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                            onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                            onClick: function(){
+                                                reminderRecordAdd(rt);
+                                                if (hwPickerWpDay) {
+                                                    wpAddItem(hwPickerWpDay, rt, '', 'note');
+                                                    setHwPickerWpDay(''); closeModal();
+                                                } else { closeModal(); }
+                                            }
+                                        }, rt);
+                                    })
+                                )
+                            ),
+                            React.createElement("input", {
+                                style:{background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.18)",color:"#fff",borderRadius:10,padding:"10px 14px",width:"100%",boxSizing:"border-box",fontSize:14,fontFamily:"inherit",outline:"none"},
+                                placeholder:"輸入提醒內容…",
+                                value:hwPickerReminderText,
+                                autoFocus:true,
+                                onChange:function(e){ setHwPickerReminderText(e.target.value); },
+                                onKeyDown:function(e){ if(e.key==="Enter") hwPickerReminderConfirm(); }
+                            }),
+                            hwPickerReminderText.trim() && React.createElement("button", {
+                                style:{
+                                    width:"100%", marginTop:8, padding:"11px",
+                                    background:"linear-gradient(135deg,#e67e22,#d35400)", color:"#fff",
+                                    border:"none", borderRadius:10, fontSize:14, fontWeight:700, cursor:"pointer"
+                                },
+                                onClick: hwPickerReminderConfirm
+                            }, "✓ 加入提醒")
                         ),
                         React.createElement("div", { style:{fontSize:11,color:"rgba(255,255,255,.35)",marginBottom:6,letterSpacing:1} }, "手動輸入"),
                         React.createElement("input", {
@@ -5553,8 +5644,13 @@ function App() {
                                 if(e.key==="Enter" && inputText.trim()){
                                     var hw=inputText.trim();
                                     addToCustomHW(hw); addToRecentHW(hw);
-                                    updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
-                                    closeModal();
+                                    if (hwPickerWpDay) {
+                                        wpAddItem(hwPickerWpDay, hw, '', 'hw');
+                                        setHwPickerWpDay(''); closeModal();
+                                    } else {
+                                        updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                        closeModal();
+                                    }
                                 }
                             }
                         }),
@@ -5567,8 +5663,13 @@ function App() {
                             onClick: function(){
                                 var hw=inputText.trim();
                                 addToCustomHW(hw); addToRecentHW(hw);
-                                updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
-                                closeModal();
+                                if (hwPickerWpDay) {
+                                    wpAddItem(hwPickerWpDay, hw, '', 'hw');
+                                    setHwPickerWpDay(''); closeModal();
+                                } else {
+                                    updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
+                                    closeModal();
+                                }
                             }
                         }, "確認輸入")
                     );
@@ -6317,9 +6418,7 @@ function App() {
                                                 React.createElement("div", {
                                                     className: "wp-item-text " + item.type,
                                                     onClick: function() {
-                                                        setWpInputDay(ds); setWpInputType(item.type);
-                                                        setWpInputText(item.content); setWpInputNote(item.note || '');
-                                                        setWpInputOpen(true);
+                                                        hwPickerOpenForWp(ds);
                                                     }
                                                 },
                                                     item.content,
@@ -6329,7 +6428,11 @@ function App() {
                                             );
                                         }),
                                         React.createElement("button", { className: "wp-add-btn",
-                                            onClick: function() { setWpInputDay(ds); setWpInputType("hw"); setWpInputText(""); setWpInputNote(""); setWpInputOpen(true); }
+                                            onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                            onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
+                                            onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
+                                            onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
+                                            onClick: function() { hwPickerOpenForWp(ds); }
                                         }, "+")
                                     );
                                 })
@@ -6343,75 +6446,7 @@ function App() {
                 )
             )
         ),
-        wpInputOpen && React.createElement("div", { className: "wp-input-overlay",
-            onClick: function(e) { if (e.target === e.currentTarget) setWpInputOpen(false); }
-        },
-            React.createElement("div", { className: "wp-input-box" },
-                React.createElement("div", { className: "wp-input-title" },
-                    (function() { var p3 = wpInputDay.split('-'); return (+p3[1]) + '/' + (+p3[2]); })() + " 新增項目"
-                ),
-                React.createElement("div", { className: "wp-type-row" },
-                    React.createElement("button", {
-                        className: "wp-type-btn hw" + (wpInputType === "hw" ? " sel" : ""),
-                        onClick: function() { setWpInputType("hw"); }
-                    }, "📘 一般作業"),
-                    React.createElement("button", {
-                        className: "wp-type-btn note" + (wpInputType === "note" ? " sel" : ""),
-                        onClick: function() { setWpInputType("note"); }
-                    }, "🔔 提醒事項")
-                ),
-                React.createElement("div", { className: "wp-preset-row" },
-                    PRESET_HW.map(function(p4) {
-                        var WP_PICKER_MAP = {
-                            '國習':'guoxi','國乙':'guoyi','國甲':'guojia',
-                            '聽寫':'ting','國卷':'guojuan','數卷':'shujuan',
-                            '數習':'shuxi','數習題':'shuxi'
-                        };
-                        var pickerKey = WP_PICKER_MAP[p4];
-                        return React.createElement("button", {
-                            key: p4, className: "wp-preset-tag",
-                            onTouchStart: function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
-                            onTouchEnd:   function(e){ e.currentTarget.style.filter=""; },
-                            onMouseDown:  function(e){ e.currentTarget.style.filter="brightness(1.8) drop-shadow(0 0 6px #ffd700)"; },
-                            onMouseUp:    function(e){ e.currentTarget.style.filter=""; },
-                            onClick: function() {
-                                if (pickerKey) {
-                                    // 跳進 hwpicker 三步驟
-                                    setWpInputOpen(false);
-                                    hwPickerReset();
-                                    setHwPickerType(pickerKey);
-                                    setHwPickerStep(pickerKey === 'shuxi' ? 'pages' : 'lesson');
-                                    hwPickerOpenForWp(wpInputDay);
-                                } else {
-                                    setWpInputText(p4);
-                                }
-                            }
-                        }, p4);
-                    })
-                ),
-                React.createElement("input", {
-                    className: "wp-input-field",
-                    placeholder: wpInputType === "hw" ? "作業名稱（如：國習）" : "提醒內容…",
-                    value: wpInputText,
-                    onChange: function(e) { setWpInputText(e.target.value); },
-                    autoFocus: true
-                }),
-                React.createElement("input", {
-                    className: "wp-input-field",
-                    style: { marginTop: -6 },
-                    placeholder: "補充說明（如：L3生字×5、P.34-35）",
-                    value: wpInputNote,
-                    onChange: function(e) { setWpInputNote(e.target.value); }
-                }),
-                React.createElement("div", { className: "wp-input-btns" },
-                    React.createElement("button", { className: "wp-input-btn cancel", onClick: function() { setWpInputOpen(false); setWpInputNote(''); } }, "取消"),
-                    React.createElement("button", { className: "wp-input-btn confirm", onClick: function() {
-                        wpAddItem(wpInputDay, wpInputText, wpInputNote, wpInputType);
-                        setWpInputText(""); setWpInputNote(""); setWpInputOpen(false);
-                    } }, "加入")
-                )
-            )
-        ),
+        /* wpInputOpen 已廢棄，改由 hwpicker 處理 */
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
         view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
