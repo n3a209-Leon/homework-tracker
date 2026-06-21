@@ -4325,7 +4325,15 @@ function App() {
             wpAddItem(hwPickerWpDay, name, '', 'hw');
             setHwPickerWpDay('');
             closeModal();
+        } else if (modal && modal.ri === -1) {
+            // 新增模式：在末尾加一列，同時清除舊的空列
+            updRows(function(p){
+                var cleaned = p.filter(function(r){ return r.hwName; });
+                return cleaned.concat([{ hwName: name, groupData: {} }]);
+            });
+            closeModal();
         } else {
+            // 編輯模式：修改現有列
             updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:name}); return n; });
             closeModal();
         }
@@ -4453,7 +4461,16 @@ function App() {
         setModal(null);
         setMarkedFix(new Set()); setMarkedSign(new Set());
     }
-    function closeModal() { setModal(null); setMarked(new Set()); setMarkedFix(new Set()); setMarkedSign(new Set()); setDeletingRow(null); }
+    function closeModal() {
+        setModal(null);
+        setMarked(new Set()); setMarkedFix(new Set()); setMarkedSign(new Set());
+        setDeletingRow(null);
+        // 清除所有 hwName 為空的殘留列（保留第一列聯絡簿）
+        setDayRows(function(prev) {
+            var cleaned = prev.filter(function(r, i) { return i === 0 || r.hwName; });
+            return cleaned.length === prev.length ? prev : cleaned;
+        });
+    }
     function addRow() {
         updRows(p => [...p, { hwName: "", groupData: {} }]);
     }
@@ -5478,13 +5495,8 @@ function App() {
                             );
                         }),
                         React.createElement("tr", { className: "ar", onClick: () => {
-                                // 先新增一列（取得正確的 ri）
-                                const newRi = dayRows.length;
-                                updRows(p => [...p, { hwName: "", groupData: {} }]);
-                                // 再開啟輸入 modal，帶入正確的 ri 和 gid=null
-                                setInputText("");
-                                setPendingHw("");
-                                setModal({ phase: "input", ri: newRi, gid: null });
+                                // 直接開 hwpicker，ri 設為 -1（新增模式）
+                                hwPickerOpen(-1);
                             } },
                             React.createElement("td", { colSpan: 7 },
                                 isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課"))))),
@@ -5695,6 +5707,12 @@ function App() {
                                             wpAddItem(hwPickerWpDay, hw, '', 'hw');
                                             setHwPickerWpDay('');
                                             closeModal();
+                                        } else if (modal && modal.ri === -1) {
+                                            updRows(function(p){
+                                                var cleaned = p.filter(function(r){ return r.hwName; });
+                                                return cleaned.concat([{ hwName: hw, groupData: {} }]);
+                                            });
+                                            closeModal();
                                         } else {
                                             updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
                                             closeModal();
@@ -5777,9 +5795,11 @@ function App() {
                                 if(e.key==="Enter" && inputText.trim()){
                                     var hw=inputText.trim();
                                     addToCustomHW(hw); addToRecentHW(hw);
-                                                                        if (hwPickerWpDay) {
+                                    if (hwPickerWpDay) {
                                         wpAddItem(hwPickerWpDay, hw, '', 'hw');
-                                        setHwPickerWpDay('');
+                                        setHwPickerWpDay(''); closeModal();
+                                    } else if (modal && modal.ri === -1) {
+                                        updRows(function(p){ var c=p.filter(function(r){return r.hwName;}); return c.concat([{hwName:hw,groupData:{}}]); });
                                         closeModal();
                                     } else {
                                         updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
@@ -5797,9 +5817,11 @@ function App() {
                             onClick: function(){
                                 var hw=inputText.trim();
                                 addToCustomHW(hw); addToRecentHW(hw);
-                                                                if (hwPickerWpDay) {
+                                if (hwPickerWpDay) {
                                     wpAddItem(hwPickerWpDay, hw, '', 'hw');
-                                    setHwPickerWpDay('');
+                                    setHwPickerWpDay(''); closeModal();
+                                } else if (modal && modal.ri === -1) {
+                                    updRows(function(p){ var c=p.filter(function(r){return r.hwName;}); return c.concat([{hwName:hw,groupData:{}}]); });
                                     closeModal();
                                 } else {
                                     updRows(function(p){ var n=p.slice(); n[modal.ri]=Object.assign(Object.assign({},n[modal.ri]),{hwName:hw}); return n; });
