@@ -2505,7 +2505,7 @@ function loadGroups() {
 }
 const PRESET_HW = ["國習", "數習", "國乙", "國甲", "聽寫", "小日記", "小作文", "作文段落", "作文", "數習題", "國卷", "數卷", "回條", "國習題"];
 const NO_EXEMPT_HW = new Set(["聯絡簿", "國卷", "數卷"]); // 這些作業不顯示抵免
-const DUAL_HW = new Set(["國卷", "數卷"]); // 雙排作業（訂正+簽名）
+const DUAL_HW = new Set(["國卷", "數卷", "聽寫"]); // 雙排作業（訂正+簽名）
 const MAX_ROWS = 999; // 無上限
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 const COUNSEL_PERIODS = ["早自習", "第1節", "第2節", "第3節", "第4節", "午休", "第5節", "第6節", "放學後"];
@@ -4405,7 +4405,7 @@ function App() {
             setModal({ ri, gid, phase: "input" });
             setInputText("");
             setPendingHw("");
-        } else if (DUAL_HW.has(hw)) {
+        } else if (Array.from(DUAL_HW).some(function(k){ return hw && hw.startsWith(k); })) {
             // 雙排作業：解析真實 groupId，開啟 dualMark
             var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
             var fixKey = realGid + '_fix_' + ri;
@@ -5328,7 +5328,7 @@ function App() {
                             React.createElement("th", { className: "th-d" }))),
                     React.createElement("tbody", null,
                         dayRows.map((row, ri) => {
-                            var isDual = DUAL_HW.has(row.hwName);
+                            var isDual = row.hwName && Array.from(DUAL_HW).some(function(k){ return row.hwName.startsWith(k); });
                             // 雙排子列的 gid key: g.id + "_fix" / g.id + "_sign"
                             function dualGid(gid, type) { return gid + "_" + type + "_" + ri; }
                             function dualStatus(gid, type) {
