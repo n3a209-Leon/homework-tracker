@@ -1798,6 +1798,8 @@
         .gr-formal-btn.close{background:rgba(255,255,255,.08);color:inherit}
         .gr-gen-btn{background:none;border:1px solid rgba(180,120,255,.35);border-radius:6px;color:rgba(180,130,255,.8);font-size:11px;padding:3px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .15s}
         .gr-gen-btn:active{background:rgba(156,39,176,.25)}
+        .gr-del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:2px 6px;border-radius:6px;color:#ff5555;transition:opacity .15s,background .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+        .gr-del-btn:active{opacity:1;background:rgba(255,50,50,.15)}
         /* ══ END GUIDANCE TIME + FORMAL ════════════════════════════ */
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
 
@@ -3838,9 +3840,19 @@ function App() {
                         c++;
                     }
                 }
+                // ── 輔導紀錄還原（counsel:）──
+                var counselData = await window.fsGetAll(firebaseUid, 'counsel:');
+                var cc = 0;
+                for (var ck in counselData) {
+                    if (ck.startsWith('counsel:')) {
+                        await idbSet(ck, counselData[ck]);
+                        try { _sl.set('hw5ren:c:' + ck.replace('counsel:', ''), counselData[ck]); } catch(ex) {}
+                        cc++;
+                    }
+                }
                 setDriveStatus('ok');
-                if (c > 0) {
-                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料' });
+                if (c > 0 || cc > 0) {
+                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料' + (cc > 0 ? '、' + cc + ' 筆輔導' : '') });
                     await doLoadMonth(curYear, curMonth);
                 } else {
                     setStor({ state: 'ok', msg: '✅ 雲端就緒' });
@@ -4861,6 +4873,20 @@ function App() {
         }
         setGrSaving(false);
     }
+    async function grDeleteRecord(r) {
+        if (!window.confirm('確定刪除這筆輔導紀錄？\n「' + (r.content || '').slice(0, 20) + '…」\n此動作無法復原。')) return;
+        setGrSaving(true);
+        var ok = await window.grDelete(firebaseUid, r.id);
+        if (ok) {
+            setGrRecords(function(p) { return p.filter(function(x) { return x.id !== r.id; }); });
+            setGrMsg('✓ 已刪除');
+            setTimeout(function() { setGrMsg(''); }, 2000);
+        } else {
+            setGrMsg('❌ 刪除失敗，請重試');
+            setTimeout(function() { setGrMsg(''); }, 2500);
+        }
+        setGrSaving(false);
+    }
     function grFilteredRecords() {
         var now = Date.now();
         var days = grFilter === '7' ? 7 : grFilter === '30' ? 30 : 99999;
@@ -5612,7 +5638,8 @@ function App() {
                                     React.createElement("span", { className: "gr-day-item-cat" }, r.category),
                                     React.createElement("span", { className: "gr-day-item-seats" }, "座號 " + (r.studentSeats || []).join("、")),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
+                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
                                 ),
                                 React.createElement("div", { className: "gr-day-item-content" }, r.content)
                             );
@@ -6306,7 +6333,8 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.date + "　" + r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
+                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content),
                                 React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
@@ -6335,7 +6363,8 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.date + "　" + r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
+                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content)
                             );
@@ -6354,7 +6383,8 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
+                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content),
                                 React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
