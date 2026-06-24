@@ -37,7 +37,8 @@
         .theme-btn:hover{background:rgba(255,255,255,.28)}
 
         /* ── HEADER ── */
-        header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
+        /* 手機 UI Fix: Safe Area 支援，避免 iPhone 瀏海/底部 Home Bar 遮住內容 */
+        header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:max(14px,env(safe-area-inset-top)) 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
         .hi{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
         .hi-row1{display:flex;align-items:center;gap:8px}
         .hi-row2{display:flex;align-items:center}
@@ -48,7 +49,7 @@
         .hi-row2 .class-switcher{width:100%}
         .hi-row2 .class-switcher-btn{width:100%;max-width:100%;justify-content:space-between;box-sizing:border-box}
         .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
-        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
+        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:6px 0 max(10px,env(safe-area-inset-bottom));flex-wrap:nowrap}
 
         /* ── STORAGE STATUS BAR ── */
         .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
@@ -60,14 +61,17 @@
         .stor-error { background:rgba(244,67,54,.2);   color:#ef9a9a }
         .stor-msg   { white-space:nowrap }
         .stor-detail{ opacity:.75; font-weight:400; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px }
-        .back-btn{background:rgba(255,255,255,.15);border:none;color:#c8dff5;padding:5px 9px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;transition:background .15s;white-space:nowrap;flex-shrink:0}
+        /* 手機 UI Fix: back-btn 加大點擊面積至 44px 高 */
+        .back-btn{background:rgba(255,255,255,.15);border:none;color:#c8dff5;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;transition:background .15s;white-space:nowrap;flex-shrink:0;min-height:44px;display:inline-flex;align-items:center}
         .back-btn:hover{background:rgba(255,255,255,.25)}
-        .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+        /* 手機 UI Fix: nav-btn 加大至 44×44px（原本 28×28px） */
+        .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:10px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
         .nav-btn:hover{background:rgba(255,255,255,.25)}
         .month-label{color:#fff;font-size:14px;font-weight:800;letter-spacing:1px;min-width:80px;text-align:center;flex-shrink:0}
         .date-label{color:#a8cdf0;font-size:11px;font-weight:600;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .undo-btns{display:flex;gap:3px;flex-shrink:0}
-        .undo-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+        .undo-btns{display:flex;gap:4px;flex-shrink:0}
+        /* 手機 UI Fix: undo-btn 加大至 44×44px（原本 30×30px） */
+        .undo-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:10px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
         .undo-btn:hover:not(:disabled){background:rgba(255,255,255,.28)}
         .undo-btn:disabled{opacity:.3;cursor:default}
 
@@ -356,7 +360,9 @@
         .no-data{text-align:center;color:#aab8cc;padding:30px;font-size:14px}
 
         /* ── DAY TABLE ── */
-        .table-wrapper{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden}
+        /* 手機 UI Fix: 表格橫向滑動右側漸層提示 */
+        .table-wrapper{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;position:relative}
+        .table-wrapper::after{content:'';position:absolute;top:0;right:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,rgba(0,0,0,.10));pointer-events:none;border-radius:0 16px 16px 0}
         table{width:100%;border-collapse:collapse}
         thead{background:#1e3a5f}
         th{color:#c8dff5;font-size:12px;font-weight:700;letter-spacing:1px;padding:10px 4px;text-align:center}
@@ -1798,7 +1804,8 @@
         .gr-formal-btn.close{background:rgba(255,255,255,.08);color:inherit}
         .gr-gen-btn{background:none;border:1px solid rgba(180,120,255,.35);border-radius:6px;color:rgba(180,130,255,.8);font-size:11px;padding:3px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .15s}
         .gr-gen-btn:active{background:rgba(156,39,176,.25)}
-        .gr-del-btn{background:none;border:none;cursor:pointer;font-size:14px;opacity:.35;padding:2px 6px;border-radius:6px;color:#ff5555;transition:opacity .15s,background .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+        /* 手機 UI Fix: 刪除按鈕加大點擊面積（原本 padding:2px 6px 太小） */
+        .gr-del-btn{background:none;border:none;cursor:pointer;font-size:16px;opacity:.4;padding:6px 10px;border-radius:8px;color:#ff5555;transition:opacity .15s,background .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center}
         .gr-del-btn:active{opacity:1;background:rgba(255,50,50,.15)}
         /* ══ END GUIDANCE TIME + FORMAL ════════════════════════════ */
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
