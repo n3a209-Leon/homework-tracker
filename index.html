@@ -3106,8 +3106,8 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
         var count = 0;
         for (var k in allData) {
           if (k.startsWith('day:' + selYear + '-')) {
-            // 寫入 IDB（讓 ArchiveView 的統計可以讀取）
-            // 使用 idbSet（如果可用）
+            // Bug #13 fix: 實際寫入 IDB，讓後續 ArchiveView 統計可以正確讀取
+            await idbSet(k, allData[k]);
             count++;
           }
         }
@@ -3858,7 +3858,8 @@ function App() {
         }
         setDriveStatus('syncing');
         try {
-            const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
+            // Bug #10 fix: 同步 day: 與 counsel: 兩種資料（與 scheduleAutoSync 一致）
+            const keys = (await idbKeys()).filter(k => k.startsWith('day:2') || k.startsWith('counsel:'));
             const snap = {};
             for (const k of keys) {
                 const v = await idbGet(k);
@@ -3975,14 +3976,20 @@ function App() {
     useEffect(function() { if (authed && firebaseUid) grLoad(); }, [authed, firebaseUid]);
     useEffect(function() { if (authed && firebaseUid) wpLoadPlans(); }, [authed, firebaseUid]);
     async function doLoadMonth(y, m) {
+        // Bug #12 fix: 加入 try-finally，確保即使拋出例外 loading 也會被重設
         setLoading(true);
-        const [entries, counselEntries] = await Promise.all([
-            loadMonth(y, m),
-            loadCounselMonth(y, m)
-        ]);
-        setMonthDays(entries);
-        setCounselMonth(counselEntries);
-        setLoading(false);
+        try {
+            const [entries, counselEntries] = await Promise.all([
+                loadMonth(y, m),
+                loadCounselMonth(y, m)
+            ]);
+            setMonthDays(entries);
+            setCounselMonth(counselEntries);
+        } catch(e) {
+            try { window._writeLog && window._writeLog('error', 'doLoadMonth: ' + String(e)); } catch(_) {}
+        } finally {
+            setLoading(false);
+        }
     }
     // 計算月份和學期抵免統計
     function calcExemptStats(entries) {
@@ -4045,23 +4052,29 @@ function App() {
         scheduleAutoSync();
     }
     async function openDay(ds) {
+        // Bug #12 fix: 加入 try-finally，確保 loading 必定重設
         setLoading(true);
-        const res = await loadDay(ds);
-        // 自動帶入聯絡簿：若當天完全沒有資料，預填聯絡簿
-        var initRows;
-        if (res.rows.length > 0) {
-            initRows = res.rows;
-        } else {
-            initRows = [{ hwName: "聯絡簿", groupData: {} }];
+        try {
+            const res = await loadDay(ds);
+            // 自動帶入聯絡簿：若當天完全沒有資料，預填聯絡簿
+            var initRows;
+            if (res.rows.length > 0) {
+                initRows = res.rows;
+            } else {
+                initRows = [{ hwName: "聯絡簿", groupData: {} }];
+            }
+            setDayRows(initRows);
+            setDayAtt(res.attendance);
+            setDayExempt(res.exempt || {});
+            setSelDate(ds);
+            setView("day");
+            setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+            setHistoryIdx(0);
+        } catch(e) {
+            try { window._writeLog && window._writeLog('error', 'openDay: ' + String(e)); } catch(_) {}
+        } finally {
+            setLoading(false);
         }
-        setDayRows(initRows);
-        setDayAtt(res.attendance);
-        setDayExempt(res.exempt || {});
-        setSelDate(ds);
-        setView("day");
-        setLoading(false);
-        setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
-        setHistoryIdx(0);
     }
     // ── Undo / Redo history ──
     const [history, setHistory] = useState([]); // [{ rows, att }, ...]
@@ -4113,6 +4126,9 @@ function App() {
     useEffect(() => { dayRowsRef.current = dayRows; }, [dayRows]);
     // ── 自動同步 Timer（debounce 3秒）──
     const autoSyncTimer = useRef(null);
+    // Bug #2 fix: 用 ref 保存最新 uid，避免 setTimeout 閉包捕獲到舊值
+    const firebaseUidRef = useRef(firebaseUid);
+    useEffect(() => { firebaseUidRef.current = firebaseUid; }, [firebaseUid]);
     function scheduleAutoSync() {
         if (!authed)
             return;
@@ -4128,10 +4144,12 @@ function App() {
                     if (v)
                         snap[k] = v;
                 }
-                if (firebaseUid) {
+                // Bug #2 fix: 讀 ref 取得最新 uid，而非閉包捕獲的舊值
+                const uid = firebaseUidRef.current;
+                if (uid) {
                     var fsOk = true;
                     for (var fsk in snap) {
-                        var r = await window.fsSet(firebaseUid, fsk, snap[fsk]);
+                        var r = await window.fsSet(uid, fsk, snap[fsk]);
                         if (!r) fsOk = false;
                     }
                     if (fsOk) { setDriveStatus("ok"); markSynced(); }
@@ -4207,19 +4225,21 @@ function App() {
     }
     // 最近 7 天使用過的作業（含 PRESET 和 custom）
     const [recentHW, setRecentHW] = React.useState(() => {
-        try { return JSON.parse(localStorage.getItem('hw5ren:recentHW') || '[]'); }
+        // Bug #3 fix: 改用 _sl wrapper，相容 Safari 私密瀏覽
+        try { return JSON.parse(safeGet('hw5ren:recentHW') || '[]'); }
         catch(e) { return []; }
     });
     function addToRecentHW(name) {
         if (!name) return;
         var now = Date.now();
         var list = [];
-        try { list = JSON.parse(localStorage.getItem('hw5ren:recentHW') || '[]'); } catch(e) {}
+        // Bug #3 fix: 改用 _sl wrapper
+        try { list = JSON.parse(safeGet('hw5ren:recentHW') || '[]'); } catch(e) {}
         // 格式：[{ name, ts }]，保留 7 天內
         list = list.filter(function(x) { return x.name !== name && (now - x.ts) < 7*24*3600*1000; });
         list.unshift({ name: name, ts: now });
         list = list.slice(0, 15);
-        localStorage.setItem('hw5ren:recentHW', JSON.stringify(list));
+        safeSet('hw5ren:recentHW', JSON.stringify(list));
         setRecentHW(list.map(function(x) { return x.name; }));
     }
     var recentHWNames = recentHW.filter ? recentHW.filter(function(n) { return typeof n === 'string'; }) : [];
@@ -4682,13 +4702,22 @@ function App() {
                 });
                 setWpDays(cleanDays);
                 var weekDays = wpWeekDays(wpWeekStart);
-                var applyPromises = weekDays.map(async function(planDay) {
+                // Bug #11 fix: 先計算好所有 targetDate → hwItems 的對應，
+                // 合併相同 targetDate 的作業後再逐一串行寫入，避免並行寫同一天造成覆蓋
+                var targetMap = {}; // { [targetDate]: hwItems[] }
+                weekDays.forEach(function(planDay) {
                     var hwItems = (cleanDays[planDay] || []).filter(function(i){ return i.type === 'hw'; });
                     if (hwItems.length === 0) return;
                     var d = new Date(planDay); var dow = d.getDay();
                     if (dow === 0 || dow === 6) return;
                     var next = new Date(d); next.setDate(next.getDate() + (dow === 5 ? 3 : 1));
                     var targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
+                    if (!targetMap[targetDate]) targetMap[targetDate] = [];
+                    targetMap[targetDate] = targetMap[targetDate].concat(hwItems);
+                });
+                // 串行寫入，避免同一天被並行覆蓋
+                for (var targetDate in targetMap) {
+                    var hwItems = targetMap[targetDate];
                     var existing = await loadDay(targetDate);
                     var existRows = existing.rows || [];
                     var existAtt = existing.attendance || { personal: new Set(), sick: new Set(), public: new Set() };
@@ -4707,11 +4736,9 @@ function App() {
                         nameCount[name] = cnt + 1;
                         newRows.push({ hwName: finalName, groupData: {} });
                     });
-                    // 正確使用 saveDay 寫入 IndexedDB（與主程式同源）
                     await saveDay(targetDate, newRows, existAtt, existExempt);
                     if (targetDate === selDate) { openDay(selDate); }
-                });
-                await Promise.all(applyPromises);
+                }
                 setWpOpen(false);
             } else { alert('儲存失敗，請重試'); }
         } catch(e) { alert('儲存錯誤：' + String(e.message || e)); }
@@ -4730,6 +4757,9 @@ function App() {
     function grGenerateFormal(r) {
         var seats = (r.studentSeats||[]).join('、');
         var timeStr = r.time || (r.date || '') + '（時間待補充）';
+        // Bug #9 fix: 改用動態班級名稱（className）與老師名稱（schoolName），不再硬編碼
+        var classLabel = (schoolYear ? schoolYear + '年' : '') + (className || '');
+        var teacherLabel = schoolName || '導師';
         var lines = [
             '你是一位國小導師的行政助理。',
             '請將下列口語輔導紀錄，改寫成具有實務採證效力的正式輔導紀錄文件。',
@@ -4737,7 +4767,7 @@ function App() {
             '',
             '《原始紀錄資料》',
             '輔導時間：' + timeStr,
-            '學生座號：' + seats + '（五年壬班）',
+            '學生座號：' + seats + (classLabel ? '（' + classLabel + '）' : ''),
             '輔導類別：' + (r.category || ''),
             '口語紀錄內容：' + r.content,
             '',
@@ -4746,13 +4776,13 @@ function App() {
             '',
             '一、輔導時間：（從原始資料帶入，精確到分鐘）',
             '二、輔導地點：',
-            '三、學生姓名與班級：五年壬班，座號 ' + seats,
+            '三、學生姓名與班級：' + (classLabel || '（請填班級）') + '，座號 ' + seats,
             '四、事件客觀描述：（只寫事實，不加主觀判斷，避免情緒性用語）',
             '五、輔導方式與過程：（教師說了什麼、學生如何回應，重要語句用引號「」標記）',
             '六、相關人員反應：（家長或其他人員的態度與回應）',
             '七、後續追蹤計畫：（具體下一步行動）',
             '',
-            '記錄人：陳莊宸　導師',
+            '記錄人：' + teacherLabel,
             '記錄時間：' + new Date().toLocaleString('zh-TW')
         ];
         var prompt = lines.join('\n');
@@ -5629,7 +5659,7 @@ function App() {
                     ];
                     var cur = HW_TYPES.filter(function(t){ return t.key === hwPickerType; })[0] || null;
                     var PAGES = [];
-                    for(var _pi=1;_pi<=100;_pi++) PAGES.push(String(_pi));
+                    for(var _pi=1;_pi<=200;_pi++) PAGES.push(String(_pi));
                     var previewName = hwPickerStep !== 'main' ? hwPickerBuildName() : '';
                     // ── header bar ──
                     var header = React.createElement("div", { style:{
