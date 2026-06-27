@@ -37,8 +37,7 @@
         .theme-btn:hover{background:rgba(255,255,255,.28)}
 
         /* ── HEADER ── */
-        /* 手機 UI Fix: Safe Area 支援，避免 iPhone 瀏海/底部 Home Bar 遮住內容 */
-        header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:max(14px,env(safe-area-inset-top)) 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
+        header{background:linear-gradient(135deg,#1e3a5f,#2d5986);padding:14px 20px 0;box-shadow:0 3px 12px rgba(0,0,0,.2);transition:background .3s}
         .hi{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
         .hi-row1{display:flex;align-items:center;gap:8px}
         .hi-row2{display:flex;align-items:center}
@@ -49,7 +48,7 @@
         .hi-row2 .class-switcher{width:100%}
         .hi-row2 .class-switcher-btn{width:100%;max-width:100%;justify-content:space-between;box-sizing:border-box}
         .sync-msg{margin-left:auto;font-size:12px;color:#a5d6a7;font-weight:600}
-        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:6px 0 max(10px,env(safe-area-inset-bottom));flex-wrap:nowrap}
+        .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
 
         /* ── STORAGE STATUS BAR ── */
         .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
@@ -61,17 +60,14 @@
         .stor-error { background:rgba(244,67,54,.2);   color:#ef9a9a }
         .stor-msg   { white-space:nowrap }
         .stor-detail{ opacity:.75; font-weight:400; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px }
-        /* 手機 UI Fix: back-btn 加大點擊面積至 44px 高 */
-        .back-btn{background:rgba(255,255,255,.15);border:none;color:#c8dff5;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:600;transition:background .15s;white-space:nowrap;flex-shrink:0;min-height:44px;display:inline-flex;align-items:center}
+        .back-btn{background:rgba(255,255,255,.15);border:none;color:#c8dff5;padding:5px 9px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;transition:background .15s;white-space:nowrap;flex-shrink:0}
         .back-btn:hover{background:rgba(255,255,255,.25)}
-        /* 手機 UI Fix: nav-btn 加大至 44×44px（原本 28×28px） */
-        .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:10px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+        .nav-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
         .nav-btn:hover{background:rgba(255,255,255,.25)}
         .month-label{color:#fff;font-size:14px;font-weight:800;letter-spacing:1px;min-width:80px;text-align:center;flex-shrink:0}
         .date-label{color:#a8cdf0;font-size:11px;font-weight:600;flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .undo-btns{display:flex;gap:4px;flex-shrink:0}
-        /* 手機 UI Fix: undo-btn 加大至 44×44px（原本 30×30px） */
-        .undo-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:10px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+        .undo-btns{display:flex;gap:3px;flex-shrink:0}
+        .undo-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
         .undo-btn:hover:not(:disabled){background:rgba(255,255,255,.28)}
         .undo-btn:disabled{opacity:.3;cursor:default}
 
@@ -360,9 +356,7 @@
         .no-data{text-align:center;color:#aab8cc;padding:30px;font-size:14px}
 
         /* ── DAY TABLE ── */
-        /* 手機 UI Fix: 表格橫向滑動右側漸層提示 */
-        .table-wrapper{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;position:relative}
-        .table-wrapper::after{content:'';position:absolute;top:0;right:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,rgba(0,0,0,.10));pointer-events:none;border-radius:0 16px 16px 0}
+        .table-wrapper{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden}
         table{width:100%;border-collapse:collapse}
         thead{background:#1e3a5f}
         th{color:#c8dff5;font-size:12px;font-weight:700;letter-spacing:1px;padding:10px 4px;text-align:center}
@@ -532,13 +526,29 @@
         .att-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
         .att-title{font-size:15px;font-weight:800;color:#1e3a5f;letter-spacing:1px}
         .att-type-btns{display:flex;gap:8px;flex-wrap:wrap}
-        .att-type-btn{padding:7px 16px;border-radius:10px;border:2px solid;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .15s}
-        .att-type-btn:hover{opacity:.8}
+        .att-type-btn{padding:7px 16px;border-radius:20px;border:2px solid transparent;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;background:#f5f7fa;color:#6b7c99}
+        .att-type-btn:hover{opacity:.85}
+        .att-type-btn.active-personal{background:#f57c00;border-color:#f57c00;color:#fff;box-shadow:0 2px 8px rgba(245,124,0,.35)}
+        .att-type-btn.active-sick{background:#1565c0;border-color:#1565c0;color:#fff;box-shadow:0 2px 8px rgba(21,101,192,.35)}
+        .att-type-btn.active-public{background:#2e7d32;border-color:#2e7d32;color:#fff;box-shadow:0 2px 8px rgba(46,125,50,.35)}
         .att-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
         .att-type-label{font-size:13px;font-weight:800;min-width:36px}
         .att-nums{display:flex;flex-wrap:wrap;gap:6px}
         .att-num{border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid}
         .att-empty{font-size:13px;color:#aab8cc;text-align:center;padding:8px 0}
+        /* 功能2：節次選擇器 */
+        .att-num-partial{position:relative}
+        .period-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:flex;align-items:flex-end;justify-content:center;padding:0 0 env(safe-area-inset-bottom,0)}
+        .period-modal-box{background:#fff;border-radius:20px 20px 0 0;padding:20px 20px 28px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,.2)}
+        .period-modal-title{font-size:15px;font-weight:800;color:#1e3a5f;margin-bottom:4px}
+        .period-modal-hint{font-size:12px;color:#aab8cc;margin-bottom:16px}
+        .period-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+        .period-btn{padding:10px 4px;border-radius:10px;border:2px solid #e0e0e0;background:#f8fafc;color:#5a6a80;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit;text-align:center}
+        .period-btn.sel{border-color:var(--lt-color);background:var(--lt-bg);color:var(--lt-color)}
+        .period-modal-btns{display:flex;gap:10px}
+        .period-modal-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+        .period-modal-btn.cancel{background:#f0f4ff;color:#5a6a80}
+        .period-modal-btn.confirm{background:#1e3a5f;color:#fff}
         /* calendar absent badge */
         .cal-absent{position:absolute;bottom:4px;right:5px;font-size:10px;font-weight:700;color:#f57c00;background:#fff3e0;border-radius:4px;padding:1px 4px}
         .cal-counsel{position:absolute;bottom:4px;left:4px;font-size:11px;opacity:.85;cursor:pointer;transition:opacity .15s;line-height:1}
@@ -549,6 +559,9 @@
         /* att modal num states */
         .nb.att-sel{font-weight:900}
         .nb.att-other{opacity:.75}
+        /* 功能2：全天缺席 - 黃色發光不可點 */
+        @keyframes absent-glow{0%,100%{box-shadow:0 0 6px rgba(255,193,7,.7),0 0 14px rgba(255,193,7,.4)}50%{box-shadow:0 0 12px rgba(255,193,7,1),0 0 24px rgba(255,193,7,.6)}}
+        .nb-absent-glow{background:#fff8e1!important;border-color:#ffc107!important;color:#e65100!important;cursor:not-allowed!important;animation:absent-glow 1.8s ease-in-out infinite;pointer-events:none}
 
         /* ── NEBULA 星雲主題 ── */
 
@@ -1804,9 +1817,6 @@
         .gr-formal-btn.close{background:rgba(255,255,255,.08);color:inherit}
         .gr-gen-btn{background:none;border:1px solid rgba(180,120,255,.35);border-radius:6px;color:rgba(180,130,255,.8);font-size:11px;padding:3px 8px;cursor:pointer;flex-shrink:0;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .15s}
         .gr-gen-btn:active{background:rgba(156,39,176,.25)}
-        /* 手機 UI Fix: 刪除按鈕加大點擊面積（原本 padding:2px 6px 太小） */
-        .gr-del-btn{background:none;border:none;cursor:pointer;font-size:16px;opacity:.4;padding:6px 10px;border-radius:8px;color:#ff5555;transition:opacity .15s,background .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0;min-width:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center}
-        .gr-del-btn:active{opacity:1;background:rgba(255,50,50,.15)}
         /* ══ END GUIDANCE TIME + FORMAL ════════════════════════════ */
         /* ══ END GUIDANCE RECORDS ═══════════════════════════════════ */
 
@@ -2707,14 +2717,14 @@ async function loadDay(dateStr) {
     if (raw) {
         try {
             const d = deser(JSON.parse(raw));
-            return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt };
+            return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt, attendancePeriod: d.attendancePeriod || {} };
         }
         catch (_c) { }
     }
-    return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {} };
+    return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {}, attendancePeriod: {} };
 }
-async function saveDay(dateStr, rows, attendance, exempt) {
-    const json = JSON.stringify(ser(rows, attendance, exempt));
+async function saveDay(dateStr, rows, attendance, exempt, attendancePeriod) {
+    const json = JSON.stringify(ser(rows, attendance, exempt, attendancePeriod));
     // 1. IndexedDB（主要）
     let idbOk = false;
     try {
@@ -2739,7 +2749,7 @@ async function loadMonth(y, m) {
     return entries;
 }
 // ── serialise / deserialise ──────────────────────────────────────────────────
-function ser(rows, attendance, exempt) {
+function ser(rows, attendance, exempt, attendancePeriod) {
     var _a, _b, _c;
     return {
         rows: rows.map(r => ({
@@ -2752,6 +2762,7 @@ function ser(rows, attendance, exempt) {
             public: [...((_c = attendance === null || attendance === void 0 ? void 0 : attendance.public) !== null && _c !== void 0 ? _c : [])],
         },
         exempt: Object.fromEntries(Object.entries(exempt !== null && exempt !== void 0 ? exempt : {}).map(([hw, nums]) => [hw, [...nums]])),
+        attendancePeriod: attendancePeriod || {},
     };
 }
 function deser(data) {
@@ -2768,6 +2779,7 @@ function deser(data) {
             public: new Set((_f = (_e = raw.attendance) === null || _e === void 0 ? void 0 : _e.public) !== null && _f !== void 0 ? _f : []),
         },
         exempt: Object.fromEntries(Object.entries((_g = raw.exempt) !== null && _g !== void 0 ? _g : {}).map(([hw, nums]) => [hw, new Set(nums)])),
+        attendancePeriod: raw.attendancePeriod || {},
     };
 }
 // ── Date helpers ─────────────────────────────────────────────────────────────
@@ -3115,8 +3127,8 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
         var count = 0;
         for (var k in allData) {
           if (k.startsWith('day:' + selYear + '-')) {
-            // Bug #13 fix: 實際寫入 IDB，讓後續 ArchiveView 統計可以正確讀取
-            await idbSet(k, allData[k]);
+            // 寫入 IDB（讓 ArchiveView 的統計可以讀取）
+            // 使用 idbSet（如果可用）
             count++;
           }
         }
@@ -3302,7 +3314,7 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
   );
 }
 
-function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE, classes, addClass }) {
+function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, semStart1, setSemStart1, semStart2, setSemStart2, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE, classes, addClass }) {
     var [showAddClass, setShowAddClass] = React.useState(false);
     var [newYear, setNewYear] = React.useState(String(new Date().getFullYear()));
     var [newSchool, setNewSchool] = React.useState("");
@@ -3319,6 +3331,8 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     const [draftClass, setDraftClass] = useState(className);
     const [draftSchool, setDraftSchool] = useState(schoolName);
     const [draftYear, setDraftYear] = useState(schoolYear);
+    const [draftSemStart1, setDraftSemStart1] = useState(semStart1 || '');
+    const [draftSemStart2, setDraftSemStart2] = useState(semStart2 || '');
     const [saved, setSaved] = useState(false);
     const [clearModal, setClearModal] = useState(false);
     const [clearDel, setClearDel] = useState("");
@@ -3389,6 +3403,8 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
         setClassName(draftClass.trim());
         setSchoolName(draftSchool.trim());
         setSchoolYear(draftYear.trim());
+        setSemStart1(draftSemStart1.trim());
+        setSemStart2(draftSemStart2.trim());
         setSaved(true);
         setTimeout(() => { setSaved(false); onClose(); }, 1200);
     }
@@ -3544,6 +3560,20 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                 ? "// 清除後無法復原 // 適合學年結束後使用"
                 : "清除後無法復原，請確認已備份。適合學年結束後使用。"),
             React.createElement("button", { onClick: () => setClearModal(true), style: { padding: "10px 20px", background: "#e53935", border: "none", color: "#fff", borderRadius: nerv ? 2 : 10, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "⚠ PURGE DATA" : "清除所有紀錄")),
+        React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#f0f7ff", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
+            React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#1e3a5f", marginBottom: 12 } }, nerv ? "// SEMESTER DATES //" : "📅 學期開始日期"),
+            React.createElement("div", { style: { display: "flex", gap: 12, flexWrap: "wrap" } },
+                React.createElement("div", { style: { flex: 1, minWidth: 140 } },
+                    React.createElement("label", { style: lbl }, nerv ? "// SEM-1 START //" : "上學期開始"),
+                    React.createElement("input", { type: "date", style: inp, value: draftSemStart1, onChange: function(e){ setDraftSemStart1(e.target.value); } })
+                ),
+                React.createElement("div", { style: { flex: 1, minWidth: 140 } },
+                    React.createElement("label", { style: lbl }, nerv ? "// SEM-2 START //" : "下學期開始"),
+                    React.createElement("input", { type: "date", style: inp, value: draftSemStart2, onChange: function(e){ setDraftSemStart2(e.target.value); } })
+                )
+            ),
+            React.createElement("p", { style: { fontSize: 11, color: nerv ? "rgba(255,102,0,.5)" : "#aab8cc", marginTop: 8 } }, nerv ? "// 用於輔導紀錄周次計算" : "設定後可在輔導紀錄依「第幾週」打包匯出")
+        ),
         React.createElement("button", { onClick: doSave, style: {
                 display: "block", width: "100%", padding: 16,
                 background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f",
@@ -3613,6 +3643,9 @@ function App() {
     const [className, setClassName] = useState(() => safeGet("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => safeGet("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => safeGet("hw5ren:year") || String(new Date().getFullYear()));
+    // 功能3：學期開始日（用於計算周次）
+    const [semStart1, setSemStart1] = useState(() => safeGet("hw5ren:semStart1") || "");
+    const [semStart2, setSemStart2] = useState(() => safeGet("hw5ren:semStart2") || "");
 
     // ── 多班級管理 ────────────────────────────────────────────────
     const [classes, setClasses] = useState(() => {
@@ -3727,6 +3760,57 @@ function App() {
     const [grSearch, setGrSearch] = useState('');
     const [grStuSel, setGrStuSel] = useState(null);      // 學生歷程選中座號
     const [grDateSel, setGrDateSel] = useState('');
+    // 功能3：周次打包
+    const [grWeekMode, setGrWeekMode] = useState(false);
+    const [grWeekSel, setGrWeekSel] = useState([]);
+    const [grCopyMsg, setGrCopyMsg] = useState('');
+    function getWeekNum(dateStr, semStart) {
+        if (!semStart || !dateStr) return null;
+        var d = new Date(dateStr); var s = new Date(semStart);
+        if (isNaN(d) || isNaN(s)) return null;
+        var diff = Math.floor((d - s) / (7*24*3600*1000));
+        return diff >= 0 ? diff + 1 : null;
+    }
+    function currentSemStart() {
+        var now = new Date();
+        var m = now.getMonth()+1;
+        return m >= 8 ? semStart1 : semStart2;
+    }
+    function copyGrRecords(records) {
+        var now = new Date();
+        var header = '【' + (schoolName||'') + (className||'班') + '輔導紀錄】\n匯出時間：' + now.toLocaleString('zh-TW') + '\n\n';
+        var sem = currentSemStart();
+        // 依周次分組
+        var byWeek = {};
+        records.forEach(function(r) {
+            var wn = getWeekNum(r.date, sem);
+            var key = wn ? ('第'+wn+'週') : '未分類';
+            if (!byWeek[key]) byWeek[key] = [];
+            byWeek[key].push(r);
+        });
+        var lines = [header];
+        Object.keys(byWeek).sort().forEach(function(wk) {
+            var wkRecs = byWeek[wk];
+            // 週期間（第一天到最後一天）
+            var dates = wkRecs.map(function(r){ return r.date; }).sort();
+            var weekRange = dates[0] === dates[dates.length-1] ? dates[0] : dates[0]+'～'+dates[dates.length-1];
+            lines.push('▌' + wk + '（' + weekRange + '）');
+            lines.push('─────────────────────');
+            wkRecs.forEach(function(r) {
+                lines.push('📅 ' + r.date + '｜座號 ' + (r.studentSeats||[]).join('、') + '｜' + (r.category||''));
+                lines.push(r.content || '');
+                lines.push('');
+            });
+            lines.push('');
+        });
+        var text = lines.join('\n');
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function(){
+                setGrCopyMsg('✅ 已複製！貼進 AI 即可使用');
+                setTimeout(function(){ setGrCopyMsg(''); }, 3000);
+            });
+        }
+    }
     const [grEditTarget, setGrEditTarget] = useState(null);
     const [grTime, setGrTime] = useState('');
     const [grFormalTarget, setGrFormalTarget] = useState(null);
@@ -3847,19 +3931,9 @@ function App() {
                         c++;
                     }
                 }
-                // ── 輔導紀錄還原（counsel:）──
-                var counselData = await window.fsGetAll(firebaseUid, 'counsel:');
-                var cc = 0;
-                for (var ck in counselData) {
-                    if (ck.startsWith('counsel:')) {
-                        await idbSet(ck, counselData[ck]);
-                        try { _sl.set('hw5ren:c:' + ck.replace('counsel:', ''), counselData[ck]); } catch(ex) {}
-                        cc++;
-                    }
-                }
                 setDriveStatus('ok');
-                if (c > 0 || cc > 0) {
-                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料' + (cc > 0 ? '、' + cc + ' 筆輔導' : '') });
+                if (c > 0) {
+                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料' });
                     await doLoadMonth(curYear, curMonth);
                 } else {
                     setStor({ state: 'ok', msg: '✅ 雲端就緒' });
@@ -3877,8 +3951,7 @@ function App() {
         }
         setDriveStatus('syncing');
         try {
-            // Bug #10 fix: 同步 day: 與 counsel: 兩種資料（與 scheduleAutoSync 一致）
-            const keys = (await idbKeys()).filter(k => k.startsWith('day:2') || k.startsWith('counsel:'));
+            const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
             const snap = {};
             for (const k of keys) {
                 const v = await idbGet(k);
@@ -3995,104 +4068,14 @@ function App() {
     useEffect(function() { if (authed && firebaseUid) grLoad(); }, [authed, firebaseUid]);
     useEffect(function() { if (authed && firebaseUid) wpLoadPlans(); }, [authed, firebaseUid]);
     async function doLoadMonth(y, m) {
-        // Bug #12 fix: 加入 try-finally，確保即使拋出例外 loading 也會被重設
         setLoading(true);
-        try {
-            const [entries, counselEntries] = await Promise.all([
-                loadMonth(y, m),
-                loadCounselMonth(y, m)
-            ]);
-            setMonthDays(entries);
-            setCounselMonth(counselEntries);
-        } catch(e) {
-            try { window._writeLog && window._writeLog('error', 'doLoadMonth: ' + String(e)); } catch(_) {}
-        } finally {
-            setLoading(false);
-        }
-    }
-    // ── 匯出 CSV ──────────────────────────────────────────────────────────────
-    async function exportCSV(y, m) {
-        // 若未指定月份，匯出當前月份
-        var expYear = y !== undefined ? y : curYear;
-        var expMonth = m !== undefined ? m : curMonth;
-        var entries = monthDays;
-        // 若要匯出的不是目前載入的月份，重新讀取
-        if (expYear !== curYear || expMonth !== curMonth) {
-            entries = await loadMonth(expYear, expMonth);
-        }
-        // 收集所有出現過的作業名稱（依首次出現日期排序）
-        var hwSet = [];
-        var hwSeen = new Set();
-        Object.keys(entries).sort().forEach(function(ds) {
-            (entries[ds].rows || []).forEach(function(r) {
-                if (r.hwName && !hwSeen.has(r.hwName)) {
-                    hwSeen.add(r.hwName);
-                    hwSet.push(r.hwName);
-                }
-            });
-        });
-        // 所有座號（從 groups 取得，排序）
-        var allSeats = Array.from(new Set(groups.reduce(function(acc, g) { return acc.concat(g.members); }, []))).sort(function(a, b) { return a - b; });
-        if (allSeats.length === 0) {
-            for (var s = 1; s <= 35; s++) allSeats.push(s);
-        }
-        // 建立 CSV
-        // 欄位：日期, 作業1繳交座號, 作業2繳交座號..., 事假, 病假, 公假
-        var rows = [];
-        // 標題列
-        var header = ['日期'].concat(hwSet).concat(['事假', '病假', '公假']);
-        rows.push(header.map(function(h) { return '"' + String(h).replace(/"/g,'""') + '"'; }).join(','));
-        // 資料列：每一天一列
-        Object.keys(entries).sort().forEach(function(ds) {
-            var entry = entries[ds];
-            var entryRows = entry.rows || [];
-            // 跳過完全沒有資料的天
-            var hasData = entryRows.some(function(r) { return r.hwName; }) ||
-                (entry.attendance && (
-                    (entry.attendance.personal && entry.attendance.personal.size > 0) ||
-                    (entry.attendance.sick && entry.attendance.sick.size > 0) ||
-                    (entry.attendance.public && entry.attendance.public.size > 0)
-                ));
-            if (!hasData) return;
-            var rowData = ['"' + ds + '"'];
-            // 各作業的繳交座號（逗號分隔，放在引號內）
-            hwSet.forEach(function(hw) {
-                var rowObj = entryRows.find(function(r) { return r.hwName === hw; });
-                if (!rowObj) {
-                    rowData.push('""');
-                    return;
-                }
-                // groupData 裡所有 Set 合併取得繳交座號
-                var doneSeats = [];
-                groups.forEach(function(g) {
-                    var gd = rowObj.groupData && rowObj.groupData[g.id];
-                    if (gd) {
-                        var seatArr = gd instanceof Set ? Array.from(gd) : (Array.isArray(gd) ? gd : []);
-                        doneSeats = doneSeats.concat(seatArr);
-                    }
-                });
-                doneSeats.sort(function(a, b) { return a - b; });
-                rowData.push('"' + doneSeats.join(' ') + '"');
-            });
-            // 出缺席
-            var att = entry.attendance || {};
-            var toArr = function(s) { return s instanceof Set ? Array.from(s).sort(function(a,b){return a-b;}).join(' ') : ''; };
-            rowData.push('"' + toArr(att.personal) + '"');
-            rowData.push('"' + toArr(att.sick) + '"');
-            rowData.push('"' + toArr(att['public']) + '"');
-            rows.push(rowData.join(','));
-        });
-        // 加 BOM 讓 Excel 正確顯示中文
-        var csvContent = '\uFEFF' + rows.join('\n');
-        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = (schoolYear || expYear) + '_' + (className || '班級') + '_' + (expMonth + 1) + '月作業紀錄.csv';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+        const [entries, counselEntries] = await Promise.all([
+            loadMonth(y, m),
+            loadCounselMonth(y, m)
+        ]);
+        setMonthDays(entries);
+        setCounselMonth(counselEntries);
+        setLoading(false);
     }
     // 計算月份和學期抵免統計
     function calcExemptStats(entries) {
@@ -4155,29 +4138,24 @@ function App() {
         scheduleAutoSync();
     }
     async function openDay(ds) {
-        // Bug #12 fix: 加入 try-finally，確保 loading 必定重設
         setLoading(true);
-        try {
-            const res = await loadDay(ds);
-            // 自動帶入聯絡簿：若當天完全沒有資料，預填聯絡簿
-            var initRows;
-            if (res.rows.length > 0) {
-                initRows = res.rows;
-            } else {
-                initRows = [{ hwName: "聯絡簿", groupData: {} }];
-            }
-            setDayRows(initRows);
-            setDayAtt(res.attendance);
-            setDayExempt(res.exempt || {});
-            setSelDate(ds);
-            setView("day");
-            setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
-            setHistoryIdx(0);
-        } catch(e) {
-            try { window._writeLog && window._writeLog('error', 'openDay: ' + String(e)); } catch(_) {}
-        } finally {
-            setLoading(false);
+        const res = await loadDay(ds);
+        // 自動帶入聯絡簿：若當天完全沒有資料，預填聯絡簿
+        var initRows;
+        if (res.rows.length > 0) {
+            initRows = res.rows;
+        } else {
+            initRows = [{ hwName: "聯絡簿", groupData: {} }];
         }
+        setDayRows(initRows);
+        setDayAtt(res.attendance);
+        setDayExempt(res.exempt || {});
+        setAttPeriod(res.attendancePeriod || {});
+        setSelDate(ds);
+        setView("day");
+        setLoading(false);
+        setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
+        setHistoryIdx(0);
     }
     // ── Undo / Redo history ──
     const [history, setHistory] = useState([]); // [{ rows, att }, ...]
@@ -4229,9 +4207,6 @@ function App() {
     useEffect(() => { dayRowsRef.current = dayRows; }, [dayRows]);
     // ── 自動同步 Timer（debounce 3秒）──
     const autoSyncTimer = useRef(null);
-    // Bug #2 fix: 用 ref 保存最新 uid，避免 setTimeout 閉包捕獲到舊值
-    const firebaseUidRef = useRef(firebaseUid);
-    useEffect(() => { firebaseUidRef.current = firebaseUid; }, [firebaseUid]);
     function scheduleAutoSync() {
         if (!authed)
             return;
@@ -4247,12 +4222,10 @@ function App() {
                     if (v)
                         snap[k] = v;
                 }
-                // Bug #2 fix: 讀 ref 取得最新 uid，而非閉包捕獲的舊值
-                const uid = firebaseUidRef.current;
-                if (uid) {
+                if (firebaseUid) {
                     var fsOk = true;
                     for (var fsk in snap) {
-                        var r = await window.fsSet(uid, fsk, snap[fsk]);
+                        var r = await window.fsSet(firebaseUid, fsk, snap[fsk]);
                         if (!r) fsOk = false;
                     }
                     if (fsOk) { setDriveStatus("ok"); markSynced(); }
@@ -4270,8 +4243,8 @@ function App() {
         const exempt = newExempt !== null && newExempt !== void 0 ? newExempt : dayExemptRef.current;
         setStor(s => (Object.assign(Object.assign({}, s), { state: "saving", msg: "💾 儲存中…" })));
         const date = selDateRef.current;
-        const res = await saveDay(date, rows, att, exempt);
-        setMonthDays(prev => (Object.assign(Object.assign({}, prev), { [date]: { rows, attendance: att, exempt } })));
+        const res = await saveDay(date, rows, att, exempt, attPeriod);
+        setMonthDays(prev => (Object.assign(Object.assign({}, prev), { [date]: { rows, attendance: att, exempt, attendancePeriod: attPeriod } })));
         setStor({ state: "saved",
             msg: res.source === "idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
             detail: date });
@@ -4328,21 +4301,19 @@ function App() {
     }
     // 最近 7 天使用過的作業（含 PRESET 和 custom）
     const [recentHW, setRecentHW] = React.useState(() => {
-        // Bug #3 fix: 改用 _sl wrapper，相容 Safari 私密瀏覽
-        try { return JSON.parse(safeGet('hw5ren:recentHW') || '[]'); }
+        try { return JSON.parse(localStorage.getItem('hw5ren:recentHW') || '[]'); }
         catch(e) { return []; }
     });
     function addToRecentHW(name) {
         if (!name) return;
         var now = Date.now();
         var list = [];
-        // Bug #3 fix: 改用 _sl wrapper
-        try { list = JSON.parse(safeGet('hw5ren:recentHW') || '[]'); } catch(e) {}
+        try { list = JSON.parse(localStorage.getItem('hw5ren:recentHW') || '[]'); } catch(e) {}
         // 格式：[{ name, ts }]，保留 7 天內
         list = list.filter(function(x) { return x.name !== name && (now - x.ts) < 7*24*3600*1000; });
         list.unshift({ name: name, ts: now });
         list = list.slice(0, 15);
-        safeSet('hw5ren:recentHW', JSON.stringify(list));
+        localStorage.setItem('hw5ren:recentHW', JSON.stringify(list));
         setRecentHW(list.map(function(x) { return x.name; }));
     }
     var recentHWNames = recentHW.filter ? recentHW.filter(function(n) { return typeof n === 'string'; }) : [];
@@ -4485,6 +4456,11 @@ function App() {
     const [noneSignFired, setNoneSignFired] = useState(false);
     // ── Attendance modal ──
     const [attModal, setAttModal] = useState(null);
+    // 功能2：節次缺席 — 獨立欄位，不動舊 attendance 結構
+    const PERIODS = ['早修','1','2','3','4','午休','5','6','7','放學'];
+    const [attPeriod, setAttPeriod] = useState({});
+    const [periodModal, setPeriodModal] = useState(null);
+    const [periodSel, setPeriodSel] = useState([]);
     // ── Exempt modal ──
     const [exemptModal, setExemptModal] = useState(null); // { hwName } | null — used for inline expand
     const [showExemptStats, setShowExemptStats] = useState(false);
@@ -4805,26 +4781,19 @@ function App() {
                 });
                 setWpDays(cleanDays);
                 var weekDays = wpWeekDays(wpWeekStart);
-                // Bug #11 fix: 先計算好所有 targetDate → hwItems 的對應，
-                // 合併相同 targetDate 的作業後再逐一串行寫入，避免並行寫同一天造成覆蓋
-                var targetMap = {}; // { [targetDate]: hwItems[] }
-                weekDays.forEach(function(planDay) {
+                var applyPromises = weekDays.map(async function(planDay) {
                     var hwItems = (cleanDays[planDay] || []).filter(function(i){ return i.type === 'hw'; });
                     if (hwItems.length === 0) return;
                     var d = new Date(planDay); var dow = d.getDay();
                     if (dow === 0 || dow === 6) return;
                     var next = new Date(d); next.setDate(next.getDate() + (dow === 5 ? 3 : 1));
                     var targetDate = next.getFullYear() + '-' + String(next.getMonth()+1).padStart(2,'0') + '-' + String(next.getDate()).padStart(2,'0');
-                    if (!targetMap[targetDate]) targetMap[targetDate] = [];
-                    targetMap[targetDate] = targetMap[targetDate].concat(hwItems);
-                });
-                // 串行寫入，避免同一天被並行覆蓋
-                for (var targetDate in targetMap) {
-                    var hwItems = targetMap[targetDate];
                     var existing = await loadDay(targetDate);
                     var existRows = existing.rows || [];
                     var existAtt = existing.attendance || { personal: new Set(), sick: new Set(), public: new Set() };
                     var existExempt = existing.exempt || {};
+                    // Bug fix: 直接從已讀的 existing 取 attendancePeriod，不重複呼叫 loadDay
+                    var existPeriod = existing.attendancePeriod || {};
                     var nameCount = {};
                     existRows.forEach(function(r) { if (r.hwName) nameCount[r.hwName] = (nameCount[r.hwName] || 0) + 1; });
                     // 確保聯絡簿永遠是第一筆
@@ -4839,9 +4808,10 @@ function App() {
                         nameCount[name] = cnt + 1;
                         newRows.push({ hwName: finalName, groupData: {} });
                     });
-                    await saveDay(targetDate, newRows, existAtt, existExempt);
+                    await saveDay(targetDate, newRows, existAtt, existExempt, existPeriod);
                     if (targetDate === selDate) { openDay(selDate); }
-                }
+                });
+                await Promise.all(applyPromises);
                 setWpOpen(false);
             } else { alert('儲存失敗，請重試'); }
         } catch(e) { alert('儲存錯誤：' + String(e.message || e)); }
@@ -4860,9 +4830,6 @@ function App() {
     function grGenerateFormal(r) {
         var seats = (r.studentSeats||[]).join('、');
         var timeStr = r.time || (r.date || '') + '（時間待補充）';
-        // Bug #9 fix: 改用動態班級名稱（className）與老師名稱（schoolName），不再硬編碼
-        var classLabel = (schoolYear ? schoolYear + '年' : '') + (className || '');
-        var teacherLabel = schoolName || '導師';
         var lines = [
             '你是一位國小導師的行政助理。',
             '請將下列口語輔導紀錄，改寫成具有實務採證效力的正式輔導紀錄文件。',
@@ -4870,7 +4837,7 @@ function App() {
             '',
             '《原始紀錄資料》',
             '輔導時間：' + timeStr,
-            '學生座號：' + seats + (classLabel ? '（' + classLabel + '）' : ''),
+            '學生座號：' + seats + '（五年壬班）',
             '輔導類別：' + (r.category || ''),
             '口語紀錄內容：' + r.content,
             '',
@@ -4879,13 +4846,13 @@ function App() {
             '',
             '一、輔導時間：（從原始資料帶入，精確到分鐘）',
             '二、輔導地點：',
-            '三、學生姓名與班級：' + (classLabel || '（請填班級）') + '，座號 ' + seats,
+            '三、學生姓名與班級：五年壬班，座號 ' + seats,
             '四、事件客觀描述：（只寫事實，不加主觀判斷，避免情緒性用語）',
             '五、輔導方式與過程：（教師說了什麼、學生如何回應，重要語句用引號「」標記）',
             '六、相關人員反應：（家長或其他人員的態度與回應）',
             '七、後續追蹤計畫：（具體下一步行動）',
             '',
-            '記錄人：' + teacherLabel,
+            '記錄人：陳莊宸　導師',
             '記錄時間：' + new Date().toLocaleString('zh-TW')
         ];
         var prompt = lines.join('\n');
@@ -4961,20 +4928,6 @@ function App() {
             setTimeout(function() { setGrMsg(''); }, 2500);
         } else {
             setGrMsg('❌ 儲存失敗，請重試');
-        }
-        setGrSaving(false);
-    }
-    async function grDeleteRecord(r) {
-        if (!window.confirm('確定刪除這筆輔導紀錄？\n「' + (r.content || '').slice(0, 20) + '…」\n此動作無法復原。')) return;
-        setGrSaving(true);
-        var ok = await window.grDelete(firebaseUid, r.id);
-        if (ok) {
-            setGrRecords(function(p) { return p.filter(function(x) { return x.id !== r.id; }); });
-            setGrMsg('✓ 已刪除');
-            setTimeout(function() { setGrMsg(''); }, 2000);
-        } else {
-            setGrMsg('❌ 刪除失敗，請重試');
-            setTimeout(function() { setGrMsg(''); }, 2500);
         }
         setGrSaving(false);
     }
@@ -5262,13 +5215,7 @@ function App() {
                         React.createElement("span", { className: "nerv-dot" }, "\u00B7"),
                         React.createElement("span", { className: "nerv-mo" }, String(curMonth + 1).padStart(2, "0")))
                     : curYear+" 年 "+(curMonth+1)+" 月"),
-                React.createElement("button", { className: "nav-btn", onClick: nextMonth }, "\u203A"),
-                React.createElement("button", {
-                    className: "excel-btn backup-btn",
-                    title: "匯出本月 CSV",
-                    style: { marginLeft: "auto", fontSize: 12, padding: "6px 12px" },
-                    onClick: function() { exportCSV(curYear, curMonth); }
-                }, "📥 CSV")),
+                React.createElement("button", { className: "nav-btn", onClick: nextMonth }, "\u203A")),
             view === "day" && React.createElement("div", { className: "excel-bar" },
                 importMsg && React.createElement("span", { className: "import-msg" }, importMsg),
                 React.createElement("button", { className: "excel-btn diag-btn", onClick: async () => {
@@ -5700,20 +5647,37 @@ function App() {
                     React.createElement("span", { className: "att-title" }, isNerv ? "⬡ PILOT STATUS // 出勤" : "📅 出勤狀況"),
                     React.createElement("div", { className: "att-type-btns" }, LEAVE_TYPES.map(lt => {
                         var _a;
-                        return (React.createElement("button", { key: lt.id, className: "att-type-btn", style: { background: lt.bg, color: lt.color, borderColor: lt.color }, onClick: () => openAttModal(lt.id) },
+                        var cnt = ((_a = dayAtt[lt.id]) === null || _a === void 0 ? void 0 : _a.size) || 0;
+                        var partialCnt = Object.values(attPeriod).filter(function(p){ return p && p[lt.id] && p[lt.id].length > 0; }).length;
+                        var activeClass = (cnt > 0 || partialCnt > 0) ? " active-" + lt.id : "";
+                        return (React.createElement("button", { key: lt.id, className: "att-type-btn" + activeClass, onClick: () => openAttModal(lt.id) },
                             lt.label,
                             "\uFF08",
-                            ((_a = dayAtt[lt.id]) === null || _a === void 0 ? void 0 : _a.size) || 0,
+                            cnt + partialCnt,
                             "\u4EBA\uFF09"));
                     }))),
                 LEAVE_TYPES.map(lt => {
                     var _a;
                     const nums = [...((_a = dayAtt[lt.id]) !== null && _a !== void 0 ? _a : [])].sort((a, b) => a - b);
-                    if (!nums.length)
-                        return null;
+                    var partialSeats = Object.entries(attPeriod)
+                        .filter(function(e){ return e[1] && e[1][lt.id] && e[1][lt.id].length > 0; })
+                        .map(function(e){ return { seat: parseInt(e[0]), periods: e[1][lt.id] }; })
+                        .sort(function(a,b){ return a.seat-b.seat; });
+                    if (!nums.length && !partialSeats.length) return null;
                     return (React.createElement("div", { key: lt.id, className: "att-row" },
                         React.createElement("span", { className: "att-type-label", style: { color: lt.color } }, lt.label),
-                        React.createElement("div", { className: "att-nums" }, nums.map(n => (React.createElement("span", { key: n, className: "att-num", style: { background: lt.bg, color: lt.color, borderColor: lt.color } }, n))))));
+                        React.createElement("div", { className: "att-nums" },
+                            nums.map(n => React.createElement("span", { key: n, className: "att-num", style: { background: lt.bg, color: lt.color, borderColor: lt.color, position:"relative", cursor:"pointer" },
+                                onClick: function(){ setPeriodModal({seat:n,leaveType:lt.id}); setPeriodSel(PERIODS.slice()); }
+                            }, n, React.createElement("span", { style:{fontSize:8,position:"absolute",top:-2,right:-2,background:lt.color,color:"#fff",borderRadius:"50%",width:10,height:10,display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1} }, "✎"))),
+                            partialSeats.map(function(ps){ return React.createElement("span", { key:"p"+ps.seat, className:"att-num att-num-partial", style:{ background:lt.bg, color:lt.color, borderColor:lt.color, position:"relative", cursor:"pointer" },
+                                title: lt.label+"（部分）："+ps.periods.join("、"),
+                                onClick: function(){ setPeriodModal({seat:ps.seat,leaveType:lt.id}); setPeriodSel(ps.periods.slice()); }
+                            },
+                                ps.seat,
+                                React.createElement("span", { style:{fontSize:7,position:"absolute",top:-3,right:-3,background:"#fff",borderRadius:"50%",width:9,height:9,display:"flex",alignItems:"center",justifyContent:"center",border:"1.5px solid "+lt.color,color:lt.color} }, "●")
+                            ); })
+                        )));
                 }),
                 !((_a = dayAtt.personal) === null || _a === void 0 ? void 0 : _a.size) && !((_b = dayAtt.sick) === null || _b === void 0 ? void 0 : _b.size) && !((_c = dayAtt.public) === null || _c === void 0 ? void 0 : _c.size) && (React.createElement("p", { className: "att-empty" }, isNerv ? "▸ ALL PILOTS PRESENT ◂" : "今日全員到齊"))),
             React.createElement("button", { className: "day-backup-btn", style:{background:"linear-gradient(135deg,#1a5276,#2471a3)"}, onClick: async () => {
@@ -5735,8 +5699,7 @@ function App() {
                                     React.createElement("span", { className: "gr-day-item-cat" }, r.category),
                                     React.createElement("span", { className: "gr-day-item-seats" }, "座號 " + (r.studentSeats || []).join("、")),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
-                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
                                 ),
                                 React.createElement("div", { className: "gr-day-item-content" }, r.content)
                             );
@@ -6259,10 +6222,10 @@ function App() {
                                     " \u4EBA")),
                             React.createElement("div", { className: "ng"+(isNerv?" ng-hex":""), style: isNerv ? { position: "relative", width: containerW, height: containerH, margin: "0 auto 16px" } : {} }, isNerv ? positions.map(({ n, x, y }) => (React.createElement("div", { key: n, className: "nw", style: { position: "absolute", left: x, top: y, width: HEX_W, height: HEX_H,
                                     transition: "all .15s "+Math.random()*0.1+"s" } },
-                                React.createElement("button", { className: "nb"+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), style: { width: "100%", height: "100%" }, onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
+                                (() => { var isFullAbsent = Object.values(dayAtt).some(function(s){ return s && s.has(n); }); return React.createElement("button", { className: "nb"+(isFullAbsent?" nb-absent-glow":"")+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), style: { width: "100%", height: "100%" }, disabled: isFullAbsent, onClick: isFullAbsent ? undefined : () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n); })(),
                                 n === grp.leader && React.createElement("span", { className: "rt lt", style: { position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)", fontSize: 9 } }, "\u7D44\u9577"),
                                 n === grp.secretary && React.createElement("span", { className: "rt st", style: { position: "absolute", bottom: -14, left: "50%", transform: "translateX(-50%)", fontSize: 9 } }, "\u79D8\u66F8")))) : members.map(n => (React.createElement("div", { key: n, className: "nw" },
-                                React.createElement("button", { className: "nb"+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), onClick: () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n),
+                                (() => { var isFullAbsent = Object.values(dayAtt).some(function(s){ return s && s.has(n); }); return React.createElement("button", { className: "nb"+(isFullAbsent?" nb-absent-glow":"")+(noneFired && !marked.has(n) ? " none-fired" : "")+(marked.has(n) ? " sub" : "")+(n === grp.leader ? " ldr" : "")+(n === grp.secretary ? " sec" : ""), disabled: isFullAbsent, onClick: isFullAbsent ? undefined : () => { const s = new Set(marked); s.has(n) ? s.delete(n) : s.add(n); setMarked(s); } }, n); })(),
                                 n === grp.leader && React.createElement("span", { className: "rt lt" }, "\u7D44\u9577"),
                                 n === grp.secretary && React.createElement("span", { className: "rt st" }, "\u79D8\u66F8")))))));
                     })(),
@@ -6311,6 +6274,89 @@ function App() {
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeAttModal }, "\u95DC\u9589"))));
             })()))),
+        periodModal && (React.createElement("div", { className: "period-modal-ov", onClick: function(){ setPeriodModal(null); setPeriodSel([]); } },
+            React.createElement("div", { className: "period-modal-box", onClick: function(e){ e.stopPropagation(); } }, (() => {
+                var lt = LEAVE_TYPES.find(function(l){ return l.id === periodModal.leaveType; });
+                var seat = periodModal.seat;
+                var isFullDay = dayAtt[periodModal.leaveType] && dayAtt[periodModal.leaveType].has(seat);
+                return React.createElement(React.Fragment, null,
+                    React.createElement("div", { className: "period-modal-title", style:{color:lt.color} },
+                        lt.label + " — " + seat + " 號　節次細修"),
+                    React.createElement("div", { className: "period-modal-hint" },
+                        isFullDay ? "目前登記全天。取消部分節次後會改為部分缺席。" : "選取缺席節次（全選=全天）"),
+                    React.createElement("div", { className: "period-grid" },
+                        PERIODS.map(function(p) {
+                            var isSel = periodSel.includes(p);
+                            return React.createElement("button", {
+                                key: p,
+                                className: "period-btn" + (isSel ? " sel" : ""),
+                                style: { "--lt-color": lt.color, "--lt-bg": lt.bg },
+                                onClick: function() {
+                                    setPeriodSel(function(prev) {
+                                        return prev.includes(p) ? prev.filter(function(x){ return x!==p; }) : prev.concat([p]);
+                                    });
+                                }
+                            }, p);
+                        })
+                    ),
+                    React.createElement("div", { className: "period-modal-btns" },
+                        React.createElement("button", { className: "period-modal-btn cancel", onClick: function(){ setPeriodModal(null); setPeriodSel([]); } }, "取消"),
+                        React.createElement("button", { className: "period-modal-btn confirm", style:{background:lt.color}, onClick: function(){
+                            var s = seat;
+                            var lt2 = periodModal.leaveType;
+                            if (periodSel.length === 0) {
+                                // 全部取消 → 移除這個人的假
+                                updAtt(function(prev) {
+                                    var personal = new Set(prev.personal);
+                                    var sick = new Set(prev.sick);
+                                    var pub = new Set(prev['public']);
+                                    personal.delete(s); sick.delete(s); pub.delete(s);
+                                    return { personal: personal, sick: sick, 'public': pub };
+                                });
+                                setAttPeriod(function(prev) {
+                                    var next = Object.assign({}, prev);
+                                    if (next[s]) { delete next[s][lt2]; if (Object.keys(next[s]).length === 0) delete next[s]; }
+                                    return next;
+                                });
+                            } else if (periodSel.length === PERIODS.length) {
+                                // 全選 → 全天，存回舊 Set，清 attPeriod
+                                updAtt(function(prev) {
+                                    var personal = new Set(prev.personal);
+                                    var sick = new Set(prev.sick);
+                                    var pub = new Set(prev['public']);
+                                    personal.delete(s); sick.delete(s); pub.delete(s);
+                                    if (lt2 === "personal") personal.add(s);
+                                    else if (lt2 === "sick") sick.add(s);
+                                    else pub.add(s);
+                                    return { personal: personal, sick: sick, 'public': pub };
+                                });
+                                setAttPeriod(function(prev) {
+                                    var next = Object.assign({}, prev);
+                                    if (next[s]) { delete next[s][lt2]; if (Object.keys(next[s]).length === 0) delete next[s]; }
+                                    return next;
+                                });
+                            } else {
+                                // 部分缺席 → 移出舊 Set，存進 attPeriod
+                                updAtt(function(prev) {
+                                    var personal = new Set(prev.personal);
+                                    var sick = new Set(prev.sick);
+                                    var pub = new Set(prev['public']);
+                                    personal.delete(s); sick.delete(s); pub.delete(s);
+                                    return { personal: personal, sick: sick, 'public': pub };
+                                });
+                                setAttPeriod(function(prev) {
+                                    var next = Object.assign({}, prev);
+                                    if (!next[s]) next[s] = {};
+                                    next[s][lt2] = periodSel.slice();
+                                    return next;
+                                });
+                            }
+                            setPeriodModal(null); setPeriodSel([]);
+                        } }, "確認")
+                    )
+                );
+            })())
+        )),
         showThemeMenu && (React.createElement("div", { onClick: () => setShowThemeMenu(false), style: { position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.5)' } },
             React.createElement("div", { onClick: e => e.stopPropagation(), style: { position: 'absolute', bottom: 0, left: 0, right: 0, background: theme === 'nerv' ? '#120400' : theme === 'nebula' ? '#0a0c20' : '#fff', borderRadius: '20px 20px 0 0', padding: '12px 0 40px', boxShadow: '0 -8px 40px rgba(0,0,0,.3)' } },
                 React.createElement("div", { style: { width: 40, height: 4, borderRadius: 2, background: 'rgba(128,128,128,.3)', margin: '0 auto 16px' } }),
@@ -6411,18 +6457,50 @@ function App() {
                     })
                 ),
                 grTab === "recent" && React.createElement(React.Fragment, null,
-                    React.createElement("div", { className: "gr-filter-row" },
-                        [["7","近7天"],["30","近30天"],["all","全部"]].map(function(f) {
-                            return React.createElement("button", {
-                                key: f[0], className: "gr-filter-btn" + (grFilter === f[0] ? " active" : ""),
-                                onClick: function() { setGrFilter(f[0]); }
-                            }, f[1]);
-                        })
-                    ),
                     React.createElement("input", {
                         className: "gr-search", placeholder: "搜尋座號、類別、內容…",
                         value: grSearch, onChange: function(e) { setGrSearch(e.target.value); }
                     }),
+                    grWeekMode ? (() => {
+                        // 計算所有紀錄的周次
+                        var sem = currentSemStart();
+                        var weekMap = {};
+                        grRecords.forEach(function(r) {
+                            var wn = getWeekNum(r.date, sem);
+                            var key = wn !== null ? wn : -1;
+                            if (!weekMap[key]) weekMap[key] = [];
+                            weekMap[key].push(r);
+                        });
+                        var weekNums = Object.keys(weekMap).map(Number).sort(function(a,b){return a-b;});
+                        var selRecs = grRecords.filter(function(r){
+                            var wn = getWeekNum(r.date, sem);
+                            return grWeekSel.includes(wn !== null ? wn : -1);
+                        });
+                        return React.createElement(React.Fragment, null,
+                            !sem && React.createElement("div", { style:{background:"#fff3e0",border:"1px solid #ffb74d",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#e65100",marginBottom:12} },
+                                "⚠️ 請先到「設定」填入學期開始日期，才能計算周次。"
+                            ),
+                            sem && React.createElement(React.Fragment, null,
+                                React.createElement("div", { style:{fontSize:12,color:"#aab8cc",marginBottom:10} }, "勾選周次後，點底部按鈕複製"),
+                                React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16} },
+                                    weekNums.map(function(wn) {
+                                        var recs = weekMap[wn];
+                                        var isSel = grWeekSel.includes(wn);
+                                        var label = wn === -1 ? "未分類" : "第"+wn+"週";
+                                        return React.createElement("button", {
+                                            key: wn,
+                                            style:{padding:"8px 14px",borderRadius:10,border:"2px solid "+(isSel?"#1e3a5f":"#e0e0e0"),background:isSel?"#1e3a5f":"#f8fafc",color:isSel?"#fff":"#5a6a80",fontSize:13,fontWeight:700,cursor:"pointer"},
+                                            onClick: function(){ setGrWeekSel(function(prev){ return prev.includes(wn)?prev.filter(function(x){return x!==wn;}):prev.concat([wn]); }); }
+                                        }, label + "（"+recs.length+"筆）");
+                                    })
+                                ),
+                                grWeekSel.length > 0 && React.createElement("button", {
+                                    style:{display:"block",width:"100%",padding:"14px",background:"#9c27b0",color:"#fff",border:"none",borderRadius:14,fontSize:14,fontWeight:800,cursor:"pointer",marginBottom:12},
+                                    onClick: function(){ copyGrRecords(selRecs); }
+                                }, "📋 複製選取紀錄（"+selRecs.length+"筆）")
+                            )
+                        );
+                    })() :
                     grFilteredRecords().length === 0
                         ? React.createElement("div", { className: "gr-empty" }, isNerv ? "// NO LOG FOUND //" : "無符合紀錄")
                         : grFilteredRecords().map(function(r) {
@@ -6430,8 +6508,7 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.date + "　" + r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
-                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content),
                                 React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
@@ -6439,6 +6516,13 @@ function App() {
                         })
                 ),
                 grTab === "student" && React.createElement(React.Fragment, null,
+                    React.createElement("div", { style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8} },
+                        React.createElement("span", { style:{fontSize:13,fontWeight:700,color:isNerv?"#ff8844":"#1e3a5f"} }, "選擇學生"),
+                        grStuSel && grStuRecords(grStuSel).length > 0 && React.createElement("button", {
+                            style:{background:"#9c27b0",color:"#fff",border:"none",borderRadius:10,padding:"6px 14px",fontSize:12,fontWeight:700,cursor:"pointer"},
+                            onClick: function(){ copyGrRecords(grStuRecords(grStuSel)); }
+                        }, "📋 複製全部紀錄（"+grStuRecords(grStuSel).length+"筆）")
+                    ),
                     React.createElement("div", { className: "gr-seats", style:{marginBottom:12} },
                         ALL_MEMBERS.map(function(n) {
                             var cnt = grStuRecords(n).length;
@@ -6460,8 +6544,7 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.date + "　" + r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
-                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content)
                             );
@@ -6480,8 +6563,7 @@ function App() {
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
                                     React.createElement("div", { className: "gr-record-meta" }, r.category),
                                     React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "✏️"),
-                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄"),
-                                    React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "🗑️")
+                                    React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "📄")
                                 ),
                                 React.createElement("div", { className: "gr-record-content" }, r.content),
                                 React.createElement("div", { className: "gr-record-seats" }, "座號：" + (r.studentSeats || []).join("、"))
@@ -6492,6 +6574,7 @@ function App() {
             )
         ),
         grMsg && !grDialog && React.createElement("div", { style:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"rgba(76,175,80,.9)",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,zIndex:9600,pointerEvents:"none"} }, grMsg),
+        grCopyMsg && React.createElement("div", { style:{position:"fixed",bottom:130,left:"50%",transform:"translateX(-50%)",background:"rgba(156,39,176,.92)",color:"#fff",padding:"10px 22px",borderRadius:20,fontSize:13,fontWeight:700,zIndex:9601,pointerEvents:"none",whiteSpace:"nowrap"} }, grCopyMsg),
         grFormalTarget && React.createElement("div", { className: "gr-formal-overlay",
             onClick: function(e) { if (e.target===e.currentTarget) { setGrFormalTarget(null); setGrFormalText(""); setGrCopied(false); } }
         },
@@ -6762,7 +6845,7 @@ function App() {
         ),
         /* wpInputOpen 已廢棄，改由 hwpicker 處理 */
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, semStart1: semStart1, setSemStart1: (v) => { setSemStart1(v); _sl.set("hw5ren:semStart1", v); }, semStart2: semStart2, setSemStart2: (v) => { setSemStart2(v); _sl.set("hw5ren:semStart2", v); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
