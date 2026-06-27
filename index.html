@@ -432,8 +432,8 @@
         .all-btn.all-undo{background:#e0e0e0;color:#555;box-shadow:none}
         .all-btn.all-none{background:#e53935;color:#fff;box-shadow:0 2px 6px rgba(229,57,53,.3)}
         .mark-count{font-size:13px;color:#8a9db5;font-weight:600}
-        .nw{display:flex;flex-direction:column;align-items:center;gap:3px}
-        .nb{width:46px;height:46px;border-radius:50%;border:2.5px solid #c0ccd8;background:#fff;color:#1e3a5f;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
+        .nw{display:flex;flex-direction:column;align-items:center;gap:3px;width:46px;flex-shrink:0}
+        .nb{width:46px;height:46px;min-width:46px;min-height:46px;border-radius:50%;border:2.5px solid #c0ccd8;background:#fff;color:#1e3a5f;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;flex-shrink:0}
         .nb:hover{border-color:#2d7dd2;background:#eef4fc;transform:scale(1.08)}
         .nb.sub{
           background:rgba(40,180,90,.15);
