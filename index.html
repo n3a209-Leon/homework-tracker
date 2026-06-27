@@ -3909,6 +3909,18 @@ function App() {
     }, []);
 
     const [driveStatus, setDriveStatus] = useState('offline');
+    // 離線狀態偵測
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+    useEffect(function() {
+        function onOnline() { setIsOffline(false); }
+        function onOffline() { setIsOffline(true); }
+        window.addEventListener('online', onOnline);
+        window.addEventListener('offline', onOffline);
+        return function() {
+            window.removeEventListener('online', onOnline);
+            window.removeEventListener('offline', onOffline);
+        };
+    }, []);
     // Firestore 同步：登入後自動載入雲端資料
     useEffect(function() {
         if (!authed || !firebaseUid) return;
@@ -4074,6 +4086,24 @@ function App() {
     useEffect(() => { doLoadMonth(curYear, curMonth); }, [curYear, curMonth]);
     useEffect(function() { if (authed && firebaseUid) grLoad(); }, [authed, firebaseUid]);
     useEffect(function() { if (authed && firebaseUid) wpLoadPlans(); }, [authed, firebaseUid]);
+    // ── 網路恢復自動同步（配合 Service Worker 離線支援）
+    useEffect(function() {
+        function handleOnline() {
+            if (authed && firebaseUid) {
+                setDriveStatus('syncing');
+                // 稍微延遲確保網路穩定
+                setTimeout(function() {
+                    doSync().then(function(count) {
+                        try { window._writeLog('step', 'auto-sync on reconnect: ' + count + ' keys'); } catch(e) {}
+                    }).catch(function() {
+                        setDriveStatus('error');
+                    });
+                }, 1500);
+            }
+        }
+        window.addEventListener('hw-network-online', handleOnline);
+        return function() { window.removeEventListener('hw-network-online', handleOnline); };
+    }, [authed, firebaseUid]);
     async function doLoadMonth(y, m) {
         setLoading(true);
         const [entries, counselEntries] = await Promise.all([
@@ -5169,6 +5199,14 @@ function App() {
                         line,
                         i === introPhase - 1 && React.createElement("span", { className: "nerv-cursor" }, "\u2588"))))),
                     introPhase >= introLines.length && (React.createElement("div", { className: "nerv-launch-text" }, "// SYSTEM READY //"))))),
+            isOffline && React.createElement("div", { style:{
+                background:"#37474f", color:"#fff", padding:"7px 20px",
+                fontSize:12, fontWeight:700, display:"flex", alignItems:"center",
+                gap:8, letterSpacing:.5
+            } },
+                React.createElement("span", null, "✈️ 離線模式"),
+                React.createElement("span", { style:{opacity:.75, fontWeight:400} }, "資料已存在本機，恢復網路後自動同步")
+            ),
             React.createElement("div", { className: "stor-bar stor-"+stor.state },
                 React.createElement("span", { className: "stor-msg" }, stor.msg),
                 stor.detail && React.createElement("span", { className: "stor-detail" }, stor.detail),
@@ -7135,6 +7173,50 @@ function handleCredentialResponse(token) {
 }
 // ==================== 🔴 新貼上的內容結束 ====================
 
+</script>
+
+<script>
+// ── Service Worker 註冊（PWA 離線支援）──
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+      try { window._writeLog('step', 'SW registered, scope: ' + reg.scope); } catch(e) {}
+
+      // 偵測是否有新版本
+      reg.addEventListener('updatefound', function() {
+        var newWorker = reg.installing;
+        newWorker.addEventListener('statechange', function() {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // 有新版本可用，提示使用者
+            try {
+              var bar = document.createElement('div');
+              bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1e3a5f;color:#fff;padding:12px 20px;font-size:13px;font-weight:700;z-index:99999;display:flex;align-items:center;justify-content:space-between;font-family:sans-serif';
+              bar.innerHTML = '<span>📦 App 有新版本</span><button onclick="window.location.reload()" style="background:#4fc3f7;border:none;border-radius:8px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0d2137">重新載入</button>';
+              document.body.appendChild(bar);
+            } catch(ex) {}
+          }
+        });
+      });
+    }).catch(function(err) {
+      try { window._writeLog('error', 'SW register failed: ' + String(err)); } catch(e) {}
+    });
+  });
+
+  // 離線/上線偵測
+  function updateOnlineStatus() {
+    var isOnline = navigator.onLine;
+    try { window._writeLog('step', 'network: ' + (isOnline ? 'online' : 'offline')); } catch(e) {}
+    // 上線後觸發同步
+    if (isOnline) {
+      // 通知 React App 網路恢復，觸發 Firestore 同步
+      window.dispatchEvent(new CustomEvent('hw-network-online'));
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+})();
 </script>
 </body>
 </html>
