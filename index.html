@@ -6263,13 +6263,11 @@ function App() {
                         const isThis = (_a = dayAtt[lt.id]) === null || _a === void 0 ? void 0 : _a.has(n);
                         const otherMatch = otherTypes.find(o => { var _a; return (_a = dayAtt[o.id]) === null || _a === void 0 ? void 0 : _a.has(n); });
                         return (React.createElement("div", { key: n, className: "nw" },
-                            React.createElement("button", { className: "nb"+(isThis ? "att-sel" : "")+(otherMatch ? "att-other" : ""), style: isThis
-                                    ? { background: lt.bg, borderColor: lt.color, color: lt.color }
+                            React.createElement("button", { className: "nb"+(isThis ? " att-sel" : "")+(otherMatch ? " att-other" : ""), style: isThis
+                                    ? { background: lt.color, borderColor: lt.color, color: "#fff", boxShadow: "0 0 8px " + lt.color + "88" }
                                     : otherMatch
-                                        ? { background: otherMatch.bg, borderColor: otherMatch.color, color: otherMatch.color }
-                                        : {}, onClick: () => toggleAttMember(lt.id, n) }, n),
-                            isThis && React.createElement("span", { className: "role-tag", style: { background: lt.bg, color: lt.color } }, lt.label),
-                            otherMatch && React.createElement("span", { className: "role-tag", style: { background: otherMatch.bg, color: otherMatch.color } }, otherMatch.label)));
+                                        ? { background: otherMatch.color + "33", borderColor: otherMatch.color, color: otherMatch.color }
+                                        : {}, onClick: () => toggleAttMember(lt.id, n) }, n)));
                     })),
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bc", onClick: closeAttModal }, "\u95DC\u9589"))));
