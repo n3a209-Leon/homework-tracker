@@ -322,6 +322,16 @@
           display:inline-block;
           margin:0 12px;
         }
+        /* Skeleton Screen */
+        .skeleton-cal{padding:8px 4px}
+        .skeleton-wd-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+        .skeleton-wd{height:18px;border-radius:4px;background:rgba(0,0,0,.06);animation:sk-pulse 1.4s ease-in-out infinite}
+        .skeleton-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+        .skeleton-cell{border-radius:10px;background:rgba(0,0,0,.05);animation:sk-pulse 1.4s ease-in-out infinite}
+        .skeleton-cell::after{content:'';display:block;padding-bottom:80%}
+        @keyframes sk-pulse{0%,100%{opacity:.6}50%{opacity:1}}
+        [data-theme="nerv"] .skeleton-wd,[data-theme="nerv"] .skeleton-cell{background:rgba(255,102,0,.08)}
+        [data-theme="nebula"] .skeleton-wd,[data-theme="nebula"] .skeleton-cell{background:rgba(150,100,255,.1)}
         .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:16px}
         @keyframes spin{to{transform:rotate(360deg)}}
         .loading-spinner{width:36px;height:36px;border:3px solid #dde5ee;border-top-color:#1e3a5f;border-radius:50%;animation:spin .8s linear infinite}
@@ -3756,8 +3766,20 @@ function App() {
             _sl.set("hw5ren:groups:" + activeClassId, JSON.stringify(g));
         }
     }
-    const [curYear, setCurYear] = useState(() => new Date().getFullYear());
-    const [curMonth, setCurMonth] = useState(() => new Date().getMonth());
+    const [curYear, setCurYear] = useState(() => {
+        try {
+            var last = safeGet('hw5ren:lastDate');
+            if (last && /^\d{4}-\d{2}-\d{2}$/.test(last)) return parseInt(last.slice(0,4));
+        } catch(e) {}
+        return new Date().getFullYear();
+    });
+    const [curMonth, setCurMonth] = useState(() => {
+        try {
+            var last = safeGet('hw5ren:lastDate');
+            if (last && /^\d{4}-\d{2}-\d{2}$/.test(last)) return parseInt(last.slice(5,7)) - 1;
+        } catch(e) {}
+        return new Date().getMonth();
+    });
     const [selDate, setSelDate] = useState(today());
     // Day Nav Bar state
     const [dayAnimKey, setDayAnimKey] = useState(0);
@@ -4204,6 +4226,8 @@ function App() {
         setDayExempt(res.exempt || {});
         setAttPeriod(res.attendancePeriod || {});
         setSelDate(ds);
+        // 記住最後狀態
+        try { safeSet('hw5ren:lastDate', ds); } catch(e) {}
         setView("day");
         setLoading(false);
         setHistory([{ rows: initRows, att: res.attendance, exempt: res.exempt || {} }]);
@@ -5376,9 +5400,21 @@ function App() {
                 React.createElement("button", { className: "excel-btn", onClick: function() { wpOpenPlan(selDate || today()); }, title: "作業計畫" }, "📅"),
                 React.createElement("button", { className: "undo-btn", onClick: undo, disabled: !canUndo, title: "上一動" }, isNerv ? "◁" : "↩"),
                 React.createElement("button", { className: "undo-btn", onClick: redo, disabled: !canRedo, title: "下一動" }, isNerv ? "▷" : "↪"))),
-        view === "month" && (React.createElement("main", null, loading ? (React.createElement("div", { className: "loading-wrap" },
-            React.createElement("div", { className: "loading-spinner" }),
-            React.createElement("p", { className: "loading-text" }, isNerv ? "LOADING TACTICAL DATA…" : "載入中…"))) : (React.createElement(React.Fragment, null,
+        view === "month" && (React.createElement("main", null, loading ? (React.createElement("div", { className: "skeleton-cal" },
+            // 骨架屏：模擬月曆格子
+            React.createElement("div", { className: "skeleton-wd-row" },
+                ["日","一","二","三","四","五","六"].map(function(w,i){
+                    return React.createElement("div", { key: i, className: "skeleton-wd" });
+                })
+            ),
+            React.createElement("div", { className: "skeleton-grid" },
+                Array(35).fill(null).map(function(_,i){
+                    return React.createElement("div", { key: i, className: "skeleton-cell",
+                        style: { animationDelay: (i * 0.03) + 's' }
+                    });
+                })
+            )
+        )) : (React.createElement(React.Fragment, null,
             React.createElement("div", { className: "calendar" },
                 React.createElement("div", { className: "wd-row" }, WEEKDAYS.map(w => React.createElement("div", { key: w, className: "wd" }, w))),
                 React.createElement("div", { className: "cal-grid" },
