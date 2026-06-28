@@ -10,7 +10,8 @@
 <meta name="referrer" content="no-referrer-when-downgrade">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <!-- apple-touch-icon injected by JS -->
-<title>作業繳交記錄</title>
+<title>LIMU · Venus OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 <style>
 
 
@@ -3653,6 +3654,17 @@ function App() {
     // 功能3：學期開始日（用於計算周次）
     const [semStart1, setSemStart1] = useState(() => safeGet("hw5ren:semStart1") || "");
     const [semStart2, setSemStart2] = useState(() => safeGet("hw5ren:semStart2") || "");
+    // 學校行事曆
+    const [schoolCalendar, setSchoolCalendar] = useState(() => {
+        try {
+            var saved = safeGet("hw5ren:schoolCal");
+            return saved ? JSON.parse(saved) : {"2025-08-29":"éå­¸æºå","2025-09-01":"ð« éå­¸æ¥","2025-09-28":"æå¸«ç¯","2025-09-29":"ð´ æå¸«ç¯è£å","2025-10-06":"ð´ ä¸­ç§ç¯","2025-10-10":"ð´ åæ¶æ¥","2025-10-24":"ð´ åå¤©ç¯è£å","2025-10-25":"åå¤©ç¯","2025-11-06":"ð ç¬¬ä¸æ¬¡å®æè©é","2025-11-07":"ð ç¬¬ä¸æ¬¡å®æè©é","2025-11-08":"èºç£ç§å­¸ç¯","2025-11-22":"ð éåæ","2025-11-24":"ð´ éåæè£å","2025-12-25":"ð´ è¡æ²ç´å¿µæ¥","2026-01-01":"ð´ éåç´å¿µæ¥","2026-01-13":"ð ç¬¬äºæ¬¡å®æè©é","2026-01-14":"ð ç¬¬äºæ¬¡å®æè©é","2026-01-20":"ð ç¬¬ä¸å­¸æä¼æ¥­å¼","2026-01-21":"è£èª²ï¼2/11è£ï¼","2026-01-22":"è£èª²ï¼2/12è£ï¼","2026-01-23":"è£èª²ï¼2/13è£ï¼","2026-02-10":"å¯åçµæ","2026-02-11":"ð´ èª¿æ´æ¾å","2026-02-12":"ð´ èª¿æ´æ¾å","2026-02-13":"ð´ èª¿æ´æ¾å","2026-02-16":"ð´ é¤å¤","2026-02-17":"ð´ æ¥ç¯","2026-02-18":"ð´ æ¥ç¯","2026-02-19":"ð´ æ¥ç¯","2026-02-20":"ð´ æ¥ç¯","2026-02-23":"å¯¦ééå§ä¸èª²","2026-02-27":"ð´ åå¹³ç´å¿µæ¥è£å","2026-02-28":"åå¹³ç´å¿µæ¥","2026-04-03":"ð´ åç«¥ç¯è£å","2026-04-04":"åç«¥ç¯","2026-04-05":"æ¸æç¯","2026-04-06":"ð´ æ¸æç¯è£å","2026-04-23":"ð ç¬¬ä¸æ¬¡å®æè©é","2026-04-24":"ð ç¬¬ä¸æ¬¡å®æè©é","2026-05-01":"ð´ ååæ¥","2026-06-02":"ð å­å¹´ç´ç¢æ¥­è©é","2026-06-03":"ð å­å¹´ç´ç¢æ¥­è©é","2026-06-11":"ð ç¢æ¥­å¸ç¦®","2026-06-19":"ð´ ç«¯åç¯","2026-06-23":"ð ç¬¬äºæ¬¡å®æè©é","2026-06-24":"ð ç¬¬äºæ¬¡å®æè©é","2026-06-30":"ð ä¼æ¥­å¼","2026-07-01":"âï¸ æåéå§"};
+        } catch(e) { return {}; }
+    });
+    function saveSchoolCalendar(cal) {
+        setSchoolCalendar(cal);
+        safeSet("hw5ren:schoolCal", JSON.stringify(cal));
+    }
 
     // ── 多班級管理 ────────────────────────────────────────────────
     const [classes, setClasses] = useState(() => {
@@ -3847,6 +3859,9 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [theme, setTheme] = useState(() => safeGet("hw5ren:theme") || "default");
     const [showThemeMenu, setShowThemeMenu] = useState(false);
+    const [showGearMenu, setShowGearMenu] = useState(false);
+    const [showCalImport, setShowCalImport] = useState(false);
+    const [calImportText, setCalImportText] = useState('');
     const [yearRecords, setYearRecords] = useState(() => { try {
         return safeJSON(safeGet('hw5ren:years'), []);
     }
@@ -4699,6 +4714,12 @@ function App() {
                 return React.createElement("span", { key: i, className: "cal-dot", style: { background: pct === 1 ? "#4caf80" : pct > 0 ? "#ffa726" : "#dde5ee" } });
             }))),
             allComplete && React.createElement("span", { className: "cal-ok" }, "\u2713"),
+            schoolCalendar[dateStr] && React.createElement("span", { className: "cal-event-tag",
+                style: { fontSize: 9, lineHeight: 1.2, marginTop: 1, display: "block",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%",
+                    color: schoolCalendar[dateStr].includes("🔴") ? "#e53935" : schoolCalendar[dateStr].includes("📝") ? "#1565c0" : "#2e7d32"
+                }
+            }, schoolCalendar[dateStr].replace(/🔴|📝|🏫|🏁|❄️|☀️|🏃|🎓/g, "").trim().slice(0,6)),
             absentCount > 0 && React.createElement("span", { className: "cal-absent" },
                 absentCount,
                 "\u8ACB")));
@@ -5101,7 +5122,7 @@ function App() {
                 }
             }),
             React.createElement("div", { style: { fontSize: 64, marginBottom: 16 } }, isNerv ? "⬡" : "📋"),
-            React.createElement("h1", { style: { fontSize: 24, fontWeight: 900, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 2, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "none" } }, isNerv ? "NERV // 作業繳交" : "作業繳交記錄"),
+            React.createElement("h1", { style: { fontSize: 28, fontWeight: 700, color: isNerv ? "#ff6600" : "#fff", letterSpacing: 6, marginBottom: 8, textAlign: "center", fontFamily: isNerv ? "Share Tech Mono,monospace" : "'Cinzel Decorative', serif", textShadow: isNerv ? "0 0 20px rgba(255,102,0,.8)" : "0 2px 20px rgba(255,255,255,.2)" } }, isNerv ? "NERV" : "LIMU"),
             React.createElement("p", { style: { fontSize: 14, color: isNerv ? "rgba(255,102,0,.6)" : "rgba(255,255,255,.7)", marginBottom: 32, letterSpacing: isNerv ? 3 : 0, fontFamily: isNerv ? "Share Tech Mono,monospace" : "inherit" } }, isNerv ? "▸ MAGI SYSTEM AUTHORIZED ◂" : "登入後可設定班級資訊"),
             React.createElement("button", { onClick: () => {
                     gSignIn().then(function(result) {
@@ -5125,19 +5146,30 @@ function App() {
         React.createElement("header", null,
             React.createElement("div", { className: "hi" },
                 React.createElement("div", { className: "hi-row1" },
-                    React.createElement("span", { className: "ti" }, isNerv ? "⬡" : "📋"),
-                    React.createElement("h1", null, isNerv ? React.createElement(React.Fragment, null,
-                        React.createElement("em", null, "NERV"),
-                        " ",
-                        React.createElement("span", { className: "nerv-slash" }, "//"),
-                        " ",
-                        React.createElement("em", null, "作業系統")) : "作業繳交紀錄"),
-                    view !== "month" && React.createElement("button", { className: "theme-btn", onClick: () => { setCounselView(false); setView("month"); }, title: "回月曆", style: { background: "rgba(255,255,255,.15)" } }, isNerv ? "◀" : "🏠"),
-                    React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
+                    // LIMU 標題 - 點擊回月曆
+                    React.createElement("h1", {
+                        onClick: function() { setCounselView(false); setView("month"); },
+                        style: {
+                            fontFamily: "'Cinzel Decorative', serif",
+                            fontSize: 22,
+                            fontWeight: 700,
+                            letterSpacing: 4,
+                            color: isNerv ? "#ff6600" : "#fff",
+                            cursor: "pointer",
+                            userSelect: "none",
+                            textShadow: isNerv
+                                ? "0 0 12px rgba(255,102,0,.7)"
+                                : "0 1px 4px rgba(0,0,0,.4), 0 0 20px rgba(255,255,255,.1)",
+                            flex: 1,
+                            margin: 0,
+                        }
+                    }, isNerv ? "NERV" : "LIMU"),
+                    // 輔導紀錄
                     React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "▣" : "📋"),
-                    React.createElement("button", { className: "theme-btn", onClick: () => setView("settings"), title: "設定" }, isNerv ? "⚙" : "⚙️"),
-                    React.createElement("button", { className: "theme-btn", onClick: () => setView("archive"), title: "歷年檔案室", style:{fontSize:15} }, isNerv ? "◫" : "🗂"),
-                    React.createElement("button", { className: "theme-btn", onClick: function() { wpOpenPlan(selDate || today()); }, title: "作業計畫", style:{fontSize:15} }, "📅")
+                    // 主題切換
+                    React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
+                    // 齒輪選單
+                    React.createElement("button", { className: "theme-btn", onClick: function() { setShowGearMenu(true); }, title: "選單", style: { fontSize: 16 } }, "⚙️")
                 ),
                 React.createElement("div", { className: "hi-row2" },
                     React.createElement("div", { className: "class-switcher" },
@@ -5474,6 +5506,16 @@ function App() {
             className: isNerv ? "day-anim-term" : (theme === "nebula" ? "day-anim-float" : "day-anim-fade"),
             key: dayAnimKey
         },
+            selDate && schoolCalendar[selDate] && React.createElement("div", { style:{
+                background: schoolCalendar[selDate].includes("🔴") ? "rgba(229,57,53,.12)" : schoolCalendar[selDate].includes("📝") ? "rgba(21,101,192,.12)" : "rgba(46,125,50,.12)",
+                border: "1px solid " + (schoolCalendar[selDate].includes("🔴") ? "rgba(229,57,53,.35)" : schoolCalendar[selDate].includes("📝") ? "rgba(21,101,192,.35)" : "rgba(46,125,50,.35)"),
+                borderRadius: 12, padding: "10px 16px", marginBottom: 10,
+                fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8,
+                color: schoolCalendar[selDate].includes("🔴") ? "#c62828" : schoolCalendar[selDate].includes("📝") ? "#0d47a1" : "#1b5e20"
+            } },
+                React.createElement("span", { style:{fontSize:16} }, "📅"),
+                React.createElement("span", null, schoolCalendar[selDate])
+            ),
             React.createElement("div", { className: "table-wrapper hw-table-wrap" },
                 React.createElement("table", null,
                     React.createElement("thead", null,
@@ -6414,6 +6456,93 @@ function App() {
                     )
                 );
             })())
+        )),
+        showCalImport && (React.createElement("div", { onClick: function(){ setShowCalImport(false); setCalImportText(''); }, style:{position:'fixed',inset:0,zIndex:400,background:'rgba(0,0,0,.65)'} },
+            React.createElement("div", { onClick: function(e){e.stopPropagation();}, style:{
+                position:'absolute', bottom:0, left:0, right:0,
+                background: theme==='nerv'?'#120400':theme==='nebula'?'#0a0c20':'#fff',
+                borderRadius:'20px 20px 0 0', padding:'24px 20px calc(32px + env(safe-area-inset-bottom,0px))',
+                boxShadow:'0 -8px 40px rgba(0,0,0,.3)'
+            } },
+                React.createElement("div", { style:{fontSize:15,fontWeight:800,color:theme==='nerv'?'#ff8844':theme==='nebula'?'#c8b0ff':'#1e3a5f',marginBottom:6} },
+                    theme==='nerv'?'// IMPORT CAL //':'📅 匯入學校行事曆'),
+                React.createElement("p", { style:{fontSize:12,color:'#aab8cc',marginBottom:14} },
+                    '貼上 JSON 格式的行事曆代碼，或直接使用已內建的 114 學年度行事曆。'),
+                React.createElement("textarea", {
+                    style:{width:'100%',height:120,borderRadius:10,border:'1px solid #dde5ee',padding:'10px 12px',
+                        fontSize:12,fontFamily:'monospace',resize:'none',boxSizing:'border-box',
+                        background:theme==='nerv'?'rgba(255,102,0,.05)':theme==='nebula'?'rgba(150,100,255,.05)':'#f8fafc',
+                        color:theme==='nerv'?'#ff8844':theme==='nebula'?'#c8b0ff':'#1e3a5f'},
+                    placeholder:'貼上 JSON 代碼，例如：{"2025-09-01":"🏫 開學日",...}',
+                    value: calImportText,
+                    onChange: function(e){ setCalImportText(e.target.value); }
+                }),
+                React.createElement("div", { style:{display:'flex',gap:10,marginTop:14} },
+                    React.createElement("button", {
+                        style:{flex:1,padding:'12px',borderRadius:12,border:'1px solid #dde5ee',background:'#f0f4ff',
+                            color:'#5a6a80',fontSize:13,fontWeight:700,cursor:'pointer'},
+                        onClick: function(){
+                            // 使用目前已內建的資料（重設為預設值，從 localStorage 清除）
+                            safeSet('hw5ren:schoolCal', null);
+                            setSchoolCalendar(JSON.parse(safeGet('hw5ren:schoolCal') || '{}'));
+                            setShowCalImport(false); setCalImportText('');
+                        }
+                    }, '使用內建 114 學年度'),
+                    React.createElement("button", {
+                        style:{flex:1,padding:'12px',borderRadius:12,border:'none',
+                            background:theme==='nerv'?'rgba(255,102,0,.2)':'#1e3a5f',
+                            color:theme==='nerv'?'#ff8844':'#fff',fontSize:13,fontWeight:700,cursor:'pointer'},
+                        onClick: function(){
+                            try {
+                                var cal = JSON.parse(calImportText.trim());
+                                saveSchoolCalendar(cal);
+                                setShowCalImport(false); setCalImportText('');
+                            } catch(e) {
+                                alert('JSON 格式錯誤，請確認後再貼入');
+                            }
+                        }
+                    }, '匯入')
+                )
+            )
+        )),
+        showGearMenu && (React.createElement("div", { onClick: function() { setShowGearMenu(false); }, style: { position: 'fixed', inset: 0, zIndex: 350, background: 'rgba(0,0,0,.6)' } },
+            React.createElement("div", { onClick: function(e){ e.stopPropagation(); }, style: {
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                background: theme === 'nerv' ? '#120400' : theme === 'nebula' ? '#0a0c20' : '#fff',
+                borderRadius: '20px 20px 0 0',
+                padding: '20px 0 calc(28px + env(safe-area-inset-bottom,0px))',
+                boxShadow: '0 -8px 40px rgba(0,0,0,.3)'
+            } },
+                React.createElement("div", { style: {
+                    textAlign: 'center', fontSize: 11, fontWeight: 700, letterSpacing: 3,
+                    color: theme === 'nerv' ? 'rgba(255,102,0,.5)' : theme === 'nebula' ? 'rgba(150,120,255,.5)' : '#aab8cc',
+                    marginBottom: 8, fontFamily: theme === 'nerv' ? 'Share Tech Mono,monospace' : 'inherit'
+                } }, theme === 'nerv' ? '// VENUS OS MENU //' : 'Venus OS'),
+                React.createElement("div", { style: { height: 1, background: theme === 'nerv' ? 'rgba(255,102,0,.15)' : theme === 'nebula' ? 'rgba(150,100,255,.15)' : 'rgba(0,0,0,.06)', margin: '0 0 8px' } }),
+                [
+                    { icon: '🗂', label: '歷年档案', nervLabel: '\u25ab ARCHIVE', action: function(){ setView('archive'); setShowGearMenu(false); } },
+                    { icon: '📅', label: '週作業計畫', nervLabel: '\u25a6 WEEK PLAN', action: function(){ wpOpenPlan(selDate || today()); setShowGearMenu(false); } },
+                    { icon: '⚙️', label: '班級設定', nervLabel: '\u2699 CONFIG', action: function(){ setView('settings'); setShowGearMenu(false); } },
+                    { icon: '📋', label: '匯入行事曆', nervLabel: '\u25c8 IMPORT CAL', action: function(){ setShowCalImport(true); setShowGearMenu(false); } },
+                ].map(function(item, i) {
+                    return React.createElement("button", {
+                        key: i, onClick: item.action,
+                        style: {
+                            display: 'flex', alignItems: 'center', gap: 16,
+                            width: '100%', padding: '16px 28px',
+                            background: 'transparent', border: 'none',
+                            borderTop: i > 0 ? '1px solid ' + (theme === 'nerv' ? 'rgba(255,102,0,.1)' : theme === 'nebula' ? 'rgba(150,100,255,.1)' : 'rgba(0,0,0,.06)') : 'none',
+                            cursor: 'pointer', textAlign: 'left',
+                            color: theme === 'nerv' ? '#ff8844' : theme === 'nebula' ? '#c8b0ff' : '#1e3a5f',
+                            fontFamily: theme === 'nerv' ? 'Share Tech Mono,monospace' : 'inherit',
+                            fontSize: 15, fontWeight: 600,
+                        }
+                    },
+                        React.createElement("span", { style: { fontSize: 20, width: 28, textAlign: 'center' } }, item.icon),
+                        React.createElement("span", null, theme === 'nerv' ? item.nervLabel : item.label)
+                    );
+                })
+            )
         )),
         showThemeMenu && (React.createElement("div", { onClick: () => setShowThemeMenu(false), style: { position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,.5)' } },
             React.createElement("div", { onClick: e => e.stopPropagation(), style: { position: 'absolute', bottom: 0, left: 0, right: 0, background: theme === 'nerv' ? '#120400' : theme === 'nebula' ? '#0a0c20' : '#fff', borderRadius: '20px 20px 0 0', padding: '12px 0 40px', boxShadow: '0 -8px 40px rgba(0,0,0,.3)' } },
