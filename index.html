@@ -1392,6 +1392,17 @@
         }
         /* ══ END SPLASH ══════════════════════════════════════════════ */
 
+        /* ── Ripple 點擊波紋 ── */
+        .ripple-wave {
+          position:absolute; border-radius:50%;
+          background:rgba(255,255,255,0.28);
+          transform:scale(0); pointer-events:none;
+          animation:ripple-expand 0.45s ease-out forwards;
+        }
+        @keyframes ripple-expand {
+          to { transform:scale(5); opacity:0; }
+        }
+
         /* ══ DAY NAV BAR ════════════════════════════════════════════ */
         .day-nav-bar {
           display:flex; align-items:center; justify-content:space-between;
@@ -7349,6 +7360,33 @@ function handleCredentialResponse(token) {
 }
 // ==================== 🔴 新貼上的內容結束 ====================
 
+</script>
+
+<script>
+// ── Ripple 點擊波紋效果 ──
+(function() {
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var wave = document.createElement('span');
+    wave.className = 'ripple-wave';
+    var rect = btn.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height);
+    wave.style.width = wave.style.height = size + 'px';
+    wave.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    wave.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+    var prev = btn.style.position;
+    var prevOv = btn.style.overflow;
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
+    btn.appendChild(wave);
+    setTimeout(function() {
+      wave.remove();
+      btn.style.position = prev;
+      btn.style.overflow = prevOv;
+    }, 450);
+  }, true);
+})();
 </script>
 
 <script>
