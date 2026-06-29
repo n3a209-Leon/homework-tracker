@@ -2740,14 +2740,17 @@ async function idbKeys() {
 }
 // ── Counseling load / save ───────────────────────────────────────────────────
 async function loadCounsel(dateStr) {
+    var pfx = classPrefix();
     let raw = null;
     try {
-        raw = await idbGet("counsel:"+dateStr);
+        raw = await idbGet(pfx+"counsel:"+dateStr);
+        if (!raw && pfx) raw = await idbGet("counsel:"+dateStr); // 舊資料相容
     }
     catch (_a) { }
     if (!raw) {
         try {
-            raw = _sl.get("hw5ren:c:"+dateStr);
+            raw = _sl.get("hw5ren:c:"+pfx+dateStr);
+            if (!raw && pfx) raw = _sl.get("hw5ren:c:"+dateStr); // 舊資料相容
         }
         catch (_b) { }
     }
@@ -2760,13 +2763,14 @@ async function loadCounsel(dateStr) {
     return [];
 }
 async function saveCounsel(dateStr, records) {
+    var pfx = classPrefix();
     const json = JSON.stringify(records);
     try {
-        await idbSet("counsel:"+dateStr, json);
+        await idbSet(pfx+"counsel:"+dateStr, json);
     }
     catch (_a) { }
     try {
-        _sl.set("hw5ren:c:"+dateStr, json);
+        _sl.set("hw5ren:c:"+pfx+dateStr, json);
     }
     catch (_b) { }
 }
@@ -2780,18 +2784,32 @@ async function loadCounselMonth(y, m) {
     }
     return entries;
 }
+// ── 班級資料前綴（隔離不同班級的 day:/counsel: 資料）────────────────────────
+// 回傳格式："2026_五年王班:" 或 "" (未設定時)
+// 每次呼叫即時讀 localStorage，切換班級後自動生效
+function classPrefix() {
+    try {
+        var y = (typeof _sl !== 'undefined' ? _sl.get('hw5ren:year') : null) || '';
+        var c = (typeof _sl !== 'undefined' ? _sl.get('hw5ren:className') : null) || '';
+        if (!y || !c) return '';
+        return y + '_' + c + ':';
+    } catch(e) { return ''; }
+}
 // ── Day load / save ──────────────────────────────────────────────────────────
 async function loadDay(dateStr) {
+    var pfx = classPrefix();
     let raw = null;
-    // 1. IndexedDB（主要，跨版本）
+    // 1. IndexedDB（主要，跨版本）— 先找新格式，再找舊格式（向下相容）
     try {
-        raw = await idbGet("day:"+dateStr);
+        raw = await idbGet(pfx+"day:"+dateStr);
+        if (!raw && pfx) raw = await idbGet("day:"+dateStr); // 舊資料相容
     }
     catch (_a) { }
     // 2. localStorage 備援
     if (!raw) {
         try {
-            raw = safeGet("hw5ren:"+dateStr);
+            raw = safeGet("hw5ren:"+pfx+dateStr);
+            if (!raw && pfx) raw = safeGet("hw5ren:"+dateStr); // 舊資料相容
         }
         catch (_b) { }
     }
@@ -2805,16 +2823,17 @@ async function loadDay(dateStr) {
     return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {}, attendancePeriod: {}, slips: [] };
 }
 async function saveDay(dateStr, rows, attendance, exempt, attendancePeriod, slips) {
+    var pfx = classPrefix();
     const json = JSON.stringify(ser(rows, attendance, exempt, attendancePeriod, slips));
     // 1. IndexedDB（主要）
     let idbOk = false;
     try {
-        idbOk = await idbSet("day:"+dateStr, json);
+        idbOk = await idbSet(pfx+"day:"+dateStr, json);
     }
     catch (_a) { }
     // 2. localStorage（備援）
     try {
-        _sl.set("hw5ren:"+dateStr, json);
+        _sl.set("hw5ren:"+pfx+dateStr, json);
     }
     catch (_b) { }
     return { ok: true, source: idbOk ? "idb" : "local" };
@@ -3146,9 +3165,11 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
     (async () => {
       try {
         const keys = await idbKeys();
-        // key 格式：'day:2026-06-05'
-        const prefix = 'day:' + selYear + '-';
-        const yearKeys = keys.filter(k => typeof k === 'string' && k.startsWith(prefix));
+        // key 格式（新）：'2026_五年王班:day:2026-06-05' 或（舊）：'day:2026-06-05'
+        var _arcPfx2 = selYear + '_' + selClass + ':';
+        const prefix = _arcPfx2 + 'day:' + selYear + '-';
+        const prefixOld = 'day:' + selYear + '-'; // 向下相容
+        const yearKeys = keys.filter(k => typeof k === 'string' && (k.startsWith(prefix) || k.startsWith(prefixOld)));
         console.log('[Archive] selYear='+selYear+' keys='+keys.length+' yearKeys='+yearKeys.length);
         const hwCount = {};      // 各作業繳交次數
         const absentMap = {};    // 各學生請假天數
@@ -3205,15 +3226,16 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
   // 當切換 year/school/class 時，從 Firestore 讀取對應資料到 IDB
   useEffect(() => {
     if (!firebaseUid || !selYear) return;
-    var fsKey = 'day:' + selYear; // Firestore 資料的 key 前綴
+    var _arcPfx = selYear + '_' + selClass + ':';
+    var fsKey = _arcPfx + 'day:' + selYear; // Firestore 資料的 key 前綴
     setFsLoaded(false);
     (async () => {
       try {
         // 從 Firestore 讀取該班級的所有 day: 資料
-        var allData = await window.fsGetAll(firebaseUid, fsKey);
+        var allData = await window.fsGetAll(firebaseUid, _arcPfx+'day:');
         var count = 0;
         for (var k in allData) {
-          if (k.startsWith('day:' + selYear + '-')) {
+          if (k.startsWith(_arcPfx+'day:' + selYear + '-')) {
             // 寫入 IDB（讓 ArchiveView 的統計可以讀取）
             // 使用 idbSet（如果可用）
             count++;
@@ -3430,7 +3452,8 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     async function loadSlipHist() {
         setSlipHistLoading(true);
         try {
-            var allKeys = (await idbKeys()).filter(function(k){ return k.startsWith('day:'+schoolYear+'-'); });
+            var _sPfx = schoolYear + '_' + className + ':';
+            var allKeys = (await idbKeys()).filter(function(k){ return k.startsWith(_sPfx+'day:'+schoolYear+'-') || k.startsWith('day:'+schoolYear+'-'); });
             var allMembers = groups.reduce(function(acc,g){return acc.concat(g.members);}, []).sort(function(a,b){return a-b;});
             var byMonth = {};
             for (var ki = 0; ki < allKeys.length; ki++) {
@@ -3537,7 +3560,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
             return;
         }
         try {
-            const keys = (await idbKeys()).filter(k => k.startsWith("day:2"));
+            const keys = (await idbKeys()).filter(k => k.startsWith(classPrefix()+"day:") || (!classPrefix() && k.startsWith("day:2")));
             const db = await openDB();
             await new Promise((res, rej) => {
                 const tx = db.transaction(DB_STORE, "readwrite"), st = tx.objectStore(DB_STORE);
@@ -3889,6 +3912,12 @@ function App() {
         _sl.set("hw5ren:year", cls.year);
         saveSettingsToFirebase(cls.className, cls.school, cls.year, undefined);
         setShowClassDropdown(false);
+        // 切換年份：月曆跳到該班級的學年
+        var yr = parseInt(cls.year) || new Date().getFullYear();
+        setCurYear(yr);
+        setCurMonth(new Date().getMonth());
+        setSelDate(yr + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-01');
+        setView("month");
         // 重新載入該班級的分組
         try {
             const grpKey = "hw5ren:groups:" + cls.id;
@@ -4128,13 +4157,14 @@ function App() {
                     }
                 }
                 // ── 作業資料 ──
-                var allData = await window.fsGetAll(firebaseUid, 'day:');
+                var _pfx = classPrefix();
+                var allData = await window.fsGetAll(firebaseUid, _pfx+'day:');
                 var c = 0;
                 for (var k in allData) {
-                    if (k.startsWith('day:2')) {
-                        var ds = k.replace('day:', '');
-                        await idbSet('day:' + ds, allData[k]);
-                        try { _sl.set('hw5ren:' + ds, allData[k]); } catch(ex) {}
+                    if (k.startsWith(_pfx+'day:')) {
+                        var ds = k.replace(_pfx+'day:', '');
+                        await idbSet(_pfx+'day:' + ds, allData[k]);
+                        try { _sl.set('hw5ren:' + _pfx + ds, allData[k]); } catch(ex) {}
                         c++;
                     }
                 }
@@ -4158,7 +4188,8 @@ function App() {
         }
         setDriveStatus('syncing');
         try {
-            const keys = (await idbKeys()).filter(k => k.startsWith('day:2') || k.startsWith('counsel:'));
+            var _pfx = classPrefix();
+            const keys = (await idbKeys()).filter(k => k.startsWith(_pfx+'day:') || k.startsWith(_pfx+'counsel:'));
             const snap = {};
             for (const k of keys) {
                 const v = await idbGet(k);
@@ -4231,32 +4262,33 @@ function App() {
             }
             // 列出 IDB 裡所有資料天數
             let idbDays = [];
+            var _pfx = classPrefix();
             try {
-                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+                idbDays = (await idbKeys()).filter(k => k.startsWith(_pfx+"day:"));
             }
             catch (_a) { }
             // 列出 localStorage 資料天數
             const lsDays = [];
             for (let i = 0; i < _sl.length(); i++) {
                 const k = _sl.key(i);
-                if (k === null || k === void 0 ? void 0 : k.startsWith(LS_PREFIX+"2"))
+                if (k === null || k === void 0 ? void 0 : k.startsWith(LS_PREFIX+_pfx))
                     lsDays.push(k);
             }
             // 若 IDB 空但 localStorage 有 → 自動搶救
             if (idbDays.length === 0 && lsDays.length > 0) {
                 let rescued = 0;
                 for (const k of lsDays) {
-                    const ds = k.replace(LS_PREFIX, "");
+                    const ds = k.replace(LS_PREFIX, "").replace(_pfx, "");
                     const v = safeGet(k);
                     if (v) {
                         try {
-                            await idbSet("day:"+ds, v);
+                            await idbSet(_pfx+"day:"+ds, v);
                             rescued++;
                         }
                         catch (_b) { }
                     }
                 }
-                idbDays = (await idbKeys()).filter(k => k.startsWith("day:2"));
+                idbDays = (await idbKeys()).filter(k => k.startsWith(_pfx+"day:"));
                 setStor({ state: "ok", msg: "✅ 已搶救 "+rescued+" 天資料到 IDB", detail: "IDB: "+idbDays.length+" 天" });
                 return;
             }
@@ -4327,8 +4359,9 @@ function App() {
 
     async function calcTermStats() {
         // 載入整學年所有資料
+        var _pfx = classPrefix();
         var allKeys = [];
-        try { allKeys = (await idbKeys()).filter(function(k) { return k.startsWith('day:' + curYear + '-'); }); }
+        try { allKeys = (await idbKeys()).filter(function(k) { return k.startsWith(_pfx+'day:' + curYear + '-'); }); }
         catch(e) {}
         var allEntries = {};
         await Promise.all(allKeys.map(async function(k) {
@@ -4336,7 +4369,7 @@ function App() {
                 var raw = await idbGet(k);
                 if (raw) {
                     var parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    allEntries[k.replace('day:', '')] = parsed;
+                    allEntries[k.replace(_pfx+'day:', '')] = parsed;
                 }
             } catch(e) {}
         }));
@@ -4453,8 +4486,9 @@ function App() {
             clearTimeout(autoSyncTimer.current);
         autoSyncTimer.current = setTimeout(async () => {
             try {
+                var _pfx = classPrefix();
                 const allIdbKeys = await idbKeys();
-                const keys = allIdbKeys.filter(k => k.startsWith("day:2") || k.startsWith("counsel:"));
+                const keys = allIdbKeys.filter(k => k.startsWith(_pfx+"day:") || k.startsWith(_pfx+"counsel:"));
                 const snap = {};
                 for (const k of keys) {
                     const v = await idbGet(k);
@@ -5542,19 +5576,20 @@ function App() {
                         return;
                     } catch(ex) { alert('無法讀取日誌：' + ex); return; }
                         setImportMsg("🔍 掃描中…");
+                        var _pfx2 = classPrefix();
                         let idbOk = false, idbKeys_ = [], lsKeys = [];
                         try {
                             await idbSet("__diagtest__", "1");
                             const v = await idbGet("__diagtest__");
                             idbOk = v === "1";
-                            idbKeys_ = (await idbKeys()).filter(k => k.startsWith("day:2"));
+                            idbKeys_ = (await idbKeys()).filter(k => k.startsWith(_pfx2+"day:"));
                         }
                         catch (e) {
                             idbOk = false;
                         }
                         for (let i = 0; i < _sl.length(); i++) {
                             const k = _sl.key(i);
-                            if (k === null || k === void 0 ? void 0 : k.startsWith("hw5ren:2"))
+                            if (k === null || k === void 0 ? void 0 : k.startsWith("hw5ren:"+_pfx2))
                                 lsKeys.push(k);
                         }
                         setImportMsg("IDB:"+(idbOk?"✅":"❌")+" 資料"+idbKeys_.length+"天 | LS:"+lsKeys.length+"天 | 共"+(idbKeys_.length+lsKeys.length)+"天");
@@ -5565,11 +5600,11 @@ function App() {
                         // 若 IDB 空但 LS 有資料，搶救
                         if (idbOk && idbKeys_.length === 0 && lsKeys.length > 0) {
                             for (const k of lsKeys) {
-                                const ds = k.replace("hw5ren:", "");
+                                const ds = k.replace("hw5ren:"+_pfx2, "");
                                 const v = safeGet(k);
                                 if (v)
                                     try {
-                                        await idbSet("day:"+ds, v);
+                                        await idbSet(_pfx2+"day:"+ds, v);
                                     }
                                     catch (_a) { }
                             }
