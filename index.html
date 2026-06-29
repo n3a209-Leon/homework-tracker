@@ -5925,6 +5925,27 @@ function App() {
                                     } }, isNerv ? "\u00D7 DEL" : "\u00D7 \u522A\u9664"),
                                 React.createElement("span", { className: "slip-toggle" }, isOpen ? "\u25B2" : "\u25BC")),
                             isOpen && React.createElement("div", { className: "slip-seat-grid" },
+                                React.createElement("div", { style:{width:"100%",display:"flex",gap:8,marginBottom:6,justifyContent:"center"} },
+                                    React.createElement("button", {
+                                        onClick: function(){
+                                            var next = daySlips.map(function(s,i){
+                                                if(i!==si) return s;
+                                                return {name:s.name, paid:new Set(ALL_MEMBERS)};
+                                            });
+                                            setDaySlips(next); saveCurrent(null,null,null,next);
+                                        },
+                                        style:{padding:"6px 18px",border:"none",borderRadius:20,background:"#ff6d00",color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(255,109,0,.35)"}
+                                    }, "\u2714 \u5168\u90E8\u5DF2\u4EA4"),
+                                    React.createElement("button", {
+                                        onClick: function(){
+                                            var next = daySlips.map(function(s,i){
+                                                if(i!==si) return s;
+                                                return {name:s.name, paid:new Set()};
+                                            });
+                                            setDaySlips(next); saveCurrent(null,null,null,next);
+                                        },
+                                        style:{padding:"6px 18px",border:"1px solid #ffab91",borderRadius:20,background:"#fff8f5",color:"#e65100",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}
+                                    }, "\u21BA \u5168\u90E8\u6E05\u9664")),
                                 ALL_MEMBERS.map(function(n){
                                     var grp = groups.find(function(g){return g.members.includes(n);});
                                     var isPaid = slip.paid.has(n);
