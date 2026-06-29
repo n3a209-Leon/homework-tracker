@@ -3896,11 +3896,18 @@ function App() {
         setCurMonth(new Date().getMonth());
         setSelDate(yr + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-01');
         setView("month");
-        // 重新載入該班級的分組
+        // 重新載入該班級的分組（傳入 cls.id 避免 activeClassId 閉包舊值問題）
         try {
             const grpKey = "hw5ren:groups:" + cls.id;
             const grpData = safeJSON(safeGet(grpKey), null);
-            if (grpData) saveGroups(grpData);
+            if (grpData && grpData.length > 0) {
+                // 有儲存過的組別 → 還原
+                saveGroupsForClass(grpData, cls.id);
+            } else {
+                // 新班級或尚未設定組別 → 重置為空的第1組
+                var emptyGroup = [{ id: 1, label: "\u7B2C1\u7D44", members: [], leader: 0, secretary: 0 }];
+                saveGroupsForClass(emptyGroup, cls.id);
+            }
         } catch(e) {}
     }
 
@@ -3915,16 +3922,19 @@ function App() {
     // 同步 groups 到 window（供頂層函數使用）
     React.useEffect(function() { try { window._fallbackGroups = groups; } catch(e) {} }, [groups]);
     const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
-    function saveGroups(g) {
+    // saveGroupsForClass：明確傳入 classId，避免 activeClassId 閉包舊值問題
+    function saveGroupsForClass(g, classId) {
         setGroups(g);
         try { window._fallbackGroups = g; } catch(e) {}
         _sl.set("hw5ren:groups", JSON.stringify(g));
-        // 同時按班級 ID 儲存，切換班級時可還原
-        if (activeClassId) {
-            _sl.set("hw5ren:groups:" + activeClassId, JSON.stringify(g));
+        var cid = classId || activeClassId;
+        if (cid) {
+            _sl.set("hw5ren:groups:" + cid, JSON.stringify(g));
         }
-        // 同步到 Firebase
         saveSettingsToFirebase(undefined, undefined, undefined, undefined, g, undefined, undefined, undefined);
+    }
+    function saveGroups(g) {
+        saveGroupsForClass(g, activeClassId);
     }
     const [curYear, setCurYear] = useState(() => {
         try {
