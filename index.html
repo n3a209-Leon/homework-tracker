@@ -3444,6 +3444,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     const [draftSemStart2, setDraftSemStart2] = useState(semStart2 || '');
     const [saved, setSaved] = useState(false);
     const [clearModal, setClearModal] = useState(false);
+    const [settingsTab, setSettingsTab] = useState('class'); // 'class' | 'group'
     // ── Slip history state ──
     const [slipHist, setSlipHist] = useState(null); // null = not loaded
     const [slipHistLoading, setSlipHistLoading] = useState(false);
@@ -3591,192 +3592,136 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
         : { width: "100%", padding: "8px 12px", border: "2px solid #dde5ee", borderRadius: 10, fontSize: 14, fontFamily: "inherit", boxSizing: "border-box", outline: "none" };
     return (React.createElement("main", { style: { padding: 12, overflowY: "auto", flex: 1 } },
         React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 16 } },
-            React.createElement("button", { onClick: onClose, style: { background: nerv ? "rgba(255,102,0,.1)" : "rgba(30,58,95,.1)", border: "none", color: nerv ? "#ff6600" : "#1e3a5f", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "◀ RETURN" : "← 返回"),
-            React.createElement("span", { style: { fontSize: 18, fontWeight: 900, color: nerv ? "#ff6600" : "#1e3a5f", flex: 1 } }, nerv ? "⚙ SYSTEM CONFIG" : "⚙️ 班級設定")),
-        React.createElement("div", { style: panel },
-            React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f", marginBottom: 14 } }, nerv ? "// CLASS INFO //" : "班級資訊"),
-            React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "學校名稱"),
-            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftSchool, onChange: e => setDraftSchool(e.target.value), placeholder: "\u4F8B\uFF1A\u5927\u7532\u570B\u5C0F", maxLength: 20 }),
-            React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "班級名稱"),
-            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftClass, onChange: e => setDraftClass(e.target.value), placeholder: "\u4F8B\uFF1A\u4E94\u5E74\u58EC\u73ED\u3001\u516D\u5E742\u73ED", maxLength: 20 }),
-            React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "學年（西元年）"),
-            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 4 }), value: draftYear, onChange: e => setDraftYear(e.target.value), placeholder: "\u4F8B\uFF1A2026", maxLength: 4, type: "number" }),
-            (draftYear || draftSchool || draftClass) && (React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#8a9db5", marginTop: 10 } },
-                nerv ? "// 預覽：" : "預覽：",
-                React.createElement("span", { style: { fontWeight: 700, color: nerv ? "#ffaa44" : "#1e3a5f" } }, [draftYear && draftYear+"年", draftSchool, draftClass].filter(Boolean).join(" "))))),
-        // ── 新增班級區塊 ──────────────────────────────────────────
-        React.createElement("div", { style: Object.assign({}, panel, { marginTop: 16, border: nerv ? "1px solid rgba(255,102,0,.3)" : "2px dashed #d0d8e8" }) },
-            React.createElement("div", { style: { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: showAddClass ? 14 : 0 } },
-                React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } },
-                    nerv ? "// ADD NEW UNIT //" : "➕ 新增班級"),
-                React.createElement("button", {
-                    onClick: () => setShowAddClass(p => !p),
-                    style: { background: nerv?"rgba(255,102,0,.15)":"rgba(30,58,95,.1)", border:"none", color: nerv?"#ff8844":"#1e3a5f", padding:"5px 12px", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 }
-                }, showAddClass ? "▲ 收起" : "▼ 展開")
-            ),
-            showAddClass && React.createElement(React.Fragment, null,
-                React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "學年（西元年）"),
-                React.createElement("input", {
-                    style: Object.assign({}, inp, { marginBottom: 10 }),
-                    value: newYear, onChange: e => setNewYear(e.target.value),
-                    placeholder: "例：2027", maxLength: 4, type: "number"
-                }),
-                React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "學校名稱"),
-                React.createElement("input", {
-                    style: Object.assign({}, inp, { marginBottom: 10 }),
-                    value: newSchool, onChange: e => setNewSchool(e.target.value),
-                    placeholder: "例：大安國小", maxLength: 20
-                }),
-                React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "班級名稱"),
-                React.createElement("input", {
-                    style: Object.assign({}, inp, { marginBottom: 14 }),
-                    value: newClass, onChange: e => setNewClass(e.target.value),
-                    placeholder: "例：六年甲班", maxLength: 20
-                }),
-                React.createElement("button", {
-                    onClick: handleAddClass,
-                    style: {
-                        width:"100%", padding:"10px", border:"none", borderRadius:10, cursor:"pointer",
-                        background: nerv?"#ff6600":"#1e3a5f", color:"#fff", fontWeight:700, fontSize:14,
-                        opacity: (!newYear.trim()||!newClass.trim()) ? 0.5 : 1
-                    }
-                }, nerv ? "▶ DEPLOY NEW UNIT" : "✅ 新增並切換到此班級")
-            )
-        ),
-
-        draft.map((g, idx) => (React.createElement("div", { key: idx, style: panel },
-            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
-                React.createElement("span", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } }, nerv ? "[UNIT-0"+g.id+"]" : "第 "+g.id+" 組"),
-                React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
-                    React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#aab8cc" } },
-                        g.members.length,
-                        " \u4EBA"),
-                    draft.length > 2 && (React.createElement("button", { onClick: () => removeGroup(idx), style: { background: "rgba(229,57,53,.15)", border: "1px solid #e53935", color: "#e53935", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 12, fontWeight: 700 } }, nerv ? "× DEL" : "× 刪組")))),
-            React.createElement("label", { style: lbl }, nerv ? "// GROUP NAME //" : "組別名稱"),
-            React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 14 }), value: g.label, onChange: e => updateGroup(idx, "label", e.target.value) }),
-            React.createElement("label", { style: lbl },
-                nerv ? "// SELECT MEMBER SEATS //" : "座號點選",
-                React.createElement("span", { style: { fontSize: 10, fontWeight: 400, marginLeft: 8, color: nerv ? "rgba(255,102,0,.5)" : "#bbb" } }, nerv ? "// 橙=本組 灰=其他組" : "橘色=本組 灰色=其他組已選")),
-            React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 5, marginBottom: 14 } }, Array.from({ length: maxSeat }, (_, i) => i + 1).map(n => {
-                const inThis = g.members.includes(n);
-                const inOther = !inThis && allUsed.includes(n);
-                const isLeader = g.leader === n;
-                const isSec = g.secretary === n;
-                return (React.createElement("button", { key: n, onClick: () => !inOther && toggleSeat(idx, n), style: {
-                        padding: "6px 0",
-                        fontSize: 12,
-                        fontWeight: inThis ? 800 : 400,
-                        border: isLeader ? "2.5px solid #e53935" : isSec ? "2.5px dashed #ff9800" : "1.5px solid",
-                        borderColor: inThis ? (isLeader ? "#e53935" : isSec ? "#ff9800" : nerv ? "#ff6600" : "#1e3a5f") : "#ddd",
-                        borderRadius: nerv ? 2 : 8,
-                        background: inThis ? (nerv ? "rgba(255,102,0,.25)" : "#e8f0fe") : inOther ? "#f0f0f0" : "#fff",
-                        color: inThis ? (nerv ? "#ff6600" : "#1e3a5f") : inOther ? "#bbb" : "#aaa",
-                        cursor: inOther ? "not-allowed" : "pointer",
-                        position: "relative",
-                        transition: "all .1s",
-                        fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit",
-                    } },
-                    n,
-                    isLeader && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#e53935", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u9577"),
-                    isSec && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#ff9800", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u79D8")));
-            })),
-            React.createElement("div", { style: { display: "flex", gap: 12 } },
-                React.createElement("div", { style: { flex: 1 } },
-                    React.createElement("label", { style: lbl }, nerv ? "// LEADER //" : "組長"),
-                    React.createElement("select", { style: inp, value: g.leader, onChange: e => updateGroup(idx, "leader", parseInt(e.target.value)) },
-                        React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
-                        g.members.map(n => React.createElement("option", { key: n, value: n },
-                            n,
-                            " \u865F")))),
-                React.createElement("div", { style: { flex: 1 } },
-                    React.createElement("label", { style: lbl }, nerv ? "// SECRETARY //" : "秘書"),
-                    React.createElement("select", { style: inp, value: g.secretary, onChange: e => updateGroup(idx, "secretary", parseInt(e.target.value)) },
-                        React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
-                        g.members.map(n => React.createElement("option", { key: n, value: n },
-                            n,
-                            " \u865F")))))))),
-        draft.length < 8 && (React.createElement("button", { onClick: addGroup, style: { display: "block", width: "100%", padding: 12, marginBottom: 16,
-                background: nerv ? "rgba(255,102,0,.06)" : "#eef4ff",
-                border: nerv ? "1px dashed rgba(255,102,0,.4)" : "2px dashed #c3d8ff",
-                color: nerv ? "#ff6600" : "#1e3a5f",
-                borderRadius: nerv ? 4 : 12, cursor: "pointer", fontSize: 14, fontWeight: 700 } }, nerv ? "+ ADD UNIT" : "+ 新增組別")),
-        React.createElement("div", { style: Object.assign(Object.assign({}, panel), { border: nerv ? "1px solid rgba(255,0,0,.5)" : "2px solid #ffcdd2", background: nerv ? "rgba(255,0,0,.05)" : "#fff9f9", marginBottom: 16 }) },
-            React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: "#e53935", marginBottom: 8 } }, nerv ? "⚠ DANGER ZONE // 清除歷史資料" : "⚠️ 清除歷史紀錄"),
-            React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,100,100,.6)" : "#aab8cc", marginBottom: 14, lineHeight: 1.6 } }, nerv
-                ? "// 清除後無法復原 // 適合學年結束後使用"
-                : "清除後無法復原，請確認已備份。適合學年結束後使用。"),
-            React.createElement("button", { onClick: () => setClearModal(true), style: { padding: "10px 20px", background: "#e53935", border: "none", color: "#fff", borderRadius: nerv ? 2 : 10, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "⚠ PURGE DATA" : "清除所有紀錄")),
-        React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#fff3e0", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
-            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: slipHistOpen ? 14 : 0, cursor: "pointer" },
-                onClick: function(){ if(!slipHistOpen){ setSlipHistOpen(true); if(!slipHist) loadSlipHist(); } else setSlipHistOpen(false); } },
-                React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#e65100" } }, nerv ? "// SLIP HISTORY //" : "\uD83D\uDFE0 \u56DE\u689D\u7E73\u4EA4\u7D00\u9304"),
-                React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.5)" : "#ffab91" } }, slipHistOpen ? "\u25B2 \u6536\u8D77" : "\u25BC \u5C55\u958B\u67E5\u770B")),
-            slipHistOpen && (slipHistLoading
-                ? React.createElement("div", { style: { textAlign: "center", padding: "20px 0", color: "#ffab91", fontSize: 13 } }, "\uD83D\uDD04 \u8F09\u5165\u4E2D\u2026")
-                : (!slipHist || !Object.keys(slipHist.byMonth).length)
-                    ? React.createElement("div", { style: { textAlign: "center", padding: "16px 0", color: "#ffab91", fontSize: 13 } }, "\u672C\u5B78\u5E74\u5C1A\u7121\u56DE\u689D\u7D00\u9304")
-                    : Object.keys(slipHist.byMonth).sort().reverse().map(function(mo) {
-                        var days = slipHist.byMonth[mo];
-                        var allMembers = slipHist.allMembers;
-                        var isMonOpen = !!slipHistMonthOpen[mo];
-                        var totalSlips = days.reduce(function(a,d){return a+d.slips.length;},0);
-                        var moLabel = mo.replace('-','年')+'月';
-                        return React.createElement("div", { key: mo, className: "slip-hist-month" },
-                            React.createElement("div", { className: "slip-hist-month-hdr",
-                                onClick: function(){ setSlipHistMonthOpen(function(p){ var n=Object.assign({},p); n[mo]=!n[mo]; return n; }); } },
-                                React.createElement("span", null, moLabel, " \uFF08", totalSlips, " \u5F35\u56DE\u689D\uFF09"),
-                                React.createElement("span", { style: { fontSize: 12, fontWeight: 400 } }, isMonOpen ? "\u25B2" : "\u25BC")),
-                            isMonOpen && days.map(function(dayEntry) {
-                                var dateLabel = dayEntry.date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1/$2/$3');
-                                return React.createElement("div", { key: dayEntry.date, className: "slip-hist-day" },
-                                    React.createElement("div", { className: "slip-hist-day-hdr" }, "\uD83D\uDCC5 ", dateLabel),
-                                    dayEntry.slips.map(function(slip, si) {
-                                        var paidArr = [...slip.paid].sort(function(a,b){return a-b;});
-                                        var unpaidArr = allMembers.filter(function(n){ return !slip.paid.has(n); });
-                                        var total = allMembers.length;
-                                        return React.createElement("div", { key: si, className: "slip-hist-slip" },
-                                            React.createElement("div", { className: "slip-hist-slip-name" }, "\uD83D\uDFE0 ", slip.name),
-                                            React.createElement("div", { className: "slip-hist-nums" },
-                                                paidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-paid"},n); }),
-                                                paidArr.length === 0 && React.createElement("span",{style:{fontSize:12,color:'#bbb'}},"\u5C1A\u7121\u4EBA\u4EA4")),
-                                            unpaidArr.length > 0 && React.createElement("div", { style:{marginTop:4} },
-                                                React.createElement("span",{style:{fontSize:11,color:'#c62828',fontWeight:700}},"\u672A\u4EA4\uFF1A"),
-                                                unpaidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-unpaid"},n); })),
-                                            React.createElement("div", { className: "slip-hist-stat" },
-                                                "\u5DF2\u4EA4 ", paidArr.length, " / ", total, " \u4EBA",
-                                                unpaidArr.length === 0 ? " \u2714 \u5168\u6211\u4EA4\u9F50" : " \u2014 \u672A\u4EA4 "+unpaidArr.length+" \u4EBA"));
-                                    })
-                                );
-                            })
-                        );
-                    })
-            )
-        ),
-        React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#f0f7ff", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
-            React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#1e3a5f", marginBottom: 12 } }, nerv ? "// SEMESTER DATES //" : "📅 學期開始日期"),
-            React.createElement("div", { style: { display: "flex", gap: 12, flexWrap: "wrap" } },
-                React.createElement("div", { style: { flex: 1, minWidth: 140 } },
-                    React.createElement("label", { style: lbl }, nerv ? "// SEM-1 START //" : "上學期開始"),
-                    React.createElement("input", { type: "date", style: inp, value: draftSemStart1, onChange: function(e){ setDraftSemStart1(e.target.value); } })
-                ),
-                React.createElement("div", { style: { flex: 1, minWidth: 140 } },
-                    React.createElement("label", { style: lbl }, nerv ? "// SEM-2 START //" : "下學期開始"),
-                    React.createElement("input", { type: "date", style: inp, value: draftSemStart2, onChange: function(e){ setDraftSemStart2(e.target.value); } })
-                )
-            ),
-            React.createElement("p", { style: { fontSize: 11, color: nerv ? "rgba(255,102,0,.5)" : "#aab8cc", marginTop: 8 } }, nerv ? "// 用於輔導紀錄周次計算" : "設定後可在輔導紀錄依「第幾週」打包匯出")
-        ),
-        React.createElement("button", { onClick: doSave, style: {
-                display: "block", width: "100%", padding: 16,
-                background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f",
-                border: nerv ? "1px solid #ff6600" : "none",
-                color: nerv ? "#ff6600" : "#fff",
-                borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900,
-                boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)",
-                letterSpacing: nerv ? 4 : 1,
-                fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit",
-                transition: "background .3s", marginBottom: 32
-            } }, saved ? (nerv ? "✅ CONFIG SAVED" : "✅ 已儲存！") : (nerv ? "// SAVE CONFIG //" : "儲存設定")),
+            React.createElement("button", { onClick: onClose, style: { background: nerv ? "rgba(255,102,0,.1)" : "rgba(30,58,95,.1)", border: "none", color: nerv ? "#ff6600" : "#1e3a5f", padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "\u25C4 RETURN" : "\u2190 \u8FD4\u56DE"),
+            React.createElement("span", { style: { fontSize: 18, fontWeight: 900, color: nerv ? "#ff6600" : "#1e3a5f", flex: 1 } }, nerv ? "\u2699 SYSTEM CONFIG" : "\u2699\uFE0F \u73ED\u7D1A\u8A2D\u5B9A")),
+        React.createElement("div", { style: { display: "flex", gap: 8, marginBottom: 16 } },
+            React.createElement("button", { onClick: function(){ setSettingsTab('class'); }, style: { flex: 1, padding: "10px 0", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 14, fontFamily: "inherit",
+                background: settingsTab === 'class' ? (nerv ? "#ff6600" : "#1e3a5f") : (nerv ? "rgba(255,102,0,.1)" : "#eef2f8"),
+                color: settingsTab === 'class' ? "#fff" : (nerv ? "rgba(255,102,0,.6)" : "#6a8aaa"),
+                boxShadow: settingsTab === 'class' ? "0 2px 8px rgba(0,0,0,.2)" : "none"
+            } }, nerv ? "\u25A6 CLASS" : "\uD83C\uDFEB \u73ED\u7D1A"),
+            React.createElement("button", { onClick: function(){ setSettingsTab('group'); }, style: { flex: 1, padding: "10px 0", border: "none", borderRadius: 10, cursor: "pointer", fontWeight: 800, fontSize: 14, fontFamily: "inherit",
+                background: settingsTab === 'group' ? (nerv ? "#ff6600" : "#1e3a5f") : (nerv ? "rgba(255,102,0,.1)" : "#eef2f8"),
+                color: settingsTab === 'group' ? "#fff" : (nerv ? "rgba(255,102,0,.6)" : "#6a8aaa"),
+                boxShadow: settingsTab === 'group' ? "0 2px 8px rgba(0,0,0,.2)" : "none"
+            } }, nerv ? "\u25A6 GROUPS" : "\uD83D\uDC65 \u7D44\u5225")),
+        settingsTab === 'class' && React.createElement(React.Fragment, null,
+            React.createElement("div", { style: panel },
+                React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f", marginBottom: 14 } }, nerv ? "// CLASS INFO //" : "\u73ED\u7D1A\u8CC7\u8A0A"),
+                React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "\u5B78\u6821\u540D\u7A31"),
+                React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftSchool, onChange: e => setDraftSchool(e.target.value), placeholder: "\u4F8B\uFF1A\u5927\u7532\u570B\u5C0F", maxLength: 20 }),
+                React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "\u73ED\u7D1A\u540D\u7A31"),
+                React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 12 }), value: draftClass, onChange: e => setDraftClass(e.target.value), placeholder: "\u4F8B\uFF1A\u4E94\u5E74\u58EC\u73ED\u3001\u516D\u5E742\u73ED", maxLength: 20 }),
+                React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "\u5B78\u5E74\uFF08\u897F\u5143\u5E74\uFF09"),
+                React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 4 }), value: draftYear, onChange: e => setDraftYear(e.target.value), placeholder: "\u4F8B\uFF1A2026", maxLength: 4, type: "number" }),
+                (draftYear || draftSchool || draftClass) && (React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#8a9db5", marginTop: 10 } },
+                    nerv ? "// \u9810\u89BD\uFF1A" : "\u9810\u89BD\uFF1A",
+                    React.createElement("span", { style: { fontWeight: 700, color: nerv ? "#ffaa44" : "#1e3a5f" } }, [draftYear && draftYear+"\u5E74", draftSchool, draftClass].filter(Boolean).join(" "))))),
+            React.createElement("div", { style: Object.assign({}, panel, { border: nerv ? "1px solid rgba(255,102,0,.3)" : "2px dashed #d0d8e8" }) },
+                React.createElement("div", { style: { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: showAddClass ? 14 : 0 } },
+                    React.createElement("div", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } }, nerv ? "// ADD NEW UNIT //" : "\u2795 \u65B0\u589E\u73ED\u7D1A"),
+                    React.createElement("button", { onClick: () => setShowAddClass(p => !p), style: { background: nerv?"rgba(255,102,0,.15)":"rgba(30,58,95,.1)", border:"none", color: nerv?"#ff8844":"#1e3a5f", padding:"5px 12px", borderRadius:8, cursor:"pointer", fontSize:12, fontWeight:700 } }, showAddClass ? "\u25B2 \u6536\u8D77" : "\u25BC \u5C55\u958B")),
+                showAddClass && React.createElement(React.Fragment, null,
+                    React.createElement("label", { style: lbl }, nerv ? "// YEAR //" : "\u5B78\u5E74\uFF08\u897F\u5143\u5E74\uFF09"),
+                    React.createElement("input", { style: Object.assign({}, inp, { marginBottom: 10 }), value: newYear, onChange: e => setNewYear(e.target.value), placeholder: "\u4F8B\uFF1A2027", maxLength: 4, type: "number" }),
+                    React.createElement("label", { style: lbl }, nerv ? "// SCHOOL //" : "\u5B78\u6821\u540D\u7A31"),
+                    React.createElement("input", { style: Object.assign({}, inp, { marginBottom: 10 }), value: newSchool, onChange: e => setNewSchool(e.target.value), placeholder: "\u4F8B\uFF1A\u5927\u5B89\u570B\u5C0F", maxLength: 20 }),
+                    React.createElement("label", { style: lbl }, nerv ? "// CLASS NAME //" : "\u73ED\u7D1A\u540D\u7A31"),
+                    React.createElement("input", { style: Object.assign({}, inp, { marginBottom: 14 }), value: newClass, onChange: e => setNewClass(e.target.value), placeholder: "\u4F8B\uFF1A\u516D\u5E74\u7532\u73ED", maxLength: 20 }),
+                    React.createElement("button", { onClick: handleAddClass, style: { width:"100%", padding:"10px", border:"none", borderRadius:10, cursor:"pointer", background: nerv?"#ff6600":"#1e3a5f", color:"#fff", fontWeight:700, fontSize:14, opacity: (!newYear.trim()||!newClass.trim()) ? 0.5 : 1 } }, nerv ? "\u25B6 DEPLOY NEW UNIT" : "\u2705 \u65B0\u589E\u4E26\u5207\u63DB\u5230\u6B64\u73ED\u7D1A"))),
+            React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#f0f7ff", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
+                React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#1e3a5f", marginBottom: 12 } }, nerv ? "// SEMESTER DATES //" : "\uD83D\uDCC5 \u5B78\u671F\u958B\u59CB\u65E5\u671F"),
+                React.createElement("div", { style: { display: "flex", gap: 12, flexWrap: "wrap" } },
+                    React.createElement("div", { style: { flex: 1, minWidth: 140 } },
+                        React.createElement("label", { style: lbl }, nerv ? "// SEM-1 START //" : "\u4E0A\u5B78\u671F\u958B\u59CB"),
+                        React.createElement("input", { type: "date", style: inp, value: draftSemStart1, onChange: function(e){ setDraftSemStart1(e.target.value); } })),
+                    React.createElement("div", { style: { flex: 1, minWidth: 140 } },
+                        React.createElement("label", { style: lbl }, nerv ? "// SEM-2 START //" : "\u4E0B\u5B78\u671F\u958B\u59CB"),
+                        React.createElement("input", { type: "date", style: inp, value: draftSemStart2, onChange: function(e){ setDraftSemStart2(e.target.value); } }))),
+                React.createElement("p", { style: { fontSize: 11, color: nerv ? "rgba(255,102,0,.5)" : "#aab8cc", marginTop: 8 } }, nerv ? "// \u7528\u65BC\u8F14\u5C0E\u7D00\u9304\u5468\u6B21\u8A08\u7B97" : "\u8A2D\u5B9A\u5F8C\u53EF\u5728\u8F14\u5C0E\u7D00\u9304\u4F9D\u300C\u7B2C\u5E7E\u9031\u300D\u6253\u5305\u5319\u51FA")),
+            React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#fff3e0", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
+                React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: slipHistOpen ? 14 : 0, cursor: "pointer" },
+                    onClick: function(){ if(!slipHistOpen){ setSlipHistOpen(true); if(!slipHist) loadSlipHist(); } else setSlipHistOpen(false); } },
+                    React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#e65100" } }, nerv ? "// SLIP HISTORY //" : "\uD83D\uDFE0 \u56DE\u689D\u7E73\u4EA4\u7D00\u9304"),
+                    React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.5)" : "#ffab91" } }, slipHistOpen ? "\u25B2 \u6536\u8D77" : "\u25BC \u5C55\u958B\u67E5\u770B")),
+                slipHistOpen && (slipHistLoading
+                    ? React.createElement("div", { style: { textAlign: "center", padding: "20px 0", color: "#ffab91", fontSize: 13 } }, "\uD83D\uDD04 \u8F09\u5165\u4E2D\u2026")
+                    : (!slipHist || !Object.keys(slipHist.byMonth).length)
+                        ? React.createElement("div", { style: { textAlign: "center", padding: "16px 0", color: "#ffab91", fontSize: 13 } }, "\u672C\u5B78\u5E74\u5C1A\u7121\u56DE\u689D\u7D00\u9304")
+                        : Object.keys(slipHist.byMonth).sort().reverse().map(function(mo) {
+                            var days = slipHist.byMonth[mo];
+                            var allMembers = slipHist.allMembers;
+                            var isMonOpen = !!slipHistMonthOpen[mo];
+                            var totalSlips = days.reduce(function(a,d){return a+d.slips.length;},0);
+                            var moLabel = mo.replace('-','\u5E74')+'\u6708';
+                            return React.createElement("div", { key: mo, className: "slip-hist-month" },
+                                React.createElement("div", { className: "slip-hist-month-hdr",
+                                    onClick: function(){ setSlipHistMonthOpen(function(p){ var n=Object.assign({},p); n[mo]=!n[mo]; return n; }); } },
+                                    React.createElement("span", null, moLabel, " \uFF08", totalSlips, " \u5F35\u56DE\u689D\uFF09"),
+                                    React.createElement("span", { style: { fontSize: 12, fontWeight: 400 } }, isMonOpen ? "\u25B2" : "\u25BC")),
+                                isMonOpen && days.map(function(dayEntry) {
+                                    var dateLabel = dayEntry.date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1/$2/$3');
+                                    return React.createElement("div", { key: dayEntry.date, className: "slip-hist-day" },
+                                        React.createElement("div", { className: "slip-hist-day-hdr" }, "\uD83D\uDCC5 ", dateLabel),
+                                        dayEntry.slips.map(function(slip, si) {
+                                            var paidArr = [...slip.paid].sort(function(a,b){return a-b;});
+                                            var unpaidArr = allMembers.filter(function(n){ return !slip.paid.has(n); });
+                                            var total = allMembers.length;
+                                            return React.createElement("div", { key: si, className: "slip-hist-slip" },
+                                                React.createElement("div", { className: "slip-hist-slip-name" }, "\uD83D\uDFE0 ", slip.name),
+                                                React.createElement("div", { className: "slip-hist-nums" },
+                                                    paidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-paid"},n); }),
+                                                    paidArr.length === 0 && React.createElement("span",{style:{fontSize:12,color:'#bbb'}},"\u5C1A\u7121\u4EBA\u4EA4")),
+                                                unpaidArr.length > 0 && React.createElement("div", { style:{marginTop:4} },
+                                                    React.createElement("span",{style:{fontSize:11,color:'#c62828',fontWeight:700}},"\u672A\u4EA4\uFF1A"),
+                                                    unpaidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-unpaid"},n); })),
+                                                React.createElement("div", { className: "slip-hist-stat" },
+                                                    "\u5DF2\u4EA4 ", paidArr.length, " / ", total, " \u4EBA",
+                                                    unpaidArr.length === 0 ? " \u2714 \u5168\u6211\u4EA4\u9F50" : " \u2014 \u672A\u4EA4 "+unpaidArr.length+" \u4EBA"));
+                                        }));
+                                }));
+                        }))),
+            React.createElement("button", { onClick: doSave, style: { display: "block", width: "100%", padding: 16, background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f", border: nerv ? "1px solid #ff6600" : "none", color: nerv ? "#ff6600" : "#fff", borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900, boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)", letterSpacing: nerv ? 4 : 1, fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit", transition: "background .3s", marginBottom: 32 } }, saved ? (nerv ? "\u2705 CONFIG SAVED" : "\u2705 \u5DF2\u5132\u5B58\uFF01") : (nerv ? "// SAVE CONFIG //" : "\u5132\u5B58\u8A2D\u5B9A"))),
+        settingsTab === 'group' && React.createElement(React.Fragment, null,
+            draft.map((g, idx) => (React.createElement("div", { key: idx, style: panel },
+                React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 } },
+                    React.createElement("span", { style: { fontSize: 15, fontWeight: 800, color: nerv ? "#ffaa44" : "#1e3a5f" } }, nerv ? "[UNIT-0"+g.id+"]" : "\u7B2C "+g.id+" \u7D44"),
+                    React.createElement("div", { style: { display: "flex", gap: 8, alignItems: "center" } },
+                        React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.6)" : "#aab8cc" } }, g.members.length, " \u4EBA"),
+                        draft.length > 2 && (React.createElement("button", { onClick: () => removeGroup(idx), style: { background: "rgba(229,57,53,.15)", border: "1px solid #e53935", color: "#e53935", borderRadius: 6, padding: "3px 8px", cursor: "pointer", fontSize: 12, fontWeight: 700 } }, nerv ? "\u00D7 DEL" : "\u00D7 \u522A\u7D44")))),
+                React.createElement("label", { style: lbl }, nerv ? "// GROUP NAME //" : "\u7D44\u5225\u540D\u7A31"),
+                React.createElement("input", { style: Object.assign(Object.assign({}, inp), { marginBottom: 14 }), value: g.label, onChange: e => updateGroup(idx, "label", e.target.value) }),
+                React.createElement("label", { style: lbl },
+                    nerv ? "// SELECT MEMBER SEATS //" : "\u5EA7\u865F\u9EDE\u9078",
+                    React.createElement("span", { style: { fontSize: 10, fontWeight: 400, marginLeft: 8, color: nerv ? "rgba(255,102,0,.5)" : "#bbb" } }, nerv ? "// \u6A59=\u672C\u7D44 \u7070=\u5176\u4ED6\u7D44" : "\u6A58\u8272=\u672C\u7D44 \u7070\u8272=\u5176\u4ED6\u7D44\u5DF2\u9078")),
+                React.createElement("div", { style: { display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 5, marginBottom: 14 } }, Array.from({ length: maxSeat }, (_, i) => i + 1).map(n => {
+                    const inThis = g.members.includes(n);
+                    const inOther = !inThis && allUsed.includes(n);
+                    const isLeader = g.leader === n;
+                    const isSec = g.secretary === n;
+                    return (React.createElement("button", { key: n, onClick: () => !inOther && toggleSeat(idx, n), style: { padding: "6px 0", fontSize: 12, fontWeight: inThis ? 800 : 400, border: isLeader ? "2.5px solid #e53935" : isSec ? "2.5px dashed #ff9800" : "1.5px solid", borderColor: inThis ? (isLeader ? "#e53935" : isSec ? "#ff9800" : nerv ? "#ff6600" : "#1e3a5f") : "#ddd", borderRadius: nerv ? 2 : 8, background: inThis ? (nerv ? "rgba(255,102,0,.25)" : "#e8f0fe") : inOther ? "#f0f0f0" : "#fff", color: inThis ? (nerv ? "#ff6600" : "#1e3a5f") : inOther ? "#bbb" : "#aaa", cursor: inOther ? "not-allowed" : "pointer", position: "relative", transition: "all .1s", fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit" } },
+                        n,
+                        isLeader && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#e53935", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u9577"),
+                        isSec && React.createElement("span", { style: { position: "absolute", top: -4, right: -2, fontSize: 8, background: "#ff9800", color: "#fff", borderRadius: 3, padding: "0 2px" } }, "\u79D8")));
+                })),
+                React.createElement("div", { style: { display: "flex", gap: 12 } },
+                    React.createElement("div", { style: { flex: 1 } },
+                        React.createElement("label", { style: lbl }, nerv ? "// LEADER //" : "\u7D44\u9577"),
+                        React.createElement("select", { style: inp, value: g.leader, onChange: e => updateGroup(idx, "leader", parseInt(e.target.value)) },
+                            React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
+                            g.members.map(n => React.createElement("option", { key: n, value: n }, n, " \u865F")))),
+                    React.createElement("div", { style: { flex: 1 } },
+                        React.createElement("label", { style: lbl }, nerv ? "// SECRETARY //" : "\u79D8\u66F8"),
+                        React.createElement("select", { style: inp, value: g.secretary, onChange: e => updateGroup(idx, "secretary", parseInt(e.target.value)) },
+                            React.createElement("option", { value: 0 }, "\u672A\u6307\u5B9A"),
+                            g.members.map(n => React.createElement("option", { key: n, value: n }, n, " \u865F")))))
+            ))),
+            draft.length < 8 && (React.createElement("button", { onClick: addGroup, style: { display: "block", width: "100%", padding: 12, marginBottom: 16, background: nerv ? "rgba(255,102,0,.06)" : "#eef4ff", border: nerv ? "1px dashed rgba(255,102,0,.4)" : "2px dashed #c3d8ff", color: nerv ? "#ff6600" : "#1e3a5f", borderRadius: nerv ? 4 : 12, cursor: "pointer", fontSize: 14, fontWeight: 700 } }, nerv ? "+ ADD UNIT" : "+ \u65B0\u589E\u7D44\u5225")),
+            React.createElement("div", { style: Object.assign(Object.assign({}, panel), { border: nerv ? "1px solid rgba(255,0,0,.5)" : "2px solid #ffcdd2", background: nerv ? "rgba(255,0,0,.05)" : "#fff9f9", marginBottom: 16 }) },
+                React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: "#e53935", marginBottom: 8 } }, nerv ? "\u26A0 DANGER ZONE // \u6E05\u9664\u6B77\u53F2\u8CC7\u6599" : "\u26A0\uFE0F \u6E05\u9664\u6B77\u53F2\u7D00\u9304"),
+                React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,100,100,.6)" : "#aab8cc", marginBottom: 14, lineHeight: 1.6 } }, nerv ? "// \u6E05\u9664\u5F8C\u7121\u6CD5\u5FA9\u539F // \u9069\u5408\u5B78\u5E74\u7D50\u675F\u5F8C\u4F7F\u7528" : "\u6E05\u9664\u5F8C\u7121\u6CD5\u5FA9\u539F\uFF0C\u8ACB\u78BA\u8A8D\u5DF2\u5099\u4EFD\u3002\u9069\u5408\u5B78\u5E74\u7D50\u675F\u5F8C\u4F7F\u7528\u3002"),
+                React.createElement("button", { onClick: () => setClearModal(true), style: { padding: "10px 20px", background: "#e53935", border: "none", color: "#fff", borderRadius: nerv ? 2 : 10, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "\u26A0 PURGE DATA" : "\u6E05\u9664\u6240\u6709\u7D00\u9304")),
+            React.createElement("button", { onClick: doSave, style: { display: "block", width: "100%", padding: 16, background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f", border: nerv ? "1px solid #ff6600" : "none", color: nerv ? "#ff6600" : "#fff", borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900, boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)", letterSpacing: nerv ? 4 : 1, fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit", transition: "background .3s", marginBottom: 32 } }, saved ? (nerv ? "\u2705 CONFIG SAVED" : "\u2705 \u5DF2\u5132\u5B58\uFF01") : (nerv ? "// SAVE CONFIG //" : "\u5132\u5B58\u8A2D\u5B9A"))),
         clearModal && (React.createElement("div", { style: { position: "fixed", inset: 0, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 } },
             React.createElement("div", { style: { background: nerv ? "#0a0100" : "#fff", border: nerv ? "2px solid #ff0000" : "none", borderRadius: nerv ? 4 : 20, padding: 28, width: 320, maxWidth: "92vw", boxShadow: "0 20px 60px rgba(0,0,0,.4)" } },
                 React.createElement("div", { style: { fontSize: 16, fontWeight: 900, color: "#e53935", marginBottom: 8 } }, nerv ? "⚠ CONFIRM DATA PURGE" : "⚠️ 確認清除"),
