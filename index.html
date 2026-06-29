@@ -3892,23 +3892,24 @@ function App() {
         setShowClassDropdown(false);
         // 切換年份：月曆跳到該班級的學年
         var yr = parseInt(cls.year) || new Date().getFullYear();
+        var mo = new Date().getMonth();
         setCurYear(yr);
-        setCurMonth(new Date().getMonth());
-        setSelDate(yr + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-01');
+        setCurMonth(mo);
+        setSelDate(yr + '-' + String(mo+1).padStart(2,'0') + '-01');
         setView("month");
         // 重新載入該班級的分組（傳入 cls.id 避免 activeClassId 閉包舊值問題）
         try {
             const grpKey = "hw5ren:groups:" + cls.id;
             const grpData = safeJSON(safeGet(grpKey), null);
             if (grpData && grpData.length > 0) {
-                // 有儲存過的組別 → 還原
                 saveGroupsForClass(grpData, cls.id);
             } else {
-                // 新班級或尚未設定組別 → 重置為空的第1組
                 var emptyGroup = [{ id: 1, label: "\u7B2C1\u7D44", members: [], leader: 0, secretary: 0 }];
                 saveGroupsForClass(emptyGroup, cls.id);
             }
         } catch(e) {}
+        // 強制重載月曆（classPrefix 已更新，確保讀到新班級資料）
+        setTimeout(function() { doLoadMonth(yr, mo); }, 50);
     }
 
     // 新增班級
@@ -3927,14 +3928,17 @@ function App() {
         setGroups(g);
         try { window._fallbackGroups = g; } catch(e) {}
         _sl.set("hw5ren:groups", JSON.stringify(g));
-        var cid = classId || activeClassId;
+        // 優先用傳入的 classId，否則直接讀 localStorage（不依賴 React state）
+        var cid = classId || _sl.get("hw5ren:activeClass") || activeClassId;
         if (cid) {
             _sl.set("hw5ren:groups:" + cid, JSON.stringify(g));
         }
         saveSettingsToFirebase(undefined, undefined, undefined, undefined, g, undefined, undefined, undefined);
     }
     function saveGroups(g) {
-        saveGroupsForClass(g, activeClassId);
+        // 直接從 localStorage 讀最新的 activeClassId，避免閉包舊值
+        var cid = _sl.get("hw5ren:activeClass") || activeClassId;
+        saveGroupsForClass(g, cid);
     }
     const [curYear, setCurYear] = useState(() => {
         try {
