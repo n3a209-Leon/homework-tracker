@@ -534,7 +534,7 @@
         [data-theme="nerv"] .exempt-row:hover{background:rgba(255,204,0,.05)}
         [data-theme="nerv"] .exempt-empty{color:rgba(255,204,0,.2)}
         /* ── Slip (回條) panel ── */
-        .slip-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;margin-top:16px}
+        .slip-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-top:16px}
         .slip-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #ffe0cc;flex-wrap:wrap;gap:6px}
         .slip-title{font-size:15px;font-weight:800;color:#e65100;letter-spacing:1px}
         .slip-add-btn{background:#ff6d00;color:#fff;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
@@ -4433,6 +4433,9 @@ function App() {
     const [slipOpenIdx, setSlipOpenIdx] = useState(null); // which slip is expanded
     const [slipNameModal, setSlipNameModal] = useState(false); // add-slip modal
     const [slipNameInput, setSlipNameInput] = useState('');
+    const DEFAULT_SLIP_PRESETS = ['\u904B\u52D5\u6703\u540C\u610F\u66F8','\u6821\u5916\u6559\u5B78\u56DE\u689D','\u8AB2\u5F8C\u8F14\u5C0E\u56DE\u689D','\u5065\u5EB7\u7D71\u8A08\u56DE\u689D'];
+    const [slipPresets, setSlipPresets] = useState(function(){ try{ return JSON.parse(safeGet('hw5ren:slipPresets')||'null')||DEFAULT_SLIP_PRESETS; }catch(e){ return DEFAULT_SLIP_PRESETS; } });
+    const [slipPresetInput, setSlipPresetInput] = useState('');
     const daySlipsRef = useRef([]);
     useEffect(() => { daySlipsRef.current = daySlips; }, [daySlips]);
     // ── 自動同步 Timer（debounce 3秒）──
@@ -5942,28 +5945,6 @@ function App() {
                             )
                         );
                     }),
-                slipNameModal && (React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300} },
-                    React.createElement("div", { style:{background:"#fff",borderRadius:18,padding:24,width:300,maxWidth:"90vw",boxShadow:"0 20px 60px rgba(0,0,0,.3)"} },
-                        React.createElement("div", { style:{fontSize:15,fontWeight:900,color:"#e65100",marginBottom:14} }, "\uD83D\uDFE0 \u65B0\u589E\u56DE\u689D\u540D\u7A31"),
-                        React.createElement("div", { style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12} },
-                            ["\u904B\u52D5\u6703\u540C\u610F\u66F8","\u6821\u5916\u6559\u5B78\u56DE\u689D","\u8AB2\u5F8C\u8F14\u5C0E\u56DE\u689D","\u5065\u5EB7\u7D71\u8A08\u56DE\u689D","\u5176\u4ED6"].map(function(t){
-                                return React.createElement("button", { key:t, onClick:function(){setSlipNameInput(t);},
-                                    style:{padding:"5px 10px",fontSize:12,borderRadius:14,border:"1px solid #ffab91",background:slipNameInput===t?"#ff6d00":"#fff3e0",color:slipNameInput===t?"#fff":"#e65100",cursor:"pointer",fontFamily:"inherit"} }, t);
-                            })),
-                        React.createElement("input", { style:{width:"100%",padding:"10px 12px",border:"1.5px solid #ffab91",borderRadius:10,fontSize:14,boxSizing:"border-box",fontFamily:"inherit",outline:"none",marginBottom:14},
-                            placeholder:"\u81EA\u8A02\u540D\u7A31\u2026", value:slipNameInput,
-                            onChange:function(e){setSlipNameInput(e.target.value);},
-                            onKeyDown:function(e){ if(e.key==='Enter'&&slipNameInput.trim()){ var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}]; setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); } } }),
-                        React.createElement("div", { style:{display:"flex",gap:10} },
-                            React.createElement("button", { style:{flex:1,padding:"10px",border:"1px solid #ddd",borderRadius:10,background:"#f5f5f5",cursor:"pointer",fontFamily:"inherit",fontWeight:700},
-                                onClick:function(){setSlipNameModal(false);} }, "\u53D6\u6D88"),
-                            React.createElement("button", { style:{flex:1,padding:"10px",border:"none",borderRadius:10,background:slipNameInput.trim()?"#ff6d00":"#ffab91",color:"#fff",cursor:slipNameInput.trim()?"pointer":"not-allowed",fontFamily:"inherit",fontWeight:700,fontSize:14},
-                                disabled:!slipNameInput.trim(),
-                                onClick:function(){ if(!slipNameInput.trim()) return;
-                                    var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}];
-                                    setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); } }, "\u78BA\u8A8D\u5EFA\u7ACB")))
-                    )
-                )
             ),
             dayRows.some(r => r.hwName && !NO_EXEMPT_HW.has(r.hwName)) && (React.createElement("div", { className: "exempt-panel" },
                 React.createElement("div", { className: "exempt-header" },
@@ -6077,6 +6058,54 @@ function App() {
                 className: "gr-add-btn",
                 onClick: function() { setGrDialog(true); setGrSeats([]); setGrCat('學習'); setGrContent(''); setGrTime(grNowTime()); setGrMsg(''); }
             }, isNerv ? "◈ ADD GUIDANCE LOG" : "＋ 新增輔導紀錄"))),
+        slipNameModal && (React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:500,padding:"20px"} },
+            React.createElement("div", { style:{background:"#fff",borderRadius:18,padding:24,width:"100%",maxWidth:340,boxShadow:"0 20px 60px rgba(0,0,0,.35)",maxHeight:"80vh",overflowY:"auto"} },
+                React.createElement("div", { style:{fontSize:15,fontWeight:900,color:"#e65100",marginBottom:14} }, "\uD83D\uDFE0 \u65B0\u589E\u56DE\u689D\u540D\u7A31"),
+                React.createElement("div", { style:{fontSize:12,color:"#ffab91",marginBottom:8,fontWeight:600} }, "\u5FEB\u901F\u9078\u9805\uFF08\u53EF\u65B0\u589E / \u522A\u9664\uFF09"),
+                React.createElement("div", { style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10} },
+                    slipPresets.map(function(t, pi){
+                        return React.createElement("div", { key:pi, style:{display:"flex",alignItems:"center",gap:2} },
+                            React.createElement("button", { onClick:function(){setSlipNameInput(t);},
+                                style:{padding:"5px 10px",fontSize:12,borderRadius:14,border:"1px solid #ffab91",background:slipNameInput===t?"#ff6d00":"#fff3e0",color:slipNameInput===t?"#fff":"#e65100",cursor:"pointer",fontFamily:"inherit"} }, t),
+                            React.createElement("button", { onClick:function(e){ e.stopPropagation();
+                                    var next=slipPresets.filter(function(_,i){return i!==pi;});
+                                    setSlipPresets(next); safeSet('hw5ren:slipPresets',JSON.stringify(next));
+                                    if(slipNameInput===t) setSlipNameInput('');
+                                },
+                                style:{background:"none",border:"none",color:"#ffab91",cursor:"pointer",fontSize:14,padding:"0 2px",lineHeight:1} }, "\u00D7"));
+                    })),
+                React.createElement("div", { style:{display:"flex",gap:6,marginBottom:14} },
+                    React.createElement("input", { style:{flex:1,padding:"6px 10px",border:"1px solid #ffab91",borderRadius:10,fontSize:12,fontFamily:"inherit",outline:"none"},
+                        placeholder:"\u65B0\u589E\u5FEB\u901F\u9078\u9805\u2026", value:slipPresetInput,
+                        onChange:function(e){setSlipPresetInput(e.target.value);},
+                        onKeyDown:function(e){ if(e.key==='Enter'&&slipPresetInput.trim()){
+                            var next=[...slipPresets,slipPresetInput.trim()];
+                            setSlipPresets(next); safeSet('hw5ren:slipPresets',JSON.stringify(next)); setSlipPresetInput('');
+                        }} }),
+                    React.createElement("button", { onClick:function(){ if(!slipPresetInput.trim()) return;
+                            var next=[...slipPresets,slipPresetInput.trim()];
+                            setSlipPresets(next); safeSet('hw5ren:slipPresets',JSON.stringify(next)); setSlipPresetInput('');
+                        },
+                        style:{padding:"6px 12px",border:"none",borderRadius:10,background:"#ff6d00",color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12} }, "+ \u52A0\u5165")),
+                React.createElement("div", { style:{borderTop:"1px solid #ffe0cc",paddingTop:12,marginBottom:12} },
+                    React.createElement("div", { style:{fontSize:12,color:"#ffab91",marginBottom:8,fontWeight:600} }, "\u56DE\u689D\u540D\u7A31"),
+                    React.createElement("input", { style:{width:"100%",padding:"10px 12px",border:"1.5px solid #ffab91",borderRadius:10,fontSize:14,boxSizing:"border-box",fontFamily:"inherit",outline:"none"},
+                        placeholder:"\u8F38\u5165\u6216\u9EDE\u9078\u4E0A\u65B9\u5FEB\u901F\u9078\u9805\u2026", value:slipNameInput,
+                        onChange:function(e){setSlipNameInput(e.target.value);},
+                        onKeyDown:function(e){ if(e.key==='Enter'&&slipNameInput.trim()){
+                            var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}];
+                            setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); setSlipNameInput('');
+                        }} })),
+                React.createElement("div", { style:{display:"flex",gap:10} },
+                    React.createElement("button", { style:{flex:1,padding:"10px",border:"1px solid #ddd",borderRadius:10,background:"#f5f5f5",cursor:"pointer",fontFamily:"inherit",fontWeight:700},
+                        onClick:function(){setSlipNameModal(false); setSlipNameInput(''); setSlipPresetInput('');} }, "\u53D6\u6D88"),
+                    React.createElement("button", { style:{flex:1,padding:"10px",border:"none",borderRadius:10,background:slipNameInput.trim()?"#ff6d00":"#ffab91",color:"#fff",cursor:slipNameInput.trim()?"pointer":"not-allowed",fontFamily:"inherit",fontWeight:700,fontSize:14},
+                        disabled:!slipNameInput.trim(),
+                        onClick:function(){ if(!slipNameInput.trim()) return;
+                            var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}];
+                            setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); setSlipNameInput(''); } }, "\u78BA\u8A8D\u5EFA\u7ACB"))
+            )
+        )),
         modal && modal.phase === "hwpicker" && React.createElement("div", {
             style: {
                 position:"fixed", inset:0, zIndex:300,
