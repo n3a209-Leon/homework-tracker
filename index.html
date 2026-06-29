@@ -3534,15 +3534,20 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
         });
     }
     function addGroup() {
-        if (draft.length >= 8)
+        if (draft.length >= 10)
             return;
         const newId = draft.length + 1;
-        setDraft(prev => [...prev, { id: newId, label: "第"+KANJI_NUM[prev.length]+"組", members: [], leader: 0, secretary: 0 }]);
+        setDraft(prev => [...prev, { id: newId, label: "第"+newId+"組", members: [], leader: 0, secretary: 0 }]);
     }
     function removeGroup(idx) {
-        if (draft.length <= 2)
+        if (draft.length <= 1)
             return;
         setDraft(prev => prev.filter((_, i) => i !== idx).map((g, i) => (Object.assign(Object.assign({}, g), { id: i + 1 }))));
+    }
+    function resetGroups() {
+        if (!window.confirm("\u78BA\u5B9A\u8981\u6E05\u9664\u6240\u6709\u7D44\u5225\u8A2D\u5B9A\uFF1F\uFF08\u4E0D\u6703\u522A\u9664\u4F5C\u696D\u7D00\u9304\uFF09")) return;
+        setDraft([{ id: 1, label: "\u7B2C1\u7D44", members: [], leader: 0, secretary: 0 }]);
+        setGroupOpen({ 0: true });
     }
     function doSave() {
         const valid = draft.every(g => g.members.length > 0);
@@ -3709,7 +3714,7 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                                 others.length > 0 && React.createElement("span", { style:{ fontSize:12, color:"#4a6fa5", background:"#eef2fb", borderRadius:6, padding:"1px 6px" } }, others.join(",")))),
                         React.createElement("div", { style:{ display:"flex", alignItems:"center", gap:8 } },
                             React.createElement("span", { style:{ fontSize:12, color:nerv?"rgba(255,102,0,.6)":"#aab8cc" } }, g.members.length+"\u4EBA"),
-                            draft.length > 1 && React.createElement("button", { onClick: function(e){ e.stopPropagation(); removeGroup(idx); }, style:{ background:"rgba(229,57,53,.15)", border:"1px solid #e53935", color:"#e53935", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:12, fontWeight:700 } }, nerv?"× DEL":"× \u522A\u7D44"),
+                            React.createElement("button", { onClick: function(e){ e.stopPropagation(); removeGroup(idx); }, style:{ background:"rgba(229,57,53,.15)", border:"1px solid #e53935", color:"#e53935", borderRadius:6, padding:"3px 8px", cursor:"pointer", fontSize:12, fontWeight:700 } }, nerv?"× DEL":"× \u522A\u7D44"),
                             React.createElement("span", { style:{ fontSize:13, color:"#aab8cc" } }, isOpen?"\u25B2":"\u25BC"))),
                     isOpen && React.createElement(React.Fragment, null,
                         React.createElement("label", { style:lbl },
@@ -3738,7 +3743,8 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                                     React.createElement("option", { value:0 }, "\u672A\u6307\u5B9A"),
                                     g.members.map(function(n){ return React.createElement("option",{key:n,value:n},n+"\u865F"); })))))));
             }),
-            draft.length < 10 && React.createElement("button", { onClick:function(){ addGroup(); setGroupOpen(function(p){ var n=Object.assign({},p); n[draft.length]=true; return n; }); }, style:{ display:"block", width:"100%", padding:12, marginBottom:16, background:nerv?"rgba(255,102,0,.06)":"#eef4ff", border:nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff", color:nerv?"#ff6600":"#1e3a5f", borderRadius:nerv?4:12, cursor:"pointer", fontSize:14, fontWeight:700 } }, nerv?"+ ADD UNIT":"+ \u65B0\u589E\u7D44\u5225"),
+            draft.length < 10 && React.createElement("button", { onClick:function(){ addGroup(); setGroupOpen(function(p){ var n=Object.assign({},p); n[draft.length]=true; return n; }); }, style:{ display:"block", width:"100%", padding:12, marginBottom:8, background:nerv?"rgba(255,102,0,.06)":"#eef4ff", border:nerv?"1px dashed rgba(255,102,0,.4)":"2px dashed #c3d8ff", color:nerv?"#ff6600":"#1e3a5f", borderRadius:nerv?4:12, cursor:"pointer", fontSize:14, fontWeight:700 } }, nerv?"+ ADD UNIT":"+ \u65B0\u589E\u7D44\u5225"),
+            React.createElement("button", { onClick: resetGroups, style:{ display:"block", width:"100%", padding:10, marginBottom:16, background:"rgba(229,57,53,.08)", border:"1.5px dashed #e53935", color:"#e53935", borderRadius:nerv?4:12, cursor:"pointer", fontSize:13, fontWeight:700 } }, "\u267B\uFE0F \u5168\u90E8\u6E05\u9664\u7D44\u5225\uFF08\u91CD\u65B0\u8A2D\u5B9A\uFF09"),
             React.createElement("div", { style: Object.assign(Object.assign({}, panel), { border: nerv ? "1px solid rgba(255,0,0,.5)" : "2px solid #ffcdd2", background: nerv ? "rgba(255,0,0,.05)" : "#fff9f9", marginBottom: 16 }) },
                 React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: "#e53935", marginBottom: 8 } }, nerv ? "\u26A0 DANGER ZONE // \u6E05\u9664\u6B77\u53F2\u8CC7\u6599" : "\u26A0\uFE0F \u6E05\u9664\u6B77\u53F2\u7D00\u9304"),
                 React.createElement("p", { style: { fontSize: 12, color: nerv ? "rgba(255,100,100,.6)" : "#aab8cc", marginBottom: 14, lineHeight: 1.6 } }, nerv ? "// \u6E05\u9664\u5F8C\u7121\u6CD5\u5FA9\u539F // \u9069\u5408\u5B78\u5E74\u7D50\u675F\u5F8C\u4F7F\u7528" : "\u6E05\u9664\u5F8C\u7121\u6CD5\u5FA9\u539F\uFF0C\u8ACB\u78BA\u8A8D\u5DF2\u5099\u4EFD\u3002\u9069\u5408\u5B78\u5E74\u7D50\u675F\u5F8C\u4F7F\u7528\u3002"),
