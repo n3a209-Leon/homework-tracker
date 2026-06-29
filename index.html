@@ -4695,6 +4695,13 @@ function App() {
     const [attPeriod, setAttPeriod] = useState({});
     const [periodModal, setPeriodModal] = useState(null);
     const [periodSel, setPeriodSel] = useState([]);
+    // ── 任何形式缺席判斷（全天 dayAtt 或節次 attPeriod 任一有記錄即算缺席）──
+    function isAnyAbsent(n) {
+        if (Object.values(dayAtt).some(function(s){ return s && s.has(n); })) return true;
+        var p = attPeriod[n];
+        if (p && Object.values(p).some(function(arr){ return arr && arr.length > 0; })) return true;
+        return false;
+    }
     // ── Exempt modal ──
     const [exemptModal, setExemptModal] = useState(null); // { hwName } | null — used for inline expand
     const [showExemptStats, setShowExemptStats] = useState(false);
@@ -4822,9 +4829,9 @@ function App() {
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
         if (!recorded)
             return "untouched";
-        // 缺席學生集合（全天缺席）
+        // 缺席學生集合（全天或節次缺席）
         var absentSet = new Set();
-        g.members.forEach(function(m){ if(Object.values(dayAtt).some(function(s){ return s && s.has(m); })) absentSet.add(m); });
+        g.members.forEach(function(m){ if(isAnyAbsent(m)) absentSet.add(m); });
         // dual gid（含 _）不使用 exemptSet，直接判斷
         var isDualKey = typeof gid === 'string' && gid.includes('_');
         // 非缺席、非抵免的成員才算「應交」
@@ -4853,10 +4860,9 @@ function App() {
         if (!g) return [];
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
-        // 缺席學生排除在未交名單外
+        // 缺席學生排除在未交名單外（全天或節次缺席）
         return g.members.filter(function(m){
-            var isAbsent = Object.values(dayAtt).some(function(s){ return s && s.has(m); });
-            return !done.has(m) && !exemptSet.has(m) && !isAbsent;
+            return !done.has(m) && !exemptSet.has(m) && !isAnyAbsent(m);
         });
     }
     function getExemptInGroup(ri, gid) {
@@ -6612,7 +6618,7 @@ function App() {
                     (() => {
                         var _realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
                         const grp = groups.find(g => g.id === _realGid);
-                        const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.filter(function(n){ return !Object.values(dayAtt).some(function(s){ return s && s.has(n); }); }).every(n => marked.has(n));
+                        const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.filter(function(n){ return !isAnyAbsent(n); }).every(n => marked.has(n));
                         const members = (grp === null || grp === void 0 ? void 0 : grp.members) || [];
                         // 蜂巢排列：每行交錯偏移，奇數行往右偏半格
                         // 計算每顆六角形的 x/y 位置
@@ -6640,7 +6646,7 @@ function App() {
                                                 setMarked(new Set());
                                             } else {
                                                 // 整組全交：排除缺席學生
-                                                var nonAbsent = new Set(grp.members.filter(function(n){ return !Object.values(dayAtt).some(function(s){ return s && s.has(n); }); }));
+                                                var nonAbsent = new Set(grp.members.filter(function(n){ return !isAnyAbsent(n); }));
                                                 setMarked(nonAbsent);
                                                 setNoneFired(false);
                                             }
@@ -6674,7 +6680,7 @@ function App() {
                             isNerv ? React.createElement("span", { className: "nerv-unit-label" },
                                 React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(resGroup === null || resGroup === void 0 ? void 0 : resGroup.id))) : resGroup === null || resGroup === void 0 ? void 0 : resGroup.label)),
                     (function(){
-                        var absentInGrp = (resGroup ? resGroup.members : []).filter(function(n){ return Object.values(dayAtt).some(function(s){ return s && s.has(n); }); });
+                        var absentInGrp = (resGroup ? resGroup.members : []).filter(function(n){ return isAnyAbsent(n); });
                         return React.createElement(React.Fragment, null,
                             resMissing.length === 0
                                 ? React.createElement("div", { className: "ra" },
