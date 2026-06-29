@@ -3850,7 +3850,7 @@ function App() {
     const [showClassDropdown, setShowClassDropdown] = useState(false);
 
     // 儲存 classes
-    async function saveSettingsToFirebase(cn, sn, sy, cls) {
+    async function saveSettingsToFirebase(cn, sn, sy, cls, grp, cs, ss1, ss2) {
         if (!firebaseUid) return;
         try {
             await window.fsSet(firebaseUid, 'settings:main', {
@@ -3858,6 +3858,10 @@ function App() {
                 schoolName: sn  !== undefined ? sn  : schoolName,
                 schoolYear: sy  !== undefined ? sy  : schoolYear,
                 classes:    cls !== undefined ? cls : classes,
+                groups:     grp !== undefined ? grp : groups,
+                classSize:  cs  !== undefined ? cs  : classSize,
+                semStart1:  ss1 !== undefined ? ss1 : semStart1,
+                semStart2:  ss2 !== undefined ? ss2 : semStart2,
                 updatedAt:  new Date().toISOString()
             });
         } catch(e) {}
@@ -3913,6 +3917,8 @@ function App() {
         if (activeClassId) {
             _sl.set("hw5ren:groups:" + activeClassId, JSON.stringify(g));
         }
+        // 同步到 Firebase
+        saveSettingsToFirebase(undefined, undefined, undefined, undefined, g, undefined, undefined, undefined);
     }
     const [curYear, setCurYear] = useState(() => {
         try {
@@ -4113,7 +4119,7 @@ function App() {
             setDriveStatus('syncing');
             setStor(function(s) { return Object.assign({}, s, { msg: '☁️ 從雲端載入…' }); });
             try {
-                // ── 設定資料：從 Firebase 還原 className / schoolName / schoolYear / classes ──
+                // ── 設定資料：從 Firebase 還原 className / schoolName / schoolYear / classes / groups / classSize / semStart ──
                 var savedSettings = await window.fsGet(firebaseUid, 'settings:main');
                 if (savedSettings) {
                     if (savedSettings.className)  { setClassName(savedSettings.className);   try { _sl.set('hw5ren:className', savedSettings.className); } catch(ex) {} }
@@ -4123,6 +4129,16 @@ function App() {
                         setClasses(savedSettings.classes);
                         try { _sl.set('hw5ren:classes', JSON.stringify(savedSettings.classes)); } catch(ex) {}
                     }
+                    if (savedSettings.groups && Array.isArray(savedSettings.groups)) {
+                        setGroups(savedSettings.groups);
+                        try { _sl.set('hw5ren:groups', JSON.stringify(savedSettings.groups)); } catch(ex) {}
+                        // 同時存班級快照
+                        var _aid = safeGet('hw5ren:activeClass');
+                        if (_aid) { try { _sl.set('hw5ren:groups:'+_aid, JSON.stringify(savedSettings.groups)); } catch(ex) {} }
+                    }
+                    if (savedSettings.classSize) { setClassSize(parseInt(savedSettings.classSize)||40); try { _sl.set('hw5ren:classSize', String(savedSettings.classSize)); } catch(ex) {} }
+                    if (savedSettings.semStart1) { setSemStart1(savedSettings.semStart1); try { _sl.set('hw5ren:semStart1', savedSettings.semStart1); } catch(ex) {} }
+                    if (savedSettings.semStart2) { setSemStart2(savedSettings.semStart2); try { _sl.set('hw5ren:semStart2', savedSettings.semStart2); } catch(ex) {} }
                 }
                 // ── 作業資料 ──
                 var _pfx = classPrefix();
@@ -7437,7 +7453,7 @@ function App() {
         ),
         /* wpInputOpen 已廢棄，改由 hwpicker 處理 */
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, semStart1: semStart1, setSemStart1: (v) => { setSemStart1(v); _sl.set("hw5ren:semStart1", v); }, semStart2: semStart2, setSemStart2: (v) => { setSemStart2(v); _sl.set("hw5ren:semStart2", v); }, classSize: classSize, setClassSize: (v) => { setClassSize(v); _sl.set("hw5ren:classSize", String(v)); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, semStart1: semStart1, setSemStart1: (v) => { setSemStart1(v); _sl.set("hw5ren:semStart1", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, v, undefined); }, semStart2: semStart2, setSemStart2: (v) => { setSemStart2(v); _sl.set("hw5ren:semStart2", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, undefined, v); }, classSize: classSize, setClassSize: (v) => { setClassSize(v); _sl.set("hw5ren:classSize", String(v)); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, v, undefined, undefined); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
