@@ -4822,13 +4822,25 @@ function App() {
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
         if (!recorded)
             return "untouched";
+        // 缺席學生集合（全天缺席）
+        var absentSet = new Set();
+        g.members.forEach(function(m){ if(Object.values(dayAtt).some(function(s){ return s && s.has(m); })) absentSet.add(m); });
         // dual gid（含 _）不使用 exemptSet，直接判斷
         var isDualKey = typeof gid === 'string' && gid.includes('_');
-        if (done.size === 0 && (exemptSet.size === 0 || isDualKey))
+        // 非缺席、非抵免的成員才算「應交」
+        var shouldSubmit = g.members.filter(function(m){ return !absentSet.has(m) && (isDualKey || !exemptSet.has(m)); });
+        if (shouldSubmit.length === 0) {
+            // 全組都是缺席/抵免 → 黃色三角形
+            return "partial";
+        }
+        if (done.size === 0 && shouldSubmit.length > 0)
             return "allabsent";
-        const realMissing = g.members.filter(m => !done.has(m) && !exemptSet.has(m));
-        if (realMissing.length === 0)
+        var realMissing = shouldSubmit.filter(function(m){ return !done.has(m); });
+        if (realMissing.length === 0) {
+            // 應交的人全交了，但有缺席者 → 黃色三角形
+            if (absentSet.size > 0) return "partial";
             return "complete";
+        }
         return "partial";
     }
     function getMissing(ri, gid) {
@@ -4841,7 +4853,11 @@ function App() {
         if (!g) return [];
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
-        return g.members.filter(m => !done.has(m) && !exemptSet.has(m));
+        // 缺席學生排除在未交名單外
+        return g.members.filter(function(m){
+            var isAbsent = Object.values(dayAtt).some(function(s){ return s && s.has(m); });
+            return !done.has(m) && !exemptSet.has(m) && !isAbsent;
+        });
     }
     function getExemptInGroup(ri, gid) {
         var _a, _b, _c;
@@ -5945,7 +5961,7 @@ function App() {
                                             setDaySlips(next); saveCurrent(null,null,null,next);
                                         },
                                         style:{padding:"6px 18px",border:"1px solid #ffab91",borderRadius:20,background:"#fff8f5",color:"#e65100",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}
-                                    }, "\u21BA \u5168\u90E8\u6E05\u9664")),
+                                    }, "\u00D7 \u5168\u90E8\u6E05\u9664")),
                                 ALL_MEMBERS.map(function(n){
                                     var grp = groups.find(function(g){return g.members.includes(n);});
                                     var isPaid = slip.paid.has(n);
@@ -6596,7 +6612,7 @@ function App() {
                     (() => {
                         var _realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
                         const grp = groups.find(g => g.id === _realGid);
-                        const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.every(n => marked.has(n));
+                        const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.filter(function(n){ return !Object.values(dayAtt).some(function(s){ return s && s.has(n); }); }).every(n => marked.has(n));
                         const members = (grp === null || grp === void 0 ? void 0 : grp.members) || [];
                         // 蜂巢排列：每行交錯偏移，奇數行往右偏半格
                         // 計算每顆六角形的 x/y 位置
@@ -6623,8 +6639,10 @@ function App() {
                                             if (allSelected) {
                                                 setMarked(new Set());
                                             } else {
-                                                setMarked(new Set(grp.members));
-                                                setNoneFired(false); // 整組全交時清除紫光
+                                                // 整組全交：排除缺席學生
+                                                var nonAbsent = new Set(grp.members.filter(function(n){ return !Object.values(dayAtt).some(function(s){ return s && s.has(n); }); }));
+                                                setMarked(nonAbsent);
+                                                setNoneFired(false);
                                             }
                                         } }, allSelected ? "↩ 取消全選" : "✓ 整組全交"),
                                     React.createElement("button", { 
@@ -6655,11 +6673,21 @@ function App() {
                             "\u2014 ",
                             isNerv ? React.createElement("span", { className: "nerv-unit-label" },
                                 React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(resGroup === null || resGroup === void 0 ? void 0 : resGroup.id))) : resGroup === null || resGroup === void 0 ? void 0 : resGroup.label)),
-                    resMissing.length === 0 ? (React.createElement("div", { className: "ra" },
-                        React.createElement("span", { className: "bc2" }, isNerv ? "⬡" : "○"),
-                        React.createElement("p", null, isNerv ? "▸ ALL CLEAR — MISSION COMPLETE ◂" : "全組繳交完成！"))) : (React.createElement("div", { className: "rm" },
-                        React.createElement("p", { className: "rl" }, isNerv ? "⚠ PILOTS NOT REPORTING" : "未繳交"),
-                        React.createElement("div", { className: "mg2" }, resMissing.map(n => React.createElement("span", { key: n, className: "mt2" }, isNerv ? String(n).padStart(2, "0") : n))))),
+                    (function(){
+                        var absentInGrp = (resGroup ? resGroup.members : []).filter(function(n){ return Object.values(dayAtt).some(function(s){ return s && s.has(n); }); });
+                        return React.createElement(React.Fragment, null,
+                            resMissing.length === 0
+                                ? React.createElement("div", { className: "ra" },
+                                    React.createElement("span", { className: "bc2" }, isNerv ? "\u29C6" : "\u25CB"),
+                                    React.createElement("p", null, isNerv ? "\u25B8 ALL CLEAR \u2014 MISSION COMPLETE \u25C2" : "\u5168\u7D44\u7E73\u4EA4\u5B8C\u6210\uFF01"))
+                                : React.createElement("div", { className: "rm" },
+                                    React.createElement("p", { className: "rl" }, isNerv ? "\u26A0 PILOTS NOT REPORTING" : "\u672A\u7E73\u4EA4"),
+                                    React.createElement("div", { className: "mg2" }, resMissing.map(function(n){ return React.createElement("span", { key: n, className: "mt2" }, isNerv ? String(n).padStart(2, "0") : n); }))),
+                            absentInGrp.length > 0 && React.createElement("div", { style:{marginTop:10,textAlign:"center"} },
+                                React.createElement("p", { style:{fontSize:12,color:"#f57c00",fontWeight:700,marginBottom:4} }, "\u672A\u5230\u6821\uFF08\u4E0D\u8A08\u5165\u672A\u4EA4\uFF09"),
+                                React.createElement("div", { className: "mg2" }, absentInGrp.map(function(n){ return React.createElement("span", { key: n, className: "mt2", style:{background:"#fff8e1",color:"#e65100",border:"1.5px solid #ffc107"} }, isNerv ? String(n).padStart(2,"0") : n); })))
+                        );
+                    })(),
                     React.createElement("div", { className: "ma" },
                         React.createElement("button", { className: "bk", onClick: closeModal }, "\u95DC\u9589"))))))),
         attModal && (React.createElement("div", { className: "ov", onClick: closeAttModal },
