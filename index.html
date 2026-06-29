@@ -3989,7 +3989,6 @@ function App() {
     }
     function copyGrRecords(records) {
         var now = new Date();
-        var header = '【' + (schoolName||'') + (className||'班') + '輔導紀錄】\n匯出時間：' + now.toLocaleString('zh-TW') + '\n\n';
         var sem = currentSemStart();
         // 依周次分組
         var byWeek = {};
@@ -3999,16 +3998,37 @@ function App() {
             if (!byWeek[key]) byWeek[key] = [];
             byWeek[key].push(r);
         });
-        var lines = [header];
+        // 提示詞開頭（同 grGenerateFormal 格式）
+        var prompt_header = [
+            '\u4F60\u662F\u4E00\u4F4D\u570B\u5C0F\u5C0E\u5E2B\u7684\u884C\u653F\u52A9\u7406\u3002',
+            '\u8ACB\u5C07\u4E0B\u5217\u53E3\u8A9E\u8F14\u5C0E\u7D00\u9304\uFF0C\u6539\u5BEB\u6210\u5177\u6709\u5BE6\u52D9\u63A1\u8B49\u6548\u529B\u7684\u6B63\u5F0F\u8F14\u5C0E\u7D00\u9304\u6587\u4EF6\u3002',
+            '\u8A9E\u6C23\u70BA\u6B63\u5F0F\u516C\u6587\u9AD4\uFF0C\u5BA2\u89C0\u3001\u7CBE\u78BA\u3001\u4E0D\u5E36\u60C5\u7DD2\u3002\u82E5\u8CC7\u8A0A\u4E0D\u8DB3\u8ACB\u586B\u300C\u5F85\u88DC\u5145\u300D\u3002\u8ACB\u76F4\u63A5\u8F38\u51FA\u6587\u4EF6\u5168\u6587\uFF0C\u4E0D\u8981\u52A0\u8AAA\u660E\u6216\u524D\u8A00\u3002',
+            '',
+            '\u300A\u8F38\u51FA\u683C\u5F0F\uFF08\u4E03\u9805\u7F3A\u4E00\u4E0D\u53EF\uFF09\u300B',
+            '\u5B78\u751F\u8F14\u5C0E\u7D00\u9304',
+            '',
+            '\u4E00\u3001\u8F14\u5C0E\u6642\u9593\uFF1A\uFF08\u5F9E\u539F\u59CB\u8CC7\u6599\u5E36\u5165\uFF0C\u7CBE\u78BA\u5230\u5206\u9418\uFF09',
+            '\u4E8C\u3001\u8F14\u5C0E\u5730\u9EDE\uFF1A',
+            '\u4E09\u3001\u5B78\u751F\u59D3\u540D\u8207\u73ED\u7D1A\uFF1A\u4E94\u5E74\u58EC\u73ED',
+            '\u56DB\u3001\u4E8B\u4EF6\u5BA2\u89C0\u63CF\u8FF0\uFF1A\uFF08\u53EA\u5BEB\u4E8B\u5BE6\uFF0C\u4E0D\u52A0\u4E3B\u89C0\u5224\u65B7\uFF0C\u907F\u514D\u60C5\u7DD2\u6027\u7528\u8A9E\uFF09',
+            '\u4E94\u3001\u8F14\u5C0E\u65B9\u5F0F\u8207\u904E\u7A0B\uFF1A\uFF08\u6559\u5E2B\u8AAA\u4E86\u4EC0\u9EBC\u3001\u5B78\u751F\u5982\u4F55\u56DE\u61C9\uFF0C\u91CD\u8981\u8A9E\u53E5\u7528\u5F15\u865F\u300C\u300D\u6A19\u8A18\uFF09',
+            '\u516D\u3001\u76F8\u95DC\u4EBA\u54E1\u53CD\u61C9\uFF1A\uFF08\u5BB6\u9577\u6216\u5176\u4ED6\u4EBA\u54E1\u7684\u614B\u5EA6\u8207\u56DE\u61C9\uFF09',
+            '\u4E03\u3001\u5F8C\u7E8C\u8FFD\u8E64\u8A08\u756B\uFF1A\uFF08\u5177\u9AD4\u4E0B\u4E00\u6B65\u884C\u52D5\uFF09',
+            '',
+            '\u8A18\u9304\u4EBA\uFF1A\u9673\u838A\u5BB8\u3000\u5C0E\u5E2B',
+            '\u8A18\u9304\u6642\u9593\uFF1A' + now.toLocaleString('zh-TW'),
+            '',
+            '\u3014\u539F\u59CB\u53E3\u8A9E\u7D00\u9304\u3015'
+        ].join('\n');
+        var lines = [prompt_header, ''];
         Object.keys(byWeek).sort().forEach(function(wk) {
             var wkRecs = byWeek[wk];
-            // 週期間（第一天到最後一天）
             var dates = wkRecs.map(function(r){ return r.date; }).sort();
             var weekRange = dates[0] === dates[dates.length-1] ? dates[0] : dates[0]+'～'+dates[dates.length-1];
-            lines.push('▌' + wk + '（' + weekRange + '）');
-            lines.push('─────────────────────');
+            lines.push('\u25AE ' + wk + '\uFF08' + weekRange + '\uFF09');
+            lines.push('\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500');
             wkRecs.forEach(function(r) {
-                lines.push('📅 ' + r.date + '｜座號 ' + (r.studentSeats||[]).join('、') + '｜' + (r.category||''));
+                lines.push('\uD83D\uDCC5 ' + r.date + '\uFF5C\u5EA7\u865F ' + (r.studentSeats||[]).join('\u3001') + '\uFF5C' + (r.category||''));
                 lines.push(r.content || '');
                 lines.push('');
             });
@@ -4017,7 +4037,7 @@ function App() {
         var text = lines.join('\n');
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text).then(function(){
-                setGrCopyMsg('✅ 已複製！貼進 AI 即可使用');
+                setGrCopyMsg('\u2705 \u5DF2\u8907\u88FD\uFF01\u8CBC\u9032 Claude \u5373\u53EF\u4F7F\u7528');
                 setTimeout(function(){ setGrCopyMsg(''); }, 3000);
             });
         }
@@ -7216,7 +7236,7 @@ function App() {
                     });
                     return React.createElement(React.Fragment, null,
                         React.createElement("div", { style:{fontSize:12,color:"#aab8cc",marginBottom:10} }, "\u9EDE\u9078\u5468\u6B21\u5C55\u958B\u8A72\u5468\u7D00\u9304\uFF0C\u9078\u597D\u5F8C\u5C07\u5185\u5BB9\u8907\u88FD\u5230\u526A\u8CBC\u7C3F"),
-                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16} },
+                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12} },
                             weekNums.map(function(wn) {
                                 var recs = weekMap[wn];
                                 var isSel = grWeekSel.includes(wn);
@@ -7252,26 +7272,25 @@ function App() {
                                 );
                             })
                         ),
+                        // 選取後立即顯示複製按鈕（在週次按鈕下方）
+                        grWeekSel.length > 0 && React.createElement("button", {
+                            style:{display:"block",width:"100%",padding:"12px",background:"#7b1fa2",border:"none",color:"#fff",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:800,fontFamily:"inherit",boxShadow:"0 2px 8px rgba(123,31,162,.3)",marginBottom:12},
+                            onClick: function(){ copyGrRecords(selRecs); }
+                        }, "\uD83D\uDCCB \u8907\u88FD\u9078\u53D6\u5468\u6B21\uFF08"+selRecs.length+"\u7B46\uFF09 \u2192 \u8CBC\u9032 Claude"),
                         // 展開顯示選取週次的紀錄
-                        grWeekSel.length > 0 && React.createElement(React.Fragment, null,
-                            React.createElement("div", { style:{borderTop:"1px solid #f0e6fa",paddingTop:12,marginBottom:12} },
-                                selRecs.map(function(r) {
-                                    return React.createElement("div", { key: r.id, className: "gr-record-item" },
-                                        React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
-                                            React.createElement("div", { className: "gr-record-meta" }, r.date + "\u3000" + r.category),
-                                            React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "\u270F\uFE0F"),
-                                            React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "\uD83D\uDCC4"),
-                                            React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "\uD83D\uDDD1\uFE0F")
-                                        ),
-                                        React.createElement("div", { className: "gr-record-content" }, r.content),
-                                        React.createElement("div", { className: "gr-record-seats" }, "\u5EA7\u865F\uFF1A" + (r.studentSeats||[]).join("\u3001"))
-                                    );
-                                })
-                            ),
-                            React.createElement("button", {
-                                style:{display:"block",width:"100%",padding:"12px",background:"#7b1fa2",border:"none",color:"#fff",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:800,fontFamily:"inherit",boxShadow:"0 2px 8px rgba(123,31,162,.3)"},
-                                onClick: function(){ copyGrRecords(selRecs); }
-                            }, "\uD83D\uDCCB \u8907\u88FD\u9078\u53D6\u5468\u6B21\uFF08"+selRecs.length+"\u7B46\uFF09")
+                        grWeekSel.length > 0 && React.createElement("div", { style:{borderTop:"1px solid #f0e6fa",paddingTop:12} },
+                            selRecs.map(function(r) {
+                                return React.createElement("div", { key: r.id, className: "gr-record-item" },
+                                    React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
+                                        React.createElement("div", { className: "gr-record-meta" }, r.date + "\u3000" + r.category),
+                                        React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "\u270F\uFE0F"),
+                                        React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "\uD83D\uDCC4"),
+                                        React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "\uD83D\uDDD1\uFE0F")
+                                    ),
+                                    React.createElement("div", { className: "gr-record-content" }, r.content),
+                                    React.createElement("div", { className: "gr-record-seats" }, "\u5EA7\u865F\uFF1A" + (r.studentSeats||[]).join("\u3001"))
+                                );
+                            })
                         )
                     );
                 })()
