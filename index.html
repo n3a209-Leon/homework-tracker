@@ -533,6 +533,45 @@
         [data-theme="nerv"] .exempt-hint{color:rgba(255,204,0,.35);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px}
         [data-theme="nerv"] .exempt-row:hover{background:rgba(255,204,0,.05)}
         [data-theme="nerv"] .exempt-empty{color:rgba(255,204,0,.2)}
+        /* ── Slip (回條) panel ── */
+        .slip-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);overflow:hidden;margin-top:16px}
+        .slip-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #ffe0cc;flex-wrap:wrap;gap:6px}
+        .slip-title{font-size:15px;font-weight:800;color:#e65100;letter-spacing:1px}
+        .slip-add-btn{background:#ff6d00;color:#fff;border:none;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+        .slip-add-btn:disabled{opacity:.4;cursor:not-allowed}
+        .slip-row-wrap{border-bottom:1px solid #fff3e0}
+        .slip-row-wrap:last-child{border-bottom:none}
+        .slip-hw-row{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;flex-wrap:wrap}
+        .slip-hw-row:hover{background:#fff3e0}
+        .slip-open .slip-hw-row{background:#fff3e0;border-bottom:1px solid #ff6d00}
+        .slip-hw-name{font-weight:700;font-size:14px;color:#bf360c;min-width:60px;flex-shrink:0}
+        .slip-preview{display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center}
+        .slip-unpaid-label{font-size:11px;color:#e65100;font-weight:600}
+        .slip-toggle{font-size:11px;color:#ffab91;flex-shrink:0;margin-left:auto}
+        .slip-del-btn{background:none;border:1px solid #ffccbc;color:#e64a19;border-radius:8px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit;margin-left:6px}
+        .slip-seat-grid{display:flex;flex-wrap:wrap;gap:10px;padding:14px 16px;background:#fff8f5;justify-content:center}
+        .nb-slip-paid{background:#ff6d00!important;border-color:#ff6d00!important;color:#fff!important;box-shadow:0 2px 8px rgba(255,109,0,.4)!important}
+        .slip-empty-label{font-size:13px;color:#ffab91;text-align:center;width:100%;padding:12px 0}
+        [data-theme="nerv"] .slip-panel{background:#080200;border:1px solid #ff6600;border-radius:4px}
+        [data-theme="nerv"] .slip-header{border-color:rgba(255,102,0,.3)}
+        [data-theme="nerv"] .slip-title{color:#ff6600;font-family:'Share Tech Mono',monospace;text-shadow:0 0 8px rgba(255,102,0,.5)}
+        [data-theme="nerv"] .slip-row-wrap{border-color:rgba(255,102,0,.1)}
+        [data-theme="nerv"] .slip-hw-row:hover{background:rgba(255,102,0,.06)}
+        [data-theme="nerv"] .slip-open .slip-hw-row{background:rgba(255,102,0,.1);border-color:rgba(255,102,0,.4)}
+        [data-theme="nerv"] .slip-hw-name{color:#ff8844;font-family:'Share Tech Mono',monospace}
+        [data-theme="nerv"] .slip-seat-grid{background:rgba(255,102,0,.04)}
+        /* ── Slip history (設定頁) ── */
+        .slip-hist-month{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden;margin-bottom:14px}
+        .slip-hist-month-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;background:#fff3e0;font-weight:800;font-size:14px;color:#e65100}
+        .slip-hist-day{padding:12px 16px;border-top:1px solid #ffe0cc}
+        .slip-hist-day-hdr{font-size:13px;font-weight:700;color:#bf360c;margin-bottom:8px}
+        .slip-hist-slip{margin-bottom:8px;padding:8px 10px;background:#fff8f5;border-radius:10px;border-left:3px solid #ff6d00}
+        .slip-hist-slip-name{font-size:13px;font-weight:800;color:#e65100;margin-bottom:4px}
+        .slip-hist-nums{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:3px}
+        .slip-hist-tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+        .slip-hist-paid{background:#fff3e0;color:#e65100;border:1px solid #ffab91}
+        .slip-hist-unpaid{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+        .slip-hist-stat{font-size:11px;color:#aab8cc;margin-top:3px}
         .att-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);padding:16px 18px;margin-top:16px}
         .att-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
         .att-title{font-size:15px;font-weight:800;color:#1e3a5f;letter-spacing:1px}
@@ -2753,14 +2792,14 @@ async function loadDay(dateStr) {
     if (raw) {
         try {
             const d = deser(JSON.parse(raw));
-            return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt, attendancePeriod: d.attendancePeriod || {} };
+            return { ok: true, rows: d.rows, attendance: d.attendance, exempt: d.exempt, attendancePeriod: d.attendancePeriod || {}, slips: d.slips || [] };
         }
         catch (_c) { }
     }
-    return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {}, attendancePeriod: {} };
+    return { ok: true, rows: [], attendance: { personal: new Set(), sick: new Set(), public: new Set() }, exempt: {}, attendancePeriod: {}, slips: [] };
 }
-async function saveDay(dateStr, rows, attendance, exempt, attendancePeriod) {
-    const json = JSON.stringify(ser(rows, attendance, exempt, attendancePeriod));
+async function saveDay(dateStr, rows, attendance, exempt, attendancePeriod, slips) {
+    const json = JSON.stringify(ser(rows, attendance, exempt, attendancePeriod, slips));
     // 1. IndexedDB（主要）
     let idbOk = false;
     try {
@@ -2785,7 +2824,7 @@ async function loadMonth(y, m) {
     return entries;
 }
 // ── serialise / deserialise ──────────────────────────────────────────────────
-function ser(rows, attendance, exempt, attendancePeriod) {
+function ser(rows, attendance, exempt, attendancePeriod, slips) {
     var _a, _b, _c;
     return {
         rows: rows.map(r => ({
@@ -2799,6 +2838,7 @@ function ser(rows, attendance, exempt, attendancePeriod) {
         },
         exempt: Object.fromEntries(Object.entries(exempt !== null && exempt !== void 0 ? exempt : {}).map(([hw, nums]) => [hw, [...nums]])),
         attendancePeriod: attendancePeriod || {},
+        slips: (slips || []).map(function(s){ return { name: s.name, paid: Array.isArray(s.paid) ? s.paid : [...(s.paid||[])] }; }),
     };
 }
 function deser(data) {
@@ -2816,6 +2856,7 @@ function deser(data) {
         },
         exempt: Object.fromEntries(Object.entries((_g = raw.exempt) !== null && _g !== void 0 ? _g : {}).map(([hw, nums]) => [hw, new Set(nums)])),
         attendancePeriod: raw.attendancePeriod || {},
+        slips: (raw.slips || []).map(function(s){ return { name: s.name||'', paid: new Set(s.paid||[]) }; }),
     };
 }
 // ── Date helpers ─────────────────────────────────────────────────────────────
@@ -3375,6 +3416,42 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
     const [draftSemStart2, setDraftSemStart2] = useState(semStart2 || '');
     const [saved, setSaved] = useState(false);
     const [clearModal, setClearModal] = useState(false);
+    // ── Slip history state ──
+    const [slipHist, setSlipHist] = useState(null); // null = not loaded
+    const [slipHistLoading, setSlipHistLoading] = useState(false);
+    const [slipHistOpen, setSlipHistOpen] = useState(false);
+    const [slipHistMonthOpen, setSlipHistMonthOpen] = useState({});
+    async function loadSlipHist() {
+        setSlipHistLoading(true);
+        try {
+            var allKeys = (await idbKeys()).filter(function(k){ return k.startsWith('day:'+schoolYear+'-'); });
+            var allMembers = groups.reduce(function(acc,g){return acc.concat(g.members);}, []).sort(function(a,b){return a-b;});
+            var byMonth = {};
+            for (var ki = 0; ki < allKeys.length; ki++) {
+                var k = allKeys[ki];
+                var raw = await idbGet(k);
+                if (!raw) continue;
+                try {
+                    var data = JSON.parse(raw);
+                    var slips = data.slips || [];
+                    if (!slips.length) continue;
+                    var ds = k.replace('day:','');
+                    var mo = ds.substring(0,7); // YYYY-MM
+                    if (!byMonth[mo]) byMonth[mo] = [];
+                    byMonth[mo].push({ date: ds, slips: slips.map(function(s){ return { name: s.name, paid: new Set(s.paid||[]) }; }) });
+                } catch(e) {}
+            }
+            // sort days within each month
+            Object.keys(byMonth).forEach(function(mo){
+                byMonth[mo].sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+            });
+            setSlipHist({ byMonth: byMonth, allMembers: allMembers });
+            // open the most recent month by default
+            var months = Object.keys(byMonth).sort();
+            if (months.length) { var def = {}; def[months[months.length-1]] = true; setSlipHistMonthOpen(def); }
+        } catch(e) { setSlipHist({ byMonth: {}, allMembers: [] }); }
+        setSlipHistLoading(false);
+    }
     const [clearDel, setClearDel] = useState("");
     const [clearInput, setClearInput] = useState({
         className: "",
@@ -3600,6 +3677,52 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                 ? "// 清除後無法復原 // 適合學年結束後使用"
                 : "清除後無法復原，請確認已備份。適合學年結束後使用。"),
             React.createElement("button", { onClick: () => setClearModal(true), style: { padding: "10px 20px", background: "#e53935", border: "none", color: "#fff", borderRadius: nerv ? 2 : 10, cursor: "pointer", fontSize: 13, fontWeight: 700 } }, nerv ? "⚠ PURGE DATA" : "清除所有紀錄")),
+        React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#fff3e0", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
+            React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: slipHistOpen ? 14 : 0, cursor: "pointer" },
+                onClick: function(){ if(!slipHistOpen){ setSlipHistOpen(true); if(!slipHist) loadSlipHist(); } else setSlipHistOpen(false); } },
+                React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#e65100" } }, nerv ? "// SLIP HISTORY //" : "\uD83D\uDFE0 \u56DE\u689D\u7E73\u4EA4\u7D00\u9304"),
+                React.createElement("span", { style: { fontSize: 12, color: nerv ? "rgba(255,102,0,.5)" : "#ffab91" } }, slipHistOpen ? "\u25B2 \u6536\u8D77" : "\u25BC \u5C55\u958B\u67E5\u770B")),
+            slipHistOpen && (slipHistLoading
+                ? React.createElement("div", { style: { textAlign: "center", padding: "20px 0", color: "#ffab91", fontSize: 13 } }, "\uD83D\uDD04 \u8F09\u5165\u4E2D\u2026")
+                : (!slipHist || !Object.keys(slipHist.byMonth).length)
+                    ? React.createElement("div", { style: { textAlign: "center", padding: "16px 0", color: "#ffab91", fontSize: 13 } }, "\u672C\u5B78\u5E74\u5C1A\u7121\u56DE\u689D\u7D00\u9304")
+                    : Object.keys(slipHist.byMonth).sort().reverse().map(function(mo) {
+                        var days = slipHist.byMonth[mo];
+                        var allMembers = slipHist.allMembers;
+                        var isMonOpen = !!slipHistMonthOpen[mo];
+                        var totalSlips = days.reduce(function(a,d){return a+d.slips.length;},0);
+                        var moLabel = mo.replace('-','年')+'月';
+                        return React.createElement("div", { key: mo, className: "slip-hist-month" },
+                            React.createElement("div", { className: "slip-hist-month-hdr",
+                                onClick: function(){ setSlipHistMonthOpen(function(p){ var n=Object.assign({},p); n[mo]=!n[mo]; return n; }); } },
+                                React.createElement("span", null, moLabel, " \uFF08", totalSlips, " \u5F35\u56DE\u689D\uFF09"),
+                                React.createElement("span", { style: { fontSize: 12, fontWeight: 400 } }, isMonOpen ? "\u25B2" : "\u25BC")),
+                            isMonOpen && days.map(function(dayEntry) {
+                                var dateLabel = dayEntry.date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1/$2/$3');
+                                return React.createElement("div", { key: dayEntry.date, className: "slip-hist-day" },
+                                    React.createElement("div", { className: "slip-hist-day-hdr" }, "\uD83D\uDCC5 ", dateLabel),
+                                    dayEntry.slips.map(function(slip, si) {
+                                        var paidArr = [...slip.paid].sort(function(a,b){return a-b;});
+                                        var unpaidArr = allMembers.filter(function(n){ return !slip.paid.has(n); });
+                                        var total = allMembers.length;
+                                        return React.createElement("div", { key: si, className: "slip-hist-slip" },
+                                            React.createElement("div", { className: "slip-hist-slip-name" }, "\uD83D\uDFE0 ", slip.name),
+                                            React.createElement("div", { className: "slip-hist-nums" },
+                                                paidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-paid"},n); }),
+                                                paidArr.length === 0 && React.createElement("span",{style:{fontSize:12,color:'#bbb'}},"\u5C1A\u7121\u4EBA\u4EA4")),
+                                            unpaidArr.length > 0 && React.createElement("div", { style:{marginTop:4} },
+                                                React.createElement("span",{style:{fontSize:11,color:'#c62828',fontWeight:700}},"\u672A\u4EA4\uFF1A"),
+                                                unpaidArr.map(function(n){ return React.createElement("span",{key:n,className:"slip-hist-tag slip-hist-unpaid"},n); })),
+                                            React.createElement("div", { className: "slip-hist-stat" },
+                                                "\u5DF2\u4EA4 ", paidArr.length, " / ", total, " \u4EBA",
+                                                unpaidArr.length === 0 ? " \u2714 \u5168\u6211\u4EA4\u9F50" : " \u2014 \u672A\u4EA4 "+unpaidArr.length+" \u4EBA"));
+                                    })
+                                );
+                            })
+                        );
+                    })
+            )
+        ),
         React.createElement("div", { style: { background: nerv ? "rgba(255,102,0,.06)" : "#f0f7ff", borderRadius: nerv ? 4 : 14, padding: "16px", marginBottom: 16 } },
             React.createElement("div", { style: { fontSize: 14, fontWeight: 800, color: nerv ? "#ff8844" : "#1e3a5f", marginBottom: 12 } }, nerv ? "// SEMESTER DATES //" : "📅 學期開始日期"),
             React.createElement("div", { style: { display: "flex", gap: 12, flexWrap: "wrap" } },
@@ -4024,12 +4147,12 @@ function App() {
     }, [authed, firebaseUid]);
     async function doSync() {
         if (!firebaseUid) {
-            setStor({ state: 'error', msg: '⚠️ 請先登入再同步' });
+            setStor({ state: 'error', msg: '\u26A0\uFE0F \u8ACB\u5148\u767B\u5165\u518D\u540C\u6B65' });
             return;
         }
         setDriveStatus('syncing');
         try {
-            const keys = (await idbKeys()).filter(k => k.startsWith('day:2'));
+            const keys = (await idbKeys()).filter(k => k.startsWith('day:2') || k.startsWith('counsel:'));
             const snap = {};
             for (const k of keys) {
                 const v = await idbGet(k);
@@ -4247,6 +4370,8 @@ function App() {
         setDayAtt(res.attendance);
         setDayExempt(res.exempt || {});
         setAttPeriod(res.attendancePeriod || {});
+        setDaySlips((res.slips || []).map(function(s){ return { name: s.name, paid: s.paid instanceof Set ? s.paid : new Set(s.paid||[]) }; }));
+        setSlipOpenIdx(null);
         setSelDate(ds);
         // 記住最後狀態
         try { safeSet('hw5ren:lastDate', ds); } catch(e) {}
@@ -4303,6 +4428,13 @@ function App() {
     useEffect(() => { dayAttRef.current = dayAtt; }, [dayAtt]);
     const dayRowsRef = useRef([]);
     useEffect(() => { dayRowsRef.current = dayRows; }, [dayRows]);
+    // ── Slip (回條) state ──
+    const [daySlips, setDaySlips] = useState([]); // [{ name: '...', paid: Set<number> }, ...]
+    const [slipOpenIdx, setSlipOpenIdx] = useState(null); // which slip is expanded
+    const [slipNameModal, setSlipNameModal] = useState(false); // add-slip modal
+    const [slipNameInput, setSlipNameInput] = useState('');
+    const daySlipsRef = useRef([]);
+    useEffect(() => { daySlipsRef.current = daySlips; }, [daySlips]);
     // ── 自動同步 Timer（debounce 3秒）──
     const autoSyncTimer = useRef(null);
     function scheduleAutoSync() {
@@ -4335,19 +4467,20 @@ function App() {
             }
         }, 3000);
     }
-    const saveCurrent = useCallback(async (newRows, newAtt, newExempt) => {
+    const saveCurrent = useCallback(async (newRows, newAtt, newExempt, newSlips) => {
         const rows = newRows !== null && newRows !== void 0 ? newRows : dayRowsRef.current;
         const att = newAtt !== null && newAtt !== void 0 ? newAtt : dayAttRef.current;
         const exempt = newExempt !== null && newExempt !== void 0 ? newExempt : dayExemptRef.current;
-        setStor(s => (Object.assign(Object.assign({}, s), { state: "saving", msg: "💾 儲存中…" })));
+        const slips = newSlips !== null && newSlips !== void 0 ? newSlips : daySlipsRef.current;
+        setStor(s => (Object.assign(Object.assign({}, s), { state: "saving", msg: "\uD83D\uDCBE \u5132\u5B58\u4E2D\u2026" })));
         const date = selDateRef.current;
-        const res = await saveDay(date, rows, att, exempt, attPeriod);
+        const res = await saveDay(date, rows, att, exempt, attPeriod, slips);
         setMonthDays(prev => (Object.assign(Object.assign({}, prev), { [date]: { rows, attendance: att, exempt, attendancePeriod: attPeriod } })));
         setStor({ state: "saved",
-            msg: res.source === "idb" ? "📦 已儲存（IDB）" : "💾 已儲存（本機）",
+            msg: res.source === "idb" ? "\uD83D\uDCE6 \u5DF2\u5132\u5B58\uFF08IDB\uFF09" : "\uD83D\uDCBE \u5DF2\u5132\u5B58\uFF08\u672C\u6A5F\uFF09",
             detail: date });
         setTimeout(() => setStor(s => s.state === "saved"
-            ? { state: "ok", msg: res.source === "idb" ? "📦 IDB 正常" : "💾 本機儲存", detail: "" }
+            ? { state: "ok", msg: res.source === "idb" ? "\uD83D\uDCE6 IDB \u6B63\u5E38" : "\uD83D\uDCBE \u672C\u6A5F\u5132\u5B58", detail: "" }
             : s), 2000);
         // 3秒後自動同步到 Drive（背景執行，不影響操作）
         scheduleAutoSync();
@@ -5759,6 +5892,79 @@ function App() {
                             } },
                             React.createElement("td", { colSpan: 7 },
                                 isNerv ? "[ ADD MISSION LOG ]" : "➕ 新增功課"))))),
+            React.createElement("div", { className: "slip-panel" },
+                React.createElement("div", { className: "slip-header" },
+                    React.createElement("span", { className: "slip-title" }, isNerv ? "\u25A6 SLIP LOG" : "\uD83D\uDFE0 \u56DE\u689D"),
+                    React.createElement("button", { className: "slip-add-btn", disabled: daySlips.length >= 10,
+                        onClick: function(){ setSlipNameInput(''); setSlipNameModal(true); } },
+                        isNerv ? "+ ADD" : (daySlips.length >= 10 ? "\u5DF2\u9054\u4E0A\u9650" : "+ \u65B0\u589E\u56DE\u689D"))),
+                daySlips.length === 0
+                    ? React.createElement("div", { className: "slip-empty-label" }, isNerv ? "// NO SLIPS //" : "\u4ECA\u65E5\u5C1A\u7121\u56DE\u689D\uFF0C\u9EDE\u300C+ \u65B0\u589E\u300D\u5EFA\u7ACB")
+                    : daySlips.map(function(slip, si) {
+                        var isOpen = slipOpenIdx === si;
+                        var paidArr = [...slip.paid].sort(function(a,b){return a-b;});
+                        var unpaidArr = ALL_MEMBERS.filter(function(n){ return !slip.paid.has(n); }).sort(function(a,b){return a-b;});
+                        return React.createElement("div", { key: si, className: "slip-row-wrap"+(isOpen?" slip-open":"") },
+                            React.createElement("div", { className: "slip-hw-row", onClick: function(){ setSlipOpenIdx(isOpen ? null : si); } },
+                                React.createElement("span", { className: "slip-hw-name" }, slip.name),
+                                React.createElement("div", { className: "slip-preview" },
+                                    unpaidArr.length === 0
+                                        ? React.createElement("span", { style:{fontSize:12,color:'#4caf50',fontWeight:700} }, isNerv ? "ALL CLEAR" : "\u5168\u6211\u4EA4\u9F50 \u2714")
+                                        : React.createElement("span", { className: "slip-unpaid-label" },
+                                            isNerv ? "MISSING: " : "\u672A\u4EA4\uFF1A",
+                                            unpaidArr.join(', '))),
+                                React.createElement("button", { className: "slip-del-btn",
+                                    onClick: function(e){ e.stopPropagation();
+                                        if(window.confirm('\u522A\u9664\u300C'+slip.name+'\u300D\uFF1F')){
+                                            var next = daySlips.filter(function(_,i){return i!==si;});
+                                            setDaySlips(next); setSlipOpenIdx(null); saveCurrent(null,null,null,next);
+                                        }
+                                    } }, isNerv ? "\u00D7 DEL" : "\u00D7 \u522A\u9664"),
+                                React.createElement("span", { className: "slip-toggle" }, isOpen ? "\u25B2" : "\u25BC")),
+                            isOpen && React.createElement("div", { className: "slip-seat-grid" },
+                                ALL_MEMBERS.map(function(n){
+                                    var grp = groups.find(function(g){return g.members.includes(n);});
+                                    var isPaid = slip.paid.has(n);
+                                    return React.createElement("div", { key: n, className: "nw",
+                                        onClick: function(){
+                                            var next = daySlips.map(function(s,i){
+                                                if(i!==si) return s;
+                                                var np = new Set(s.paid);
+                                                isPaid ? np.delete(n) : np.add(n);
+                                                return {name:s.name, paid:np};
+                                            });
+                                            setDaySlips(next); saveCurrent(null,null,null,next);
+                                        } },
+                                        React.createElement("button", { className: "nb"+(isPaid?" nb-slip-paid":"")+(n===(grp===null||grp===void 0?void 0:grp.leader)?" ldr":"")+(n===(grp===null||grp===void 0?void 0:grp.secretary)?" sec":"") }, n),
+                                        n===(grp===null||grp===void 0?void 0:grp.leader) && React.createElement("span",{className:"role-tag lt"},"\u7D44\u9577"),
+                                        n===(grp===null||grp===void 0?void 0:grp.secretary) && React.createElement("span",{className:"role-tag st"},"\u79D8\u66F8"));
+                                })
+                            )
+                        );
+                    }),
+                slipNameModal && (React.createElement("div", { style:{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300} },
+                    React.createElement("div", { style:{background:"#fff",borderRadius:18,padding:24,width:300,maxWidth:"90vw",boxShadow:"0 20px 60px rgba(0,0,0,.3)"} },
+                        React.createElement("div", { style:{fontSize:15,fontWeight:900,color:"#e65100",marginBottom:14} }, "\uD83D\uDFE0 \u65B0\u589E\u56DE\u689D\u540D\u7A31"),
+                        React.createElement("div", { style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12} },
+                            ["\u904B\u52D5\u6703\u540C\u610F\u66F8","\u6821\u5916\u6559\u5B78\u56DE\u689D","\u8AB2\u5F8C\u8F14\u5C0E\u56DE\u689D","\u5065\u5EB7\u7D71\u8A08\u56DE\u689D","\u5176\u4ED6"].map(function(t){
+                                return React.createElement("button", { key:t, onClick:function(){setSlipNameInput(t);},
+                                    style:{padding:"5px 10px",fontSize:12,borderRadius:14,border:"1px solid #ffab91",background:slipNameInput===t?"#ff6d00":"#fff3e0",color:slipNameInput===t?"#fff":"#e65100",cursor:"pointer",fontFamily:"inherit"} }, t);
+                            })),
+                        React.createElement("input", { style:{width:"100%",padding:"10px 12px",border:"1.5px solid #ffab91",borderRadius:10,fontSize:14,boxSizing:"border-box",fontFamily:"inherit",outline:"none",marginBottom:14},
+                            placeholder:"\u81EA\u8A02\u540D\u7A31\u2026", value:slipNameInput,
+                            onChange:function(e){setSlipNameInput(e.target.value);},
+                            onKeyDown:function(e){ if(e.key==='Enter'&&slipNameInput.trim()){ var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}]; setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); } } }),
+                        React.createElement("div", { style:{display:"flex",gap:10} },
+                            React.createElement("button", { style:{flex:1,padding:"10px",border:"1px solid #ddd",borderRadius:10,background:"#f5f5f5",cursor:"pointer",fontFamily:"inherit",fontWeight:700},
+                                onClick:function(){setSlipNameModal(false);} }, "\u53D6\u6D88"),
+                            React.createElement("button", { style:{flex:1,padding:"10px",border:"none",borderRadius:10,background:slipNameInput.trim()?"#ff6d00":"#ffab91",color:"#fff",cursor:slipNameInput.trim()?"pointer":"not-allowed",fontFamily:"inherit",fontWeight:700,fontSize:14},
+                                disabled:!slipNameInput.trim(),
+                                onClick:function(){ if(!slipNameInput.trim()) return;
+                                    var next=[...daySlips,{name:slipNameInput.trim(),paid:new Set()}];
+                                    setDaySlips(next); setSlipOpenIdx(next.length-1); saveCurrent(null,null,null,next); setSlipNameModal(false); } }, "\u78BA\u8A8D\u5EFA\u7ACB")))
+                    )
+                )
+            ),
             dayRows.some(r => r.hwName && !NO_EXEMPT_HW.has(r.hwName)) && (React.createElement("div", { className: "exempt-panel" },
                 React.createElement("div", { className: "exempt-header" },
                     React.createElement("span", { className: "exempt-title" }, isNerv ? "◈ EXEMPTION LOG" : "📋 作業抵免"),
