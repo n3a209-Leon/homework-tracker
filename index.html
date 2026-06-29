@@ -7028,7 +7028,7 @@ function App() {
                     React.createElement("button", { style:{background:"none",border:"none",fontSize:20,cursor:"pointer",color:"inherit",opacity:.6}, onClick: function() { setGrCenter(false); } }, "×")
                 ),
                 React.createElement("div", { className: "gr-tabs" },
-                    [["recent","最近紀錄"],["student","學生歷程"],["date","日期查詢"]].map(function(t) {
+                    [["recent","最近紀錄"],["student","學生歷程"],["date","日期查詢"],["week","週次匯出"]].map(function(t) {
                         return React.createElement("button", {
                             key: t[0], className: "gr-tab" + (grTab === t[0] ? " active" : ""),
                             onClick: function() { setGrTab(t[0]); }
@@ -7194,7 +7194,87 @@ function App() {
                             );
                         })
                     )
-                )
+                ),
+                grTab === "week" && (function() {
+                    var sem = currentSemStart();
+                    if (!sem) return React.createElement("div", { style:{background:"#fff3e0",border:"1px solid #ffb74d",borderRadius:10,padding:"12px 14px",fontSize:12,color:"#e65100",marginTop:8} },
+                        "\u26A0\uFE0F \u8ACB\u5148\u5230\u300C\u8A2D\u5B9A\u300D\u586B\u5165\u5B78\u671F\u958B\u59CB\u65E5\u671F\uFF0C\u624D\u80FD\u8A08\u7B97\u5468\u6B21\u3002");
+                    // 建立週次 → 紀錄的對應
+                    var weekMap = {};
+                    grRecords.forEach(function(r) {
+                        var wn = getWeekNum(r.date, sem);
+                        var key = wn !== null ? wn : -1;
+                        if (!weekMap[key]) weekMap[key] = [];
+                        weekMap[key].push(r);
+                    });
+                    var weekNums = Object.keys(weekMap).map(Number).sort(function(a,b){ return a-b; });
+                    if (weekNums.length === 0) return React.createElement("div", { className: "gr-empty" }, "\u5C1A\u7121\u8F14\u5C0E\u7D00\u9304");
+                    // 目前選取的週次
+                    var selRecs = grRecords.filter(function(r){
+                        var wn = getWeekNum(r.date, sem);
+                        return grWeekSel.includes(wn !== null ? wn : -1);
+                    });
+                    return React.createElement(React.Fragment, null,
+                        React.createElement("div", { style:{fontSize:12,color:"#aab8cc",marginBottom:10} }, "\u9EDE\u9078\u5468\u6B21\u5C55\u958B\u8A72\u5468\u7D00\u9304\uFF0C\u9078\u597D\u5F8C\u5C07\u5185\u5BB9\u8907\u88FD\u5230\u526A\u8CBC\u7C3F"),
+                        React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16} },
+                            weekNums.map(function(wn) {
+                                var recs = weekMap[wn];
+                                var isSel = grWeekSel.includes(wn);
+                                var label = wn === -1 ? "\u672A\u5206\u985E" : "\u7B2C"+wn+"\u9031";
+                                // 取得該週的日期範圍
+                                var dates = recs.map(function(r){ return r.date; }).sort();
+                                var dateRange = dates.length === 0 ? "" :
+                                    dates[0] === dates[dates.length-1] ? dates[0].slice(5).replace("-","/") :
+                                    dates[0].slice(5).replace("-","/")+"\uFF5E"+dates[dates.length-1].slice(5).replace("-","/");
+                                // 取得該週不重複的學生座號
+                                var seats = [];
+                                recs.forEach(function(r){ (r.studentSeats||[]).forEach(function(s){ if(!seats.includes(s)) seats.push(s); }); });
+                                seats.sort(function(a,b){return a-b;});
+                                return React.createElement("button", {
+                                    key: wn,
+                                    onClick: function() {
+                                        setGrWeekSel(function(prev) {
+                                            return prev.includes(wn) ? prev.filter(function(x){return x!==wn;}) : [...prev, wn];
+                                        });
+                                    },
+                                    style:{
+                                        padding:"8px 12px", borderRadius:10, border:"2px solid",
+                                        borderColor: isSel ? "#7b1fa2" : "#e0e0e0",
+                                        background: isSel ? "#f3e5f5" : "#fafafa",
+                                        color: isSel ? "#7b1fa2" : "#666",
+                                        cursor:"pointer", fontFamily:"inherit", textAlign:"left",
+                                        minWidth:90, boxShadow: isSel ? "0 2px 8px rgba(123,31,162,.2)" : "none"
+                                    }
+                                },
+                                    React.createElement("div", { style:{fontWeight:800,fontSize:13} }, label),
+                                    React.createElement("div", { style:{fontSize:10,color:"#aaa",marginTop:2} }, dateRange),
+                                    React.createElement("div", { style:{fontSize:10,color:isSel?"#9c27b0":"#aaa",marginTop:1} }, seats.length > 0 ? seats.join(",")+" (" + recs.length + "\u7B46)" : recs.length+"\u7B46")
+                                );
+                            })
+                        ),
+                        // 展開顯示選取週次的紀錄
+                        grWeekSel.length > 0 && React.createElement(React.Fragment, null,
+                            React.createElement("div", { style:{borderTop:"1px solid #f0e6fa",paddingTop:12,marginBottom:12} },
+                                selRecs.map(function(r) {
+                                    return React.createElement("div", { key: r.id, className: "gr-record-item" },
+                                        React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
+                                            React.createElement("div", { className: "gr-record-meta" }, r.date + "\u3000" + r.category),
+                                            React.createElement("button", { className: "gr-edit-btn", onClick: function() { grOpenEdit(r); } }, "\u270F\uFE0F"),
+                                            React.createElement("button", { className: "gr-gen-btn", onClick: function() { grGenerateFormal(r); } }, "\uD83D\uDCC4"),
+                                            React.createElement("button", { className: "gr-del-btn", disabled: grSaving, onClick: function() { grDeleteRecord(r); } }, "\uD83D\uDDD1\uFE0F")
+                                        ),
+                                        React.createElement("div", { className: "gr-record-content" }, r.content),
+                                        React.createElement("div", { className: "gr-record-seats" }, "\u5EA7\u865F\uFF1A" + (r.studentSeats||[]).join("\u3001"))
+                                    );
+                                })
+                            ),
+                            React.createElement("button", {
+                                style:{display:"block",width:"100%",padding:"12px",background:"#7b1fa2",border:"none",color:"#fff",borderRadius:12,cursor:"pointer",fontSize:14,fontWeight:800,fontFamily:"inherit",boxShadow:"0 2px 8px rgba(123,31,162,.3)"},
+                                onClick: function(){ copyGrRecords(selRecs); }
+                            }, "\uD83D\uDCCB \u8907\u88FD\u9078\u53D6\u5468\u6B21\uFF08"+selRecs.length+"\u7B46\uFF09")
+                        )
+                    );
+                })()
             )
         ),
         grMsg && !grDialog && React.createElement("div", { style:{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:"rgba(76,175,80,.9)",color:"#fff",padding:"8px 20px",borderRadius:20,fontSize:13,zIndex:9600,pointerEvents:"none"} }, grMsg),
