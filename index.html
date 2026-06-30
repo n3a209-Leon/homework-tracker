@@ -4299,7 +4299,18 @@ function App() {
                 if (savedSettings) {
                     if (savedSettings.className)  { setClassName(savedSettings.className);   try { _sl.set('hw5ren:className', savedSettings.className); } catch(ex) {} }
                     if (savedSettings.schoolName) { setSchoolName(savedSettings.schoolName); try { _sl.set('hw5ren:school',    savedSettings.schoolName); } catch(ex) {} }
-                    if (savedSettings.schoolYear) { setSchoolYear(savedSettings.schoolYear); try { _sl.set('hw5ren:year',      savedSettings.schoolYear); } catch(ex) {} }
+                    if (savedSettings.schoolYear) {
+                        setSchoolYear(savedSettings.schoolYear);
+                        try { _sl.set('hw5ren:year', savedSettings.schoolYear); } catch(ex) {}
+                        // 同步月曆年份，避免班級與月曆顯示不一致
+                        var _restoredYr = parseInt(savedSettings.schoolYear);
+                        if (_restoredYr && _restoredYr !== curYear) {
+                            setCurYear(_restoredYr);
+                            setCurMonth(new Date().getMonth());
+                            setSelDate(_restoredYr + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-01');
+                            setTimeout(function(){ doLoadMonth(_restoredYr, new Date().getMonth()); }, 80);
+                        }
+                    }
                     if (savedSettings.classes && Array.isArray(savedSettings.classes)) {
                         setClasses(savedSettings.classes);
                         try { _sl.set('hw5ren:classes', JSON.stringify(savedSettings.classes)); } catch(ex) {}
