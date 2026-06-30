@@ -3751,13 +3751,13 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
             React.createElement("div", { style: panel },
                 React.createElement("div", { style:{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 } },
                     React.createElement("div", { style:{ fontSize:14, fontWeight:800, color: nerv?"#ffaa44":"#1e3a5f" } }, "\uD83D\uDCC5 \u7D44\u5225\u7248\u672C"),
-                    React.createElement("button", { onClick: function(){ setNewVerModal(true); setNewVerDate(todayStr); }, style:{ padding:"5px 12px", border:"none", borderRadius:8, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontSize:12, fontWeight:700 } }, "+ \u65B0\u589E\u7248\u672C")),
+                    React.createElement("button", { onClick: function(){ setNewVerModal(true); setNewVerDate(todayStr); }, style:{ padding:"5px 12px", border:"none", borderRadius:8, background:(nerv?"#ff6600":"#1e3a5f"), color:"#fff", cursor:"pointer", fontSize:12, fontWeight:700 } }, "+ \u65B0\u589E\u7248\u672C")),
                 React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap" } },
                     sortedVersions.map(function(v) {
                         var isSel = v.verId === selectedVerId;
                         var isCurrentlyActive = v.effectiveDate <= todayStr && v === defaultVer;
                         return React.createElement("button", { key:v.verId, onClick:function(){ switchVersion(v.verId); },
-                            style:{ padding:"6px 12px", borderRadius:10, border:"2px solid", borderColor: isSel?"#7b1fa2":"#e0e0e0", background: isSel?"#f3e5f5":"#fafafa", color: isSel?"#7b1fa2":"#999", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:700 } },
+                            style:{ padding:"6px 12px", borderRadius:10, border:"2px solid", borderColor: isSel?(nerv?"#ff6600":"#1e3a5f"):"#e0e0e0", background: isSel?(nerv?"rgba(255,102,0,.1)":"#eef2f8"):"#fafafa", color: isSel?(nerv?"#ff6600":"#1e3a5f"):"#999", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:700 } },
                             "\u7B2C" + sortedVersions.slice().reverse().findIndex(function(x){return x.verId===v.verId;}) + 1 + "\u6B21",
                             isCurrentlyActive && React.createElement("span", { style:{marginLeft:4,color:"#4caf50"} }, "\u25CF"),
                             React.createElement("div", { style:{fontSize:9,opacity:.7,marginTop:1} }, v.effectiveDate));
@@ -3766,14 +3766,14 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
                 sortedVersions.length > 1 && React.createElement("button", { onClick: function(){ deleteVersion(selectedVerId); }, style:{ marginTop:10, padding:"6px 14px", border:"1px solid #e53935", borderRadius:8, background:"rgba(229,57,53,.08)", color:"#e53935", cursor:"pointer", fontSize:12, fontWeight:700 } }, "\u00D7 \u522A\u9664\u6B64\u7248\u672C")),
             newVerModal && ReactDOM.createPortal(React.createElement("div", { style:{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:9000, padding:20 } },
                 React.createElement("div", { style:{ background:"#fff", borderRadius:18, padding:24, width:"100%", maxWidth:320, boxShadow:"0 20px 60px rgba(0,0,0,.35)" } },
-                    React.createElement("div", { style:{ fontSize:15, fontWeight:900, color:"#7b1fa2", marginBottom:6 } }, "\uD83D\uDCC5 \u65B0\u589E\u7D44\u5225\u7248\u672C"),
+                    React.createElement("div", { style:{ fontSize:15, fontWeight:900, color:(nerv?"#ff6600":"#1e3a5f"), marginBottom:6 } }, "\uD83D\uDCC5 \u65B0\u589E\u7D44\u5225\u7248\u672C"),
                     React.createElement("p", { style:{ fontSize:11, color:"#aab8cc", marginBottom:12 } }, "\u9078\u64C7\u65B0\u7248\u672C\u5F9E\u54EA\u5929\u958B\u59CB\u751F\u6548\uFF0C\u4E4B\u524D\u7684\u4F5C\u696D\u7D00\u9304\u4ECD\u6703\u986F\u793A\u820A\u7D44\u5225\u5206\u914D"),
-                    React.createElement("input", { type:"date", style:{ width:"100%", padding:"10px 12px", border:"1.5px solid #ce93d8", borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", outline:"none", marginBottom:16 },
+                    React.createElement("input", { type:"date", style:{ width:"100%", padding:"10px 12px", border:"1.5px solid #c3d8ff", borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", outline:"none", marginBottom:16 },
                         value:newVerDate, onChange:function(e){ setNewVerDate(e.target.value); } }),
                     React.createElement("div", { style:{ display:"flex", gap:10 } },
                         React.createElement("button", { style:{ flex:1, padding:"10px", border:"1px solid #ddd", borderRadius:10, background:"#f5f5f5", cursor:"pointer", fontFamily:"inherit", fontWeight:700 },
                             onClick:function(){ setNewVerModal(false); } }, "\u53D6\u6D88"),
-                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"none", borderRadius:10, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:14 },
+                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"none", borderRadius:10, background:(nerv?"#ff6600":"#1e3a5f"), color:"#fff", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:14 },
                             onClick: createNewVersion }, "\u78BA\u8A8D\u5EFA\u7ACB")))
             ), document.body),
             draft.map(function(g, idx) {
@@ -3830,19 +3830,19 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
             React.createElement("button", { onClick: doSave, style: { display: "block", width: "100%", padding: 16, background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f", border: nerv ? "1px solid #ff6600" : "none", color: nerv ? "#ff6600" : "#fff", borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900, boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)", letterSpacing: nerv ? 4 : 1, fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit", transition: "background .3s", marginBottom: 32 } }, saved ? (nerv ? "\u2705 CONFIG SAVED" : "\u2705 \u5DF2\u5132\u5B58\uFF01") : (nerv ? "// SAVE CONFIG //" : "\u5132\u5B58\u8A2D\u5B9A"))),
         settingsTab === 'officer' && React.createElement(React.Fragment, null,
             React.createElement("div", { style:{ display:"flex", gap:8, marginBottom:16 } },
-                React.createElement("button", { onClick:function(){ setOfficerSem('1'); }, style:{ flex:1, padding:"10px 0", border:"2px solid", borderColor: officerSem==='1' ? "#7b1fa2" : "#e0e0e0", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14, fontFamily:"inherit", background: officerSem==='1' ? "#f3e5f5" : "#fafafa", color: officerSem==='1' ? "#7b1fa2" : "#999" } }, "\u4E0A\u5B78\u671F\u5E79\u90E8"),
-                React.createElement("button", { onClick:function(){ setOfficerSem('2'); }, style:{ flex:1, padding:"10px 0", border:"2px solid", borderColor: officerSem==='2' ? "#7b1fa2" : "#e0e0e0", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14, fontFamily:"inherit", background: officerSem==='2' ? "#f3e5f5" : "#fafafa", color: officerSem==='2' ? "#7b1fa2" : "#999" } }, "\u4E0B\u5B78\u671F\u5E79\u90E8")),
+                React.createElement("button", { onClick:function(){ setOfficerSem('1'); }, style:{ flex:1, padding:"10px 0", border:"2px solid", borderColor: officerSem==='1' ? (nerv?"#ff8844":"#1e3a5f") : "#e0e0e0", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14, fontFamily:"inherit", background: officerSem==='1' ? (nerv?"rgba(255,102,0,.06)":"#f3e5f5") : "#fafafa", color: officerSem==='1' ? (nerv?"#ff8844":"#1e3a5f") : "#999" } }, "\u4E0A\u5B78\u671F\u5E79\u90E8"),
+                React.createElement("button", { onClick:function(){ setOfficerSem('2'); }, style:{ flex:1, padding:"10px 0", border:"2px solid", borderColor: officerSem==='2' ? (nerv?"#ff8844":"#1e3a5f") : "#e0e0e0", borderRadius:10, cursor:"pointer", fontWeight:800, fontSize:14, fontFamily:"inherit", background: officerSem==='2' ? (nerv?"rgba(255,102,0,.06)":"#f3e5f5") : "#fafafa", color: officerSem==='2' ? (nerv?"#ff8844":"#1e3a5f") : "#999" } }, "\u4E0B\u5B78\u671F\u5E79\u90E8")),
             React.createElement("div", { style: panel },
                 React.createElement("div", { style:{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 } },
                     React.createElement("div", { style:{ fontSize:15, fontWeight:800, color: nerv?"#ffaa44":"#1e3a5f" } }, (officerSem==='1'?"\u4E0A\u5B78\u671F":"\u4E0B\u5B78\u671F")+"\u5E79\u90E8\u540D\u55AE"),
-                    React.createElement("button", { onClick:function(){ setOfficerModal(true); setOfficerRoleInput(''); setOfficerSeatInput(''); }, style:{ padding:"6px 14px", border:"none", borderRadius:10, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontSize:13, fontWeight:700 } }, "+ \u65B0\u589E")),
+                    React.createElement("button", { onClick:function(){ setOfficerModal(true); setOfficerRoleInput(''); setOfficerSeatInput(''); }, style:{ padding:"6px 14px", border:"none", borderRadius:10, background:(nerv?"#ff8844":"#1e3a5f"), color:"#fff", cursor:"pointer", fontSize:13, fontWeight:700 } }, "+ \u65B0\u589E")),
                 (officers[officerSem]||[]).length === 0
                     ? React.createElement("div", { style:{ textAlign:"center", padding:"20px 0", color:"#bbb", fontSize:13 } }, "\u5C1A\u7121\u5E79\u90E8\u8CC7\u6599")
                     : React.createElement("div", { style:{ display:"flex", flexDirection:"column", gap:8 } },
                         (officers[officerSem]||[]).map(function(off, oi) {
-                            return React.createElement("div", { key:oi, style:{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#faf5fc", borderRadius:10, border:"1px solid #f0e6fa" } },
+                            return React.createElement("div", { key:oi, style:{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:(nerv?"rgba(255,102,0,.04)":"#faf5fc"), borderRadius:10, border:"1px solid #f0e6fa" } },
                                 React.createElement("div", { style:{ display:"flex", alignItems:"center", gap:10 } },
-                                    React.createElement("span", { style:{ fontWeight:800, fontSize:14, color:"#7b1fa2" } }, off.role),
+                                    React.createElement("span", { style:{ fontWeight:800, fontSize:14, color:(nerv?"#ff8844":"#1e3a5f") } }, off.role),
                                     React.createElement("span", { style:{ fontSize:13, color:"#666" } }, off.seat+"\u865F")),
                                 React.createElement("button", { onClick:function(){
                                         var next = JSON.parse(JSON.stringify(officers));
@@ -3853,17 +3853,17 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
                     )),
             officerModal && React.createElement("div", { style:{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:9000, padding:20 } },
                 React.createElement("div", { style:{ background:"#fff", borderRadius:18, padding:24, width:"100%", maxWidth:340, boxShadow:"0 20px 60px rgba(0,0,0,.35)", maxHeight:"80vh", overflowY:"auto" } },
-                    React.createElement("div", { style:{ fontSize:15, fontWeight:900, color:"#7b1fa2", marginBottom:14 } }, "\uD83C\uDF96\uFE0F \u65B0\u589E\u5E79\u90E8\uFF08"+(officerSem==='1'?"\u4E0A\u5B78\u671F":"\u4E0B\u5B78\u671F")+"\uFF09"),
-                    React.createElement("div", { style:{ fontSize:12, color:"#b388c9", marginBottom:8, fontWeight:600 } }, "\u5FEB\u901F\u9078\u9805\uFF08\u53EF\u65B0\u589E / \u522A\u9664\uFF09"),
+                    React.createElement("div", { style:{ fontSize:15, fontWeight:900, color:(nerv?"#ff8844":"#1e3a5f"), marginBottom:14 } }, "\uD83C\uDF96\uFE0F \u65B0\u589E\u5E79\u90E8\uFF08"+(officerSem==='1'?"\u4E0A\u5B78\u671F":"\u4E0B\u5B78\u671F")+"\uFF09"),
+                    React.createElement("div", { style:{ fontSize:12, color:(nerv?"rgba(255,102,0,.6)":"#b388c9"), marginBottom:8, fontWeight:600 } }, "\u5FEB\u901F\u9078\u9805\uFF08\u53EF\u65B0\u589E / \u522A\u9664\uFF09"),
                     React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 } },
                         officerPresets.map(function(t, pi) {
                             return React.createElement("div", { key:pi, style:{ display:"flex", alignItems:"center", gap:2 } },
-                                React.createElement("button", { onClick:function(){ setOfficerRoleInput(t); }, style:{ padding:"5px 10px", fontSize:12, borderRadius:14, border:"1px solid #ce93d8", background: officerRoleInput===t ? "#7b1fa2" : "#f3e5f5", color: officerRoleInput===t ? "#fff" : "#7b1fa2", cursor:"pointer", fontFamily:"inherit" } }, t),
+                                React.createElement("button", { onClick:function(){ setOfficerRoleInput(t); }, style:{ padding:"5px 10px", fontSize:12, borderRadius:14, border:"1px solid #ce93d8", background: officerRoleInput===t ? (nerv?"#ff8844":"#1e3a5f") : (nerv?"rgba(255,102,0,.06)":"#f3e5f5"), color: officerRoleInput===t ? "#fff" : (nerv?"#ff8844":"#1e3a5f"), cursor:"pointer", fontFamily:"inherit" } }, t),
                                 React.createElement("button", { onClick:function(e){ e.stopPropagation();
                                         var next = officerPresets.filter(function(_,i){ return i!==pi; });
                                         setOfficerPresets(next);
                                         if (officerRoleInput===t) setOfficerRoleInput('');
-                                    }, style:{ background:"none", border:"none", color:"#ce93d8", cursor:"pointer", fontSize:14, padding:"0 2px", lineHeight:1 } }, "\u00D7"));
+                                    }, style:{ background:"none", border:"none", color:(nerv?"rgba(255,102,0,.4)":"#ce93d8"), cursor:"pointer", fontSize:14, padding:"0 2px", lineHeight:1 } }, "\u00D7"));
                         })),
                     React.createElement("div", { style:{ display:"flex", gap:6, marginBottom:14 } },
                         React.createElement("input", { style:{ flex:1, padding:"6px 10px", border:"1px solid #ce93d8", borderRadius:10, fontSize:12, fontFamily:"inherit", outline:"none" },
@@ -3876,13 +3876,13 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
                         React.createElement("button", { onClick:function(){ if(!officerPresetInput.trim()) return;
                                 var next=[...officerPresets, officerPresetInput.trim()];
                                 setOfficerPresets(next); setOfficerPresetInput('');
-                            }, style:{ padding:"6px 12px", border:"none", borderRadius:10, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:12 } }, "+ \u52A0\u5165")),
+                            }, style:{ padding:"6px 12px", border:"none", borderRadius:10, background:(nerv?"#ff8844":"#1e3a5f"), color:"#fff", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:12 } }, "+ \u52A0\u5165")),
                     React.createElement("div", { style:{ borderTop:"1px solid #f0e6fa", paddingTop:12, marginBottom:12 } },
-                        React.createElement("div", { style:{ fontSize:12, color:"#b388c9", marginBottom:8, fontWeight:600 } }, "\u8077\u4F4D\u540D\u7A31"),
+                        React.createElement("div", { style:{ fontSize:12, color:(nerv?"rgba(255,102,0,.6)":"#b388c9"), marginBottom:8, fontWeight:600 } }, "\u8077\u4F4D\u540D\u7A31"),
                         React.createElement("input", { style:{ width:"100%", padding:"10px 12px", border:"1.5px solid #ce93d8", borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", outline:"none", marginBottom:10 },
                             placeholder:"\u8F38\u5165\u6216\u9EDE\u9078\u4E0A\u65B9\u5FEB\u901F\u9078\u9805\u2026", value:officerRoleInput,
                             onChange:function(e){ setOfficerRoleInput(e.target.value); } }),
-                        React.createElement("div", { style:{ fontSize:12, color:"#b388c9", marginBottom:8, fontWeight:600 } }, "\u5EA7\u865F"),
+                        React.createElement("div", { style:{ fontSize:12, color:(nerv?"rgba(255,102,0,.6)":"#b388c9"), marginBottom:8, fontWeight:600 } }, "\u5EA7\u865F"),
                         React.createElement("input", { type:"number", style:{ width:"100%", padding:"10px 12px", border:"1.5px solid #ce93d8", borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", outline:"none" },
                             placeholder:"\u4F8B\uFF1A7", value:officerSeatInput,
                             onChange:function(e){ setOfficerSeatInput(e.target.value); },
@@ -3896,7 +3896,7 @@ function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, cl
                     React.createElement("div", { style:{ display:"flex", gap:10 } },
                         React.createElement("button", { style:{ flex:1, padding:"10px", border:"1px solid #ddd", borderRadius:10, background:"#f5f5f5", cursor:"pointer", fontFamily:"inherit", fontWeight:700 },
                             onClick:function(){ setOfficerModal(false); setOfficerRoleInput(''); setOfficerSeatInput(''); } }, "\u53D6\u6D88"),
-                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"none", borderRadius:10, background: (officerRoleInput.trim() && officerSeatInput.trim()) ? "#7b1fa2" : "#ce93d8", color:"#fff", cursor: (officerRoleInput.trim() && officerSeatInput.trim()) ? "pointer" : "not-allowed", fontFamily:"inherit", fontWeight:700, fontSize:14 },
+                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"none", borderRadius:10, background: (officerRoleInput.trim() && officerSeatInput.trim()) ? (nerv?"#ff8844":"#1e3a5f") : (nerv?"rgba(255,102,0,.4)":"#ce93d8"), color:"#fff", cursor: (officerRoleInput.trim() && officerSeatInput.trim()) ? "pointer" : "not-allowed", fontFamily:"inherit", fontWeight:700, fontSize:14 },
                             disabled: !(officerRoleInput.trim() && officerSeatInput.trim()),
                             onClick:function(){ if(!officerRoleInput.trim() || !officerSeatInput.trim()) return;
                                 var next = JSON.parse(JSON.stringify(officers));
@@ -5744,11 +5744,11 @@ function App() {
                         }
                     }, isNerv ? "NERV" : "LIMU"),
                     // 輔導紀錄
-                    React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)" } }, isNerv ? "▣" : "📋"),
+                    React.createElement("button", { className: "theme-btn", onClick: function() { setGrCenter(true); setGrTab('recent'); setGrFilter('7'); setGrSearch(''); }, title: "輔導紀錄中心", style: { background: grRecords.length > 0 ? "rgba(156,39,176,.35)" : "rgba(255,255,255,.15)", fontSize: 14, width: 32, height: 32, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } }, isNerv ? "▣" : "📋"),
                     // 主題切換
-                    React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', padding: '4px 10px', fontSize: 13 } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
+                    React.createElement("button", { className: "theme-btn", onClick: handleThemeToggle, style: { background: theme === 'nerv' ? 'rgba(255,102,0,.2)' : theme === 'nebula' ? 'rgba(150,100,255,.2)' : 'rgba(255,255,255,.15)', fontSize: 14, width: 32, height: 32, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } }, theme === 'nerv' ? '⬡' : theme === 'nebula' ? '🌌' : '☀️'),
                     // 齒輪選單
-                    React.createElement("button", { className: "theme-btn", onClick: function() { setShowGearMenu(true); }, title: "選單", style: { fontSize: 16 } }, "⚙️")
+                    React.createElement("button", { className: "theme-btn", onClick: function() { setShowGearMenu(true); }, title: "選單", style: { fontSize: 14, width: 32, height: 32, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" } }, "⚙️")
                 ),
                 React.createElement("div", { className: "hi-row2" },
                     React.createElement("div", { className: "class-switcher" },
