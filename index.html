@@ -3423,7 +3423,7 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
   );
 }
 
-function SettingsView({ groups, saveGroups, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, semStart1, setSemStart1, semStart2, setSemStart2, classSize, setClassSize, officers, saveOfficers, officerPresets, setOfficerPresets, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE, classes, addClass }) {
+function SettingsView({ groups, saveGroups, groupVersions, saveGroupVersions, className, setClassName, schoolName, setSchoolName, schoolYear, setSchoolYear, semStart1, setSemStart1, semStart2, setSemStart2, classSize, setClassSize, officers, saveOfficers, officerPresets, setOfficerPresets, onClose, isNerv, idbKeys, idbGet, openDB, DB_STORE, classes, addClass }) {
     var [showAddClass, setShowAddClass] = React.useState(false);
     var [newYear, setNewYear] = React.useState(String(new Date().getFullYear()));
     var [newSchool, setNewSchool] = React.useState("");
@@ -3438,7 +3438,42 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
         setPendingGroupTab(true);
         alert("✅ 班級已新增並切換！");
     }
-    const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(groups)));
+    // ── 組別版本系統 state ──
+    var sortedVersions = (groupVersions||[]).slice().sort(function(a,b){ return b.effectiveDate.localeCompare(a.effectiveDate); });
+    var todayStr = new Date().toISOString().slice(0,10);
+    var defaultVer = sortedVersions.find(function(v){ return v.effectiveDate <= todayStr; }) || sortedVersions[sortedVersions.length-1] || { verId:1, effectiveDate:'2000-01-01', groups: groups };
+    const [selectedVerId, setSelectedVerId] = useState(defaultVer.verId);
+    const [newVerModal, setNewVerModal] = useState(false);
+    const [newVerDate, setNewVerDate] = useState(todayStr);
+    function getVersionById(vid) {
+        return (groupVersions||[]).find(function(v){ return v.verId === vid; }) || defaultVer;
+    }
+    const [draft, setDraft] = useState(() => JSON.parse(JSON.stringify(getVersionById(defaultVer.verId).groups)));
+    // 切換版本選擇時，重新載入該版本的 draft
+    function switchVersion(vid) {
+        setSelectedVerId(vid);
+        setDraft(JSON.parse(JSON.stringify(getVersionById(vid).groups)));
+        setGroupOpen({ 0: true });
+    }
+    function createNewVersion() {
+        if (!newVerDate) { alert('\u8ACB\u9078\u64C7\u751F\u6548\u65E5\u671F'); return; }
+        var maxVerId = (groupVersions||[]).reduce(function(m,v){ return Math.max(m, v.verId); }, 0);
+        var newVer = { verId: maxVerId+1, effectiveDate: newVerDate, groups: [{ id:1, label:"\u7B2C1\u7D44", members:[], leader:0, secretary:0 }] };
+        var nextVersions = (groupVersions||[]).concat([newVer]);
+        saveGroupVersions(nextVersions);
+        setSelectedVerId(newVer.verId);
+        setDraft(JSON.parse(JSON.stringify(newVer.groups)));
+        setGroupOpen({ 0: true });
+        setNewVerModal(false);
+    }
+    function deleteVersion(vid) {
+        if ((groupVersions||[]).length <= 1) { alert('\u81F3\u5C11\u4FDD\u7559\u4E00\u500B\u7248\u672C'); return; }
+        if (!window.confirm('\u522A\u9664\u6B64\u7248\u672C\uFF1F\u5DF2\u7D93\u767B\u8A18\u904E\u7684\u4F5C\u696D\u7D00\u9304\u4E0D\u6703\u88AB\u522A\u9664\uFF0C\u4F46\u4F1A\u6539\u7531\u5176\u4ED6\u7248\u672C\u986F\u793A\u3002')) return;
+        var nextVersions = (groupVersions||[]).filter(function(v){ return v.verId !== vid; });
+        saveGroupVersions(nextVersions);
+        var newDefault = nextVersions.slice().sort(function(a,b){ return b.effectiveDate.localeCompare(a.effectiveDate); })[0];
+        switchVersion(newDefault.verId);
+    }
     const [draftClass, setDraftClass] = useState(className);
     const [draftSchool, setDraftSchool] = useState(schoolName);
     const [draftYear, setDraftYear] = useState(schoolYear);
@@ -3561,7 +3596,11 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
             alert("每組至少需要1個座號");
             return;
         }
-        saveGroups(draft);
+        // 寫回對應版本（找不到時視為更新最新版本，向下相容無版本系統的舊資料）
+        var nextVersions = (groupVersions && groupVersions.length > 0)
+            ? groupVersions.map(function(v){ return v.verId === selectedVerId ? Object.assign({}, v, { groups: draft }) : v; })
+            : [{ verId: 1, effectiveDate: '2000-01-01', groups: draft }];
+        saveGroupVersions(nextVersions);
         setClassName(draftClass.trim());
         setSchoolName(draftSchool.trim());
         setSchoolYear(draftYear.trim());
@@ -3709,6 +3748,34 @@ function SettingsView({ groups, saveGroups, className, setClassName, schoolName,
                         }))),
             React.createElement("button", { onClick: doSave, style: { display: "block", width: "100%", padding: 16, background: saved ? "#4caf80" : nerv ? "rgba(255,102,0,.15)" : "#1e3a5f", border: nerv ? "1px solid #ff6600" : "none", color: nerv ? "#ff6600" : "#fff", borderRadius: nerv ? 4 : 16, cursor: "pointer", fontSize: 16, fontWeight: 900, boxShadow: nerv ? "0 0 12px rgba(255,102,0,.3)" : "0 4px 12px rgba(30,58,95,.25)", letterSpacing: nerv ? 4 : 1, fontFamily: nerv ? "Share Tech Mono,monospace" : "inherit", transition: "background .3s", marginBottom: 32 } }, saved ? (nerv ? "\u2705 CONFIG SAVED" : "\u2705 \u5DF2\u5132\u5B58\uFF01") : (nerv ? "// SAVE CONFIG //" : "\u5132\u5B58\u8A2D\u5B9A"))),
         settingsTab === 'group' && React.createElement(React.Fragment, null,
+            React.createElement("div", { style: panel },
+                React.createElement("div", { style:{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 } },
+                    React.createElement("div", { style:{ fontSize:14, fontWeight:800, color: nerv?"#ffaa44":"#1e3a5f" } }, "\uD83D\uDCC5 \u7D44\u5225\u7248\u672C"),
+                    React.createElement("button", { onClick: function(){ setNewVerModal(true); setNewVerDate(todayStr); }, style:{ padding:"5px 12px", border:"none", borderRadius:8, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontSize:12, fontWeight:700 } }, "+ \u65B0\u589E\u7248\u672C")),
+                React.createElement("div", { style:{ display:"flex", gap:6, flexWrap:"wrap" } },
+                    sortedVersions.map(function(v) {
+                        var isSel = v.verId === selectedVerId;
+                        var isCurrentlyActive = v.effectiveDate <= todayStr && v === defaultVer;
+                        return React.createElement("button", { key:v.verId, onClick:function(){ switchVersion(v.verId); },
+                            style:{ padding:"6px 12px", borderRadius:10, border:"2px solid", borderColor: isSel?"#7b1fa2":"#e0e0e0", background: isSel?"#f3e5f5":"#fafafa", color: isSel?"#7b1fa2":"#999", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:700 } },
+                            "\u7B2C" + sortedVersions.slice().reverse().findIndex(function(x){return x.verId===v.verId;}) + 1 + "\u6B21",
+                            isCurrentlyActive && React.createElement("span", { style:{marginLeft:4,color:"#4caf50"} }, "\u25CF"),
+                            React.createElement("div", { style:{fontSize:9,opacity:.7,marginTop:1} }, v.effectiveDate));
+                    })),
+                React.createElement("p", { style:{ fontSize:11, color:"#aab8cc", marginTop:8 } }, "\u25CF \u7DA0\u9EDE\uFF1D\u76EE\u524D\u751F\u6548\u4E2D\u3002\u4E0B\u65B9\u6B63\u5728\u7DE8\u8F2F\uFF1A\u7B2C" + (sortedVersions.slice().reverse().findIndex(function(x){return x.verId===selectedVerId;})+1) + "\u6B21\uFF08\u751F\u6548\u65E5\uFF1A" + getVersionById(selectedVerId).effectiveDate + "\uFF09"),
+                sortedVersions.length > 1 && React.createElement("button", { onClick: function(){ deleteVersion(selectedVerId); }, style:{ marginTop:10, padding:"6px 14px", border:"1px solid #e53935", borderRadius:8, background:"rgba(229,57,53,.08)", color:"#e53935", cursor:"pointer", fontSize:12, fontWeight:700 } }, "\u00D7 \u522A\u9664\u6B64\u7248\u672C")),
+            newVerModal && ReactDOM.createPortal(React.createElement("div", { style:{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:9000, padding:20 } },
+                React.createElement("div", { style:{ background:"#fff", borderRadius:18, padding:24, width:"100%", maxWidth:320, boxShadow:"0 20px 60px rgba(0,0,0,.35)" } },
+                    React.createElement("div", { style:{ fontSize:15, fontWeight:900, color:"#7b1fa2", marginBottom:6 } }, "\uD83D\uDCC5 \u65B0\u589E\u7D44\u5225\u7248\u672C"),
+                    React.createElement("p", { style:{ fontSize:11, color:"#aab8cc", marginBottom:12 } }, "\u9078\u64C7\u65B0\u7248\u672C\u5F9E\u54EA\u5929\u958B\u59CB\u751F\u6548\uFF0C\u4E4B\u524D\u7684\u4F5C\u696D\u7D00\u9304\u4ECD\u6703\u986F\u793A\u820A\u7D44\u5225\u5206\u914D"),
+                    React.createElement("input", { type:"date", style:{ width:"100%", padding:"10px 12px", border:"1.5px solid #ce93d8", borderRadius:10, fontSize:14, boxSizing:"border-box", fontFamily:"inherit", outline:"none", marginBottom:16 },
+                        value:newVerDate, onChange:function(e){ setNewVerDate(e.target.value); } }),
+                    React.createElement("div", { style:{ display:"flex", gap:10 } },
+                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"1px solid #ddd", borderRadius:10, background:"#f5f5f5", cursor:"pointer", fontFamily:"inherit", fontWeight:700 },
+                            onClick:function(){ setNewVerModal(false); } }, "\u53D6\u6D88"),
+                        React.createElement("button", { style:{ flex:1, padding:"10px", border:"none", borderRadius:10, background:"#7b1fa2", color:"#fff", cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:14 },
+                            onClick: createNewVersion }, "\u78BA\u8A8D\u5EFA\u7ACB")))
+            ), document.body),
             draft.map(function(g, idx) {
                 var isOpen = !!groupOpen[idx];
                 var leaderN = g.leader || 0;
@@ -4076,6 +4143,20 @@ function App() {
                 saveGroupsForClass(emptyGroup, cls.id);
             }
         } catch(e) {}
+        // 重新載入該班級的組別版本（不存在則初始化為單一版本）
+        try {
+            const verKey = "hw5ren:groupVersions:" + cls.id;
+            const verData = safeJSON(safeGet(verKey), null);
+            if (verData && Array.isArray(verData) && verData.length > 0) {
+                setGroupVersions(verData);
+            } else {
+                const grpKey2 = "hw5ren:groups:" + cls.id;
+                const grpData2 = safeJSON(safeGet(grpKey2), null) || [{ id: 1, label: "\u7B2C1\u7D44", members: [], leader: 0, secretary: 0 }];
+                var initVer = [{ verId: 1, effectiveDate: "2000-01-01", groups: grpData2 }];
+                setGroupVersions(initVer);
+                _sl.set(verKey, JSON.stringify(initVer));
+            }
+        } catch(e) {}
         // 重新載入該班級的幹部紀錄（不存在則為空）
         try {
             const offKey = "hw5ren:officers:" + cls.id;
@@ -4390,6 +4471,17 @@ function App() {
                         if (savedOfficers && (savedOfficers["1"] || savedOfficers["2"])) {
                             setOfficers(savedOfficers);
                             _sl.set('hw5ren:officers:' + _aid2, JSON.stringify(savedOfficers));
+                        }
+                    }
+                } catch(ex) {}
+                // ── 組別版本：按當前班級從 Firebase 還原 ──
+                try {
+                    var _aid3 = safeGet('hw5ren:activeClass');
+                    if (_aid3) {
+                        var savedVersions = await window.fsGet(firebaseUid, 'groupVersions:' + _aid3);
+                        if (savedVersions && savedVersions.versions && Array.isArray(savedVersions.versions) && savedVersions.versions.length > 0) {
+                            setGroupVersions(savedVersions.versions);
+                            _sl.set('hw5ren:groupVersions:' + _aid3, JSON.stringify(savedVersions.versions));
                         }
                     }
                 } catch(ex) {}
@@ -7843,7 +7935,7 @@ function App() {
         ),
         /* wpInputOpen 已廢棄，改由 hwpicker 處理 */
         counselView && (React.createElement(CounselView, { date: counselDate, records: counselRecords, onSave: saveCounselRecord, onClose: () => setCounselView(false), isNerv: isNerv, allMembers: ALL_MEMBERS, groups: groups, fmtDate: fmtDate })),
-        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, semStart1: semStart1, setSemStart1: (v) => { setSemStart1(v); _sl.set("hw5ren:semStart1", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, v, undefined); }, semStart2: semStart2, setSemStart2: (v) => { setSemStart2(v); _sl.set("hw5ren:semStart2", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, undefined, v); }, classSize: classSize, setClassSize: (v) => { setClassSize(v); _sl.set("hw5ren:classSize", String(v)); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, v, undefined, undefined); }, officers: officers, saveOfficers: saveOfficers, officerPresets: officerPresets, setOfficerPresets: (v) => { setOfficerPresets(v); _sl.set("hw5ren:officerPresets", JSON.stringify(v)); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
+        view === "settings" && (React.createElement(SettingsView, { groups: groups, saveGroups: saveGroups, groupVersions: groupVersions, saveGroupVersions: saveGroupVersions, className: className, setClassName: (v) => { setClassName(v); _sl.set("hw5ren:className", v); saveSettingsToFirebase(v, undefined, undefined, undefined); }, schoolName: schoolName, setSchoolName: (v) => { setSchoolName(v); _sl.set("hw5ren:school", v); saveSettingsToFirebase(undefined, v, undefined, undefined); }, schoolYear: schoolYear, setSchoolYear: (v) => { setSchoolYear(v); _sl.set("hw5ren:year", v); saveSettingsToFirebase(undefined, undefined, v, undefined); }, semStart1: semStart1, setSemStart1: (v) => { setSemStart1(v); _sl.set("hw5ren:semStart1", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, v, undefined); }, semStart2: semStart2, setSemStart2: (v) => { setSemStart2(v); _sl.set("hw5ren:semStart2", v); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, undefined, undefined, v); }, classSize: classSize, setClassSize: (v) => { setClassSize(v); _sl.set("hw5ren:classSize", String(v)); saveSettingsToFirebase(undefined, undefined, undefined, undefined, undefined, v, undefined, undefined); }, officers: officers, saveOfficers: saveOfficers, officerPresets: officerPresets, setOfficerPresets: (v) => { setOfficerPresets(v); _sl.set("hw5ren:officerPresets", JSON.stringify(v)); }, onClose: () => setView("month"), isNerv: isNerv, idbKeys: idbKeys, idbGet: idbGet, openDB: openDB, DB_STORE: DB_STORE, classes: classes, addClass: addClass })),
         view === "archive" && (React.createElement(ArchiveView, { idbKeys: idbKeys, idbGet: idbGet, groups: groups, schoolYear: schoolYear, className: className, schoolName: schoolName, yearRecords: yearRecords, isNerv: isNerv, firebaseUid: firebaseUid })))));
 }
 
