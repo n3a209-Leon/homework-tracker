@@ -3895,6 +3895,62 @@ function App() {
         try { window._fallbackGroups = g; } catch(e) {}
         return g;
     });
+    // 組別版本系統：[{ verId, effectiveDate, groups }]，依 effectiveDate 由新到舊查找適用版本
+    const [groupVersions, setGroupVersions] = useState(() => {
+        try {
+            var cid = safeGet("hw5ren:activeClass");
+            var saved = cid ? safeGet("hw5ren:groupVersions:" + cid) : null;
+            var parsed = saved ? JSON.parse(saved) : null;
+            if (parsed && Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch(e) {}
+        // 向下相容：沒有版本紀錄時，把目前 groups 包成版本1
+        return [{ verId: 1, effectiveDate: "2000-01-01", groups: loadGroups() }];
+    });
+    // 給定日期，回傳該日期適用的組別版本（依 effectiveDate 由新到舊找第一個 <= dateStr 的版本）
+    function getGroupsForDate(dateStr) {
+        if (!dateStr || !groupVersions || groupVersions.length === 0) return groups;
+        var sorted = groupVersions.slice().sort(function(a,b){ return b.effectiveDate.localeCompare(a.effectiveDate); });
+        for (var i = 0; i < sorted.length; i++) {
+            if (sorted[i].effectiveDate <= dateStr) return sorted[i].groups;
+        }
+        // 找不到（日期比所有版本都早）→ 用最舊的版本
+        return sorted[sorted.length-1].groups;
+    }
+    // 取得目前（今天）適用的版本，作為「目前使用中版本」
+    function getCurrentGroupVersion() {
+        if (!groupVersions || groupVersions.length === 0) return null;
+        var sorted = groupVersions.slice().sort(function(a,b){ return b.effectiveDate.localeCompare(a.effectiveDate); });
+        var today = new Date().toISOString().slice(0,10);
+        for (var i = 0; i < sorted.length; i++) {
+            if (sorted[i].effectiveDate <= today) return sorted[i];
+        }
+        return sorted[sorted.length-1];
+    }
+    // 儲存組別版本（按班級），並同步更新 groups（目前使用中版本的內容，供其他既有邏輯即時使用）
+    function saveGroupVersions(versions, classId) {
+        setGroupVersions(versions);
+        var cid = classId || _sl.get("hw5ren:activeClass") || activeClassId;
+        if (cid) {
+            _sl.set("hw5ren:groupVersions:" + cid, JSON.stringify(versions));
+        }
+        // 同步 groups 為目前生效版本，向下相容既有 40+ 處呼叫點
+        var sorted = versions.slice().sort(function(a,b){ return b.effectiveDate.localeCompare(a.effectiveDate); });
+        var today = new Date().toISOString().slice(0,10);
+        var current = sorted.find(function(v){ return v.effectiveDate <= today; }) || sorted[sorted.length-1];
+        if (current) {
+            setGroups(current.groups);
+            try { window._fallbackGroups = current.groups; } catch(e) {}
+            _sl.set("hw5ren:groups", JSON.stringify(current.groups));
+            if (cid) _sl.set("hw5ren:groups:" + cid, JSON.stringify(current.groups));
+        }
+        saveSettingsToFirebase(undefined, undefined, undefined, undefined, current ? current.groups : undefined, undefined, undefined, undefined);
+        // 版本陣列本身也同步到 Firebase（獨立 key，避免 settings:main 過於肥大）
+        if (cid) saveGroupVersionsToFirebase(versions, cid);
+    }
+    async function saveGroupVersionsToFirebase(versions, classId) {
+        if (!firebaseUid || !classId) return;
+        try { await window.fsSet(firebaseUid, 'groupVersions:' + classId, { versions: versions }); } catch(e) {}
+    }
     const [className, setClassName] = useState(() => safeGet("hw5ren:className") || "");
     const [schoolName, setSchoolName] = useState(() => safeGet("hw5ren:school") || "");
     const [schoolYear, setSchoolYear] = useState(() => safeGet("hw5ren:year") || String(new Date().getFullYear()));
@@ -5036,14 +5092,15 @@ function App() {
         updRows(p => [...p, { hwName: "", groupData: {} }]);
     }
     function delRow(i) { updRows(p => p.filter((_, j) => j !== i)); }
-    function rowStatus(ri, gid) {
+    function rowStatus(ri, gid, groupsOverride) {
         var _a, _b, _c;
         const row = dayRows[ri];
         if (!row || !row.hwName)
             return "empty";
+        var useGroups = groupsOverride || groups;
         // 支援 dual gid（格式 "groupId_type_ri"）：取第一段為真實 groupId
         var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
-        const g = groups.find(g => g.id === realGid);
+        const g = useGroups.find(g => g.id === realGid);
         if (!g) return "untouched";
         const recorded = Object.prototype.hasOwnProperty.call(row.groupData || {}, gid);
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
@@ -5071,13 +5128,14 @@ function App() {
         }
         return "partial";
     }
-    function getMissing(ri, gid) {
+    function getMissing(ri, gid, groupsOverride) {
         var _a, _b, _c;
         const row = dayRows[ri];
         if (!row)
             return [];
+        var useGroups = groupsOverride || groups;
         var realGid = typeof gid === 'string' && gid.includes('_') ? Number(gid.split('_')[0]) : gid;
-        const g = groups.find(g => g.id === realGid);
+        const g = useGroups.find(g => g.id === realGid);
         if (!g) return [];
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
@@ -5086,12 +5144,14 @@ function App() {
             return !done.has(m) && !exemptSet.has(m) && !isAnyAbsent(m);
         });
     }
-    function getExemptInGroup(ri, gid) {
+    function getExemptInGroup(ri, gid, groupsOverride) {
         var _a, _b, _c;
         const row = dayRows[ri];
         if (!row || !row.hwName)
             return [];
-        const g = groups.find(g => g.id === gid);
+        var useGroups = groupsOverride || groups;
+        const g = useGroups.find(g => g.id === gid);
+        if (!g) return [];
         const done = (_b = (_a = row.groupData) === null || _a === void 0 ? void 0 : _a[gid]) !== null && _b !== void 0 ? _b : new Set();
         const exemptSet = (_c = dayExempt[row.hwName]) !== null && _c !== void 0 ? _c : new Set();
         return g.members.filter(m => !done.has(m) && exemptSet.has(m));
@@ -5566,6 +5626,8 @@ function App() {
                 isNerv ? "  GOOGLE AUTH" : "  使用 Google 帳號登入"),
             React.createElement("p", { style: { marginTop: 24, fontSize: 12, color: isNerv ? "rgba(255,102,0,.4)" : "rgba(255,255,255,.5)", textAlign: "center", lineHeight: 1.8 } }, isNerv ? "// 資料自動同步至 MAGI DATABASE //" : "登入後資料自動同步到 Firebase")));
     }
+    // 依目前選取日期計算適用的組別版本（供日視圖顯示歷史正確的分組）
+    var dayGroups = getGroupsForDate(selDate);
     return (React.createElement(React.Fragment, null,
         React.createElement("div", { className: "app", "data-theme": theme, onClick: (e) => { if (showClassDropdown && !e.target.closest(".class-switcher")) setShowClassDropdown(false); } },
         React.createElement("header", null,
@@ -5994,7 +6056,7 @@ function App() {
                     React.createElement("thead", null,
                         React.createElement("tr", null,
                             React.createElement("th", { className: "th-hw" }, isNerv ? "◈ MISSION" : "作業"),
-                            groups.map(g => React.createElement("th", { key: g.id },
+                            dayGroups.map(g => React.createElement("th", { key: g.id },
                                 React.createElement("span", { className: "gl" }, isNerv
                                     ? React.createElement("span", { className: "nerv-unit-label" },
                                         React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(g.id)))
@@ -6007,9 +6069,9 @@ function App() {
                             function dualGid(gid, type) { return gid + "_" + type + "_" + ri; }
                             function dualStatus(gid, type) {
                                 var key = dualGid(gid, type);
-                                return rowStatus(ri, key);
+                                return rowStatus(ri, key, dayGroups);
                             }
-                            function dualMissing(gid, type) { return getMissing(ri, dualGid(gid, type)); }
+                            function dualMissing(gid, type) { return getMissing(ri, dualGid(gid, type), dayGroups); }
                             if (isDual && row.hwName) {
                                 var isDualDeleting = deletingRow === ri;
                                 var dualLpTimer = { id: null, moved: false };
@@ -6059,7 +6121,7 @@ function App() {
                                         },
                                             isNerv ? row.hwName : row.hwName
                                         ),
-                                        groups.map(g => {
+                                        dayGroups.map(g => {
                                             var s = dualStatus(g.id, "fix"), ms = dualMissing(g.id, "fix");
                                             return React.createElement("td", { key: g.id, className: "gc s-"+s,
                                                 onClick: () => { if (!isDualDeleting) openCell(ri, g.id); },
@@ -6080,7 +6142,7 @@ function App() {
                                         className: isDualDeleting ? "hw-row-deleting" : "hw-row-normal",
                                         onClick: function(e) { if (isDualDeleting) { e.stopPropagation(); setDeletingRow(null); } }
                                     },
-                                        groups.map(g => {
+                                        dayGroups.map(g => {
                                             var s = dualStatus(g.id, "sign"), ms = dualMissing(g.id, "sign");
                                             return React.createElement("td", { key: g.id, className: "gc s-"+s,
                                                 onClick: () => { if (!isDualDeleting) openCell(ri, g.id); }
@@ -6155,8 +6217,8 @@ function App() {
                                                 " ", row.hwName) : row.hwName
                                             : React.createElement("span", { className: "ph" }, isNerv ? "[ INPUT REQUIRED ]" : "點擊輸入")
                                     ),
-                                    groups.map(g => {
-                                        const s = rowStatus(ri, g.id), ms = getMissing(ri, g.id), ex = getExemptInGroup(ri, g.id);
+                                    dayGroups.map(g => {
+                                        const s = rowStatus(ri, g.id, dayGroups), ms = getMissing(ri, g.id, dayGroups), ex = getExemptInGroup(ri, g.id, dayGroups);
                                         return (React.createElement("td", { key: g.id, className: "gc s-"+s,
                                             onClick: () => { if (!isDeleting && row.hwName) openCell(ri, g.id); } },
                                             s === "complete" && React.createElement("span", { className: "badge cb" }, "\u2713"),
@@ -6229,7 +6291,7 @@ function App() {
                                         style:{padding:"6px 18px",border:"1px solid #ffab91",borderRadius:20,background:"#fff8f5",color:"#e65100",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}
                                     }, "\u00D7 \u5168\u90E8\u6E05\u9664")),
                                 ALL_MEMBERS.map(function(n){
-                                    var grp = groups.find(function(g){return g.members.includes(n);});
+                                    var grp = dayGroups.find(function(g){return g.members.includes(n);});
                                     var isPaid = slip.paid.has(n);
                                     return React.createElement("div", { key: n, className: "nw",
                                         onClick: function(){
@@ -6272,7 +6334,7 @@ function App() {
                         isOpen && (React.createElement("div", { className: "exempt-seat-grid" }, ALL_MEMBERS.map(n => {
                             const isEx = exemptSet.has(n);
                             // 找這個座號屬於哪組
-                            const grp = groups.find(g => g.members.includes(n));
+                            const grp = dayGroups.find(g => g.members.includes(n));
                             return (React.createElement("div", { key: n, className: "nw", onClick: () => {
                                     updExempt(prev => {
                                         var _a;
@@ -6801,7 +6863,7 @@ function App() {
                         React.createElement("button", { className: "bk", onClick: handleConfirmInput }, "\u78BA\u8A8D")))),
                 modal.phase === "dualMark" && (function() {
                     var realGid = modal.gid;
-                    var grp = groups.find(g => g.id === realGid);
+                    var grp = dayGroups.find(g => g.id === realGid);
                     if (!grp) return null;
                     var members = grp.members || [];
                     function MemberRow(markedSet, setMarkedSet, noneFlag, setNoneFlag) {
@@ -6869,7 +6931,7 @@ function App() {
                             (function() {
                                 var realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
                                 var dualType = typeof modal.gid === 'string' && modal.gid.includes('_') ? modal.gid.split('_')[1] : null;
-                                var grpLabel = (groups.find(g => g.id === realGid) || {}).label || String(realGid);
+                                var grpLabel = (dayGroups.find(g => g.id === realGid) || {}).label || String(realGid);
                                 var typeLabel = dualType === 'fix' ? ' 訂正' : dualType === 'sign' ? ' 簽名' : '';
                                 return isNerv
                                     ? React.createElement("span", { className: "nerv-unit-label" }, React.createElement("span", { className: "nerv-unit-kanji" }, nervUnit(realGid)))
@@ -6877,7 +6939,7 @@ function App() {
                             })())),
                     (() => {
                         var _realGid = typeof modal.gid === 'string' && modal.gid.includes('_') ? Number(modal.gid.split('_')[0]) : modal.gid;
-                        const grp = groups.find(g => g.id === _realGid);
+                        const grp = dayGroups.find(g => g.id === _realGid);
                         const allSelected = grp === null || grp === void 0 ? void 0 : grp.members.filter(function(n){ return !isAnyAbsent(n); }).every(n => marked.has(n));
                         const members = (grp === null || grp === void 0 ? void 0 : grp.members) || [];
                         // 蜂巢排列：每行交錯偏移，奇數行往右偏半格
