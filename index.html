@@ -4510,6 +4510,52 @@ function App() {
             }
         })();
     }, [authed, firebaseUid]);
+    // 一次性資料遷移：舊格式 day:YYYY-MM-DD → 新格式 2026_五年王班:day:YYYY-MM-DD
+    async function migrateOldData() {
+        var pfx = classPrefix();
+        if (!pfx) { alert('\u8ACB\u5148\u8A2D\u5B9A\u5B78\u5E74\u548C\u73ED\u7D1A\u540D\u7A31\uFF0C\u518D\u57F7\u884C\u9077\u79FB\u3002'); return; }
+        if (!window.confirm('\u78BA\u5B9A\u8981\u5C07\u820A\u683C\u5F0F\u8CC7\u6599\uFF08day:YYYY-MM-DD\uFF09\u9077\u79FB\u70BA\u65B0\u683C\u5F0F\uFF08' + pfx + 'day:YYYY-MM-DD\uFF09\uFF1F\n\n\u9077\u79FB\u5B8C\u6210\u5F8C\u820A\u8CC7\u6599\u6703\u88AB\u522A\u9664\uFF0C\u8ACB\u78BA\u8A8D\u5DF2\u5099\u4EFD\u3002')) return;
+        setImportMsg('\uD83D\uDD04 \u9077\u79FB\u4E2D\uFF0C\u8ACB\u52FF\u95DC\u9589\u9801\u9762\u2026');
+        try {
+            var allKeys = await idbKeys();
+            var oldKeys = allKeys.filter(function(k) {
+                return (k.startsWith('day:') || k.startsWith('counsel:')) && !k.startsWith(pfx);
+            });
+            if (!oldKeys.length) {
+                setImportMsg('\u2705 \u6C92\u6709\u820A\u683C\u5F0F\u8CC7\u6599\uFF0C\u4E0D\u9700\u8981\u9077\u79FB\uFF01');
+                setTimeout(function(){ setImportMsg(''); }, 3000);
+                return;
+            }
+            var migrated = 0;
+            for (var i = 0; i < oldKeys.length; i++) {
+                var oldKey = oldKeys[i];
+                var value = await idbGet(oldKey);
+                if (value) {
+                    var newKey = pfx + oldKey;
+                    var existing = await idbGet(newKey);
+                    if (!existing) {
+                        await idbSet(newKey, value);
+                    }
+                    migrated++;
+                }
+                setImportMsg('\uD83D\uDD04 \u9077\u79FB\u4E2D\uFF1A' + (i+1) + ' / ' + oldKeys.length + '\u7B46\u2026');
+            }
+            setImportMsg('\u2601\uFE0F \u540C\u6B65\u65B0\u683C\u5F0F\u5230 Firebase\u2026');
+            await doSync();
+            var db2 = await openDB();
+            await new Promise(function(res, rej) {
+                var tx = db2.transaction(DB_STORE, 'readwrite');
+                var st = tx.objectStore(DB_STORE);
+                oldKeys.forEach(function(k) { st.delete(k); });
+                tx.oncomplete = res;
+                tx.onerror = function(e) { rej(e); };
+            });
+            setImportMsg('\u2705 \u9077\u79FB\u5B8C\u6210\uFF01\u5171\u9077\u79FB ' + migrated + ' \u7B46\uFF0C\u820A\u683C\u5F0F\u5DF2\u6E05\u9664\u3002');
+            setTimeout(function(){ doLoadMonth(curYear, curMonth); }, 1000);
+        } catch(e) {
+            setImportMsg('\u274C \u9077\u79FB\u5931\u6557\uFF1A' + String(e.message || e).slice(0, 50));
+        }
+    }
     async function doSync() {
         if (!firebaseUid) {
             setStor({ state: 'error', msg: '\u26A0\uFE0F \u8ACB\u5148\u767B\u5165\u518D\u540C\u6B65' });
@@ -6528,6 +6574,7 @@ function App() {
                     catch(e) { setImportMsg("❌ Firebase 同步失敗"); }
                     setTimeout(() => setImportMsg(""), 3000);
                 } }, "☁️ 同步到 Firebase"),
+            React.createElement("button", { className: "day-backup-btn", style:{background:"linear-gradient(135deg,#6a1b9a,#8e24aa)",marginTop:6}, onClick: migrateOldData }, "\uD83D\uDD04 \u9077\u79FB\u820A\u683C\u5F0F\u8CC7\u6599\u5230\u65B0\u683C\u5F0F"),
             (function() {
                 var todayRecs = grRecords.filter(function(r) { return r.date === selDate; });
                 return todayRecs.length > 0
