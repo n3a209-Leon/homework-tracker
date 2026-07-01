@@ -4518,17 +4518,37 @@ function App() {
         setDriveStatus('syncing');
         try {
             var _pfx = classPrefix();
+            var _cid = _sl.get("hw5ren:activeClass") || activeClassId;
+            // 1. 作業 + 輔導紀錄（IDB）
             const keys = (await idbKeys()).filter(k => k.startsWith(_pfx+'day:') || k.startsWith(_pfx+'counsel:'));
             const snap = {};
             for (const k of keys) {
                 const v = await idbGet(k);
-                if (v)
-                    snap[k] = v;
+                if (v) snap[k] = v;
             }
             var saveOk = true;
             for (var fk in snap) {
                 var r = await window.fsSet(firebaseUid, fk, snap[fk]);
                 if (!r) saveOk = false;
+            }
+            // 2. 班級設定（settings:main）
+            try {
+                await window.fsSet(firebaseUid, 'settings:main', {
+                    className: className, schoolName: schoolName, schoolYear: schoolYear,
+                    classes: classes, groups: groups, classSize: classSize,
+                    semStart1: semStart1, semStart2: semStart2,
+                    updatedAt: new Date().toISOString()
+                });
+            } catch(e2) { saveOk = false; }
+            // 3. 組別版本（groupVersions:班級id）
+            if (_cid && groupVersions && groupVersions.length > 0) {
+                try { await window.fsSet(firebaseUid, 'groupVersions:' + _cid, { versions: groupVersions }); }
+                catch(e3) { saveOk = false; }
+            }
+            // 4. 幹部紀錄（officers:班級id）
+            if (_cid && officers && (officers["1"] || officers["2"])) {
+                try { await window.fsSet(firebaseUid, 'officers:' + _cid, officers); }
+                catch(e4) { saveOk = false; }
             }
             if (saveOk) {
                 markSynced();
@@ -4816,19 +4836,39 @@ function App() {
         autoSyncTimer.current = setTimeout(async () => {
             try {
                 var _pfx = classPrefix();
+                var _cid2 = _sl.get("hw5ren:activeClass") || activeClassId;
+                // 1. 作業 + 輔導紀錄
                 const allIdbKeys = await idbKeys();
                 const keys = allIdbKeys.filter(k => k.startsWith(_pfx+"day:") || k.startsWith(_pfx+"counsel:"));
                 const snap = {};
                 for (const k of keys) {
                     const v = await idbGet(k);
-                    if (v)
-                        snap[k] = v;
+                    if (v) snap[k] = v;
                 }
                 if (firebaseUid) {
                     var fsOk = true;
                     for (var fsk in snap) {
                         var r = await window.fsSet(firebaseUid, fsk, snap[fsk]);
                         if (!r) fsOk = false;
+                    }
+                    // 2. 班級設定
+                    try {
+                        await window.fsSet(firebaseUid, 'settings:main', {
+                            className: className, schoolName: schoolName, schoolYear: schoolYear,
+                            classes: classes, groups: groups, classSize: classSize,
+                            semStart1: semStart1, semStart2: semStart2,
+                            updatedAt: new Date().toISOString()
+                        });
+                    } catch(e2) { fsOk = false; }
+                    // 3. 組別版本
+                    if (_cid2 && groupVersions && groupVersions.length > 0) {
+                        try { await window.fsSet(firebaseUid, 'groupVersions:' + _cid2, { versions: groupVersions }); }
+                        catch(e3) { fsOk = false; }
+                    }
+                    // 4. 幹部紀錄
+                    if (_cid2 && officers && (officers["1"] || officers["2"])) {
+                        try { await window.fsSet(firebaseUid, 'officers:' + _cid2, officers); }
+                        catch(e4) { fsOk = false; }
                     }
                     if (fsOk) { setDriveStatus("ok"); markSynced(); }
                     else { setDriveStatus("error"); }
