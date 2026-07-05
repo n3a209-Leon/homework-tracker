@@ -2743,13 +2743,11 @@ async function loadCounsel(dateStr) {
     let raw = null;
     try {
         raw = await idbGet(pfx+"counsel:"+dateStr);
-        if (!raw && pfx) raw = await idbGet("counsel:"+dateStr); // 舊資料相容
     }
     catch (_a) { }
     if (!raw) {
         try {
             raw = _sl.get("hw5ren:c:"+pfx+dateStr);
-            if (!raw && pfx) raw = _sl.get("hw5ren:c:"+dateStr); // 舊資料相容
         }
         catch (_b) { }
     }
@@ -2774,13 +2772,17 @@ async function saveCounsel(dateStr, records) {
     catch (_b) { }
 }
 async function loadCounselMonth(y, m) {
-    const entries = {};
-    for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
-        const ds = y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
-        const recs = await loadCounsel(ds);
-        if (recs.length > 0)
-            entries[ds] = recs;
+    const totalDays = new Date(y, m + 1, 0).getDate();
+    const dates = [];
+    for (let d = 1; d <= totalDays; d++) {
+        dates.push(y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"));
     }
+    // 平行讀取整月輔導紀錄
+    const results = await Promise.all(dates.map(ds => loadCounsel(ds)));
+    const entries = {};
+    dates.forEach((ds, i) => {
+        if (results[i].length > 0) entries[ds] = results[i];
+    });
     return entries;
 }
 // ── 班級資料前綴（隔離不同班級的 day:/counsel: 資料）────────────────────────
@@ -2798,17 +2800,15 @@ function classPrefix() {
 async function loadDay(dateStr) {
     var pfx = classPrefix();
     let raw = null;
-    // 1. IndexedDB（主要，跨版本）— 先找新格式，再找舊格式（向下相容）
+    // 1. IndexedDB（主要，跨版本）
     try {
         raw = await idbGet(pfx+"day:"+dateStr);
-        if (!raw && pfx) raw = await idbGet("day:"+dateStr); // 舊資料相容
     }
     catch (_a) { }
     // 2. localStorage 備援
     if (!raw) {
         try {
             raw = safeGet("hw5ren:"+pfx+dateStr);
-            if (!raw && pfx) raw = safeGet("hw5ren:"+dateStr); // 舊資料相容
         }
         catch (_b) { }
     }
@@ -2839,12 +2839,14 @@ async function saveDay(dateStr, rows, attendance, exempt, attendancePeriod, slip
 }
 async function loadMonth(y, m) {
     const days = daysInMonth(y, m);
+    const dates = [];
+    for (let d = 1; d <= days; d++) dates.push(toDateStr(y, m, d));
+    // 平行讀取整月（IDB 讀取平行安全；寫入才需要串行）
+    const results = await Promise.all(dates.map(ds => loadDay(ds)));
     const entries = {};
-    for (let d = 1; d <= days; d++) {
-        const ds = toDateStr(y, m, d);
-        const res = await loadDay(ds);
-        entries[ds] = { rows: res.rows, attendance: res.attendance, exempt: res.exempt };
-    }
+    dates.forEach((ds, i) => {
+        entries[ds] = { rows: results[i].rows, attendance: results[i].attendance, exempt: results[i].exempt };
+    });
     return entries;
 }
 // ── serialise / deserialise ──────────────────────────────────────────────────
@@ -3169,7 +3171,6 @@ function ArchiveView({ idbKeys, idbGet, groups, schoolYear, className, schoolNam
         const prefix = _arcPfx2 + 'day:' + selYear + '-';
         const prefixOld = 'day:' + selYear + '-'; // 向下相容
         const yearKeys = keys.filter(k => typeof k === 'string' && (k.startsWith(prefix) || k.startsWith(prefixOld)));
-        console.log('[Archive] selYear='+selYear+' keys='+keys.length+' yearKeys='+yearKeys.length);
         const hwCount = {};      // 各作業繳交次數
         const absentMap = {};    // 各學生請假天數
         const groupSnapshots = {};  // 每月分組快照（從資料推算）
@@ -4386,17 +4387,12 @@ function App() {
 
     if (user) {
 
-        console.log('LOGIN SUCCESS');
-        console.log(user);
-
         _writeLog('step', 'Firebase user: ' + user.email);
 
         setFirebaseUid(user.uid);
         setAuthed(true);
 
     } else {
-
-        console.log('NO USER');
 
         _writeLog('step', 'Firebase: not logged in');
 
