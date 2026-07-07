@@ -52,7 +52,7 @@
         .nav-bar{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:5px;padding:8px 0 10px;flex-wrap:nowrap}
 
         /* ── STORAGE STATUS BAR ── */
-        .stor-bar{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12px;font-weight:600;flex-wrap:wrap;transition:background .3s}
+        .stor-bar{display:flex;align-items:center;gap:10px;padding:3px 20px;font-size:11px;font-weight:600;flex-wrap:wrap;transition:background .3s}
         .stor-init  { background:rgba(255,255,255,.08); color:#90a4ae }
         .stor-checking { background:rgba(255,220,80,.15); color:#ffe082 }
         .stor-ok    { background:rgba(76,175,128,.18); color:#a5d6a7 }
@@ -290,7 +290,7 @@
         @keyframes alert-pulse{0%,100%{opacity:1}50%{opacity:.6}}
         @keyframes alert-scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
         @keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-        .backup-warn{padding:6px 0;font-size:12px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
+        .backup-warn{padding:3px 0;font-size:11px;font-weight:700;background:#fff3cd;color:#856404;border-left:4px solid #ffc107;overflow:hidden;white-space:nowrap}
         .backup-warn-text{display:inline-block;animation:marquee 12s linear infinite;padding-left:100%}
         .backup-warn-nerv{
           background:#1a0000;
@@ -299,7 +299,7 @@
           border-bottom:1px solid #ff0000;
           overflow:hidden;
           position:relative;
-          padding:6px 0;
+          padding:3px 0;
         }
         .backup-warn-nerv::before{
           content:'';
@@ -2737,6 +2737,22 @@ async function idbKeys() {
         return keys;
     }
 }
+async function idbDelete(key) {
+    try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            try {
+                const tx = db.transaction(DB_STORE, "readwrite");
+                tx.objectStore(DB_STORE).delete(key);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = e => { try { _sl.remove(key); } catch(ex) {} resolve(false); };
+            } catch(ex) { try { _sl.remove(key); } catch(e2) {} resolve(false); }
+        });
+    } catch(e) {
+        try { _sl.remove(key); } catch(ex) {}
+        return false;
+    }
+}
 // ── Counseling load / save ───────────────────────────────────────────────────
 async function loadCounsel(dateStr) {
     var pfx = classPrefix();
@@ -4179,7 +4195,9 @@ function App() {
     }
     // 同步 groups 到 window（供頂層函數使用）
     React.useEffect(function() { try { window._fallbackGroups = groups; } catch(e) {} }, [groups]);
-    const ALL_MEMBERS = Array.from(new Set(groups.reduce(function(acc,g){return acc.concat(g.members);}, []))).sort(function(a,b){return a-b;});
+    const _liveGroups = (groups && groups.some(function(g){ return g.members && g.members.length > 0; })) ? groups : ((typeof getGroupsForDate === 'function' ? getGroupsForDate(new Date().toISOString().slice(0,10)) : null) || []);
+    const ALL_MEMBERS = Array.from(new Set(_liveGroups.reduce(function(acc,g){return acc.concat(g.members||[]);}, []))).sort(function(a,b){return a-b;});
+    const GR_SEATS = (classSize > 0 ? Array.from({length: classSize}, function(_, i) { return i + 1; }) : ALL_MEMBERS);
     // saveGroupsForClass：明確傳入 classId，避免 activeClassId 閉包舊值問題
     function saveGroupsForClass(g, classId) {
         setGroups(g);
@@ -4244,7 +4262,7 @@ function App() {
     const [grFilter, setGrFilter] = useState('7');        // '7'|'30'|'all'
     const [grSearch, setGrSearch] = useState('');
     const [grStuSel, setGrStuSel] = useState(null);      // 學生歷程選中座號
-    const [grDateSel, setGrDateSel] = useState('');
+    const [grDateSel, setGrDateSel] = useState(function() { return new Date().toISOString().slice(0,10); });
     // 功能3：周次打包
     const [grWeekSel, setGrWeekSel] = useState([]);
     const [grCopyMsg, setGrCopyMsg] = useState('');
@@ -4469,28 +4487,49 @@ function App() {
                     if (savedSettings.semStart1) { setSemStart1(savedSettings.semStart1); try { _sl.set('hw5ren:semStart1', savedSettings.semStart1); } catch(ex) {} }
                     if (savedSettings.semStart2) { setSemStart2(savedSettings.semStart2); try { _sl.set('hw5ren:semStart2', savedSettings.semStart2); } catch(ex) {} }
                 }
-                // ── 幹部資料：按當前班級從 Firebase 還原 ──
+                // ── 幹部與組別版本：依全部班級從 Firebase 還原（避免其他班級在新裝置上永遠空白）──
                 try {
-                    var _aid2 = safeGet('hw5ren:activeClass');
-                    if (_aid2) {
-                        var savedOfficers = await window.fsGet(firebaseUid, 'officers:' + _aid2);
-                        if (savedOfficers && (savedOfficers["1"] || savedOfficers["2"])) {
-                            setOfficers(savedOfficers);
-                            _sl.set('hw5ren:officers:' + _aid2, JSON.stringify(savedOfficers));
+                    var _curActive = safeGet('hw5ren:activeClass');
+                    if (savedSettings && savedSettings.classes && Array.isArray(savedSettings.classes) && savedSettings.classes.length > 0) {
+                        for (var _ci = 0; _ci < savedSettings.classes.length; _ci++) {
+                            var _clsObj = savedSettings.classes[_ci];
+                            if (!_clsObj || !_clsObj.id) continue;
+                            var _cid = _clsObj.id;
+                            // 幹部
+                            try {
+                                var _ofData = await window.fsGet(firebaseUid, 'officers:' + _cid);
+                                if (_ofData && (_ofData["1"] || _ofData["2"])) {
+                                    _sl.set('hw5ren:officers:' + _cid, JSON.stringify(_ofData));
+                                    if (_cid === _curActive) setOfficers(_ofData);
+                                }
+                            } catch(exOf) {}
+                            // 組別版本
+                            try {
+                                var _gvData = await window.fsGet(firebaseUid, 'groupVersions:' + _cid);
+                                if (_gvData && _gvData.versions && Array.isArray(_gvData.versions) && _gvData.versions.length > 0) {
+                                    _sl.set('hw5ren:groupVersions:' + _cid, JSON.stringify(_gvData.versions));
+                                    if (_cid === _curActive) setGroupVersions(_gvData.versions);
+                                }
+                            } catch(exGv) {}
                         }
+                    } else if (_curActive) {
+                        // fallback：savedSettings.classes 不存在時，保留原本單一班級還原路徑
+                        try {
+                            var savedOfficers = await window.fsGet(firebaseUid, 'officers:' + _curActive);
+                            if (savedOfficers && (savedOfficers["1"] || savedOfficers["2"])) {
+                                setOfficers(savedOfficers);
+                                _sl.set('hw5ren:officers:' + _curActive, JSON.stringify(savedOfficers));
+                            }
+                        } catch(exOf2) {}
+                        try {
+                            var savedVersions = await window.fsGet(firebaseUid, 'groupVersions:' + _curActive);
+                            if (savedVersions && savedVersions.versions && Array.isArray(savedVersions.versions) && savedVersions.versions.length > 0) {
+                                setGroupVersions(savedVersions.versions);
+                                _sl.set('hw5ren:groupVersions:' + _curActive, JSON.stringify(savedVersions.versions));
+                            }
+                        } catch(exGv2) {}
                     }
-                } catch(ex) {}
-                // ── 組別版本：按當前班級從 Firebase 還原 ──
-                try {
-                    var _aid3 = safeGet('hw5ren:activeClass');
-                    if (_aid3) {
-                        var savedVersions = await window.fsGet(firebaseUid, 'groupVersions:' + _aid3);
-                        if (savedVersions && savedVersions.versions && Array.isArray(savedVersions.versions) && savedVersions.versions.length > 0) {
-                            setGroupVersions(savedVersions.versions);
-                            _sl.set('hw5ren:groupVersions:' + _aid3, JSON.stringify(savedVersions.versions));
-                        }
-                    }
-                } catch(ex) {}
+                } catch(exAll) {}
                 // ── 作業資料 ──
                 var _pfx = classPrefix();
                 var allData = await window.fsGetAll(firebaseUid, _pfx+'day:');
@@ -4516,9 +4555,59 @@ function App() {
                         }
                     }
                 } catch(exC) {}
+                // ── 前綴認養備援：本機前綴撲空時，掃描雲端所有 day:/counsel: 鑰匙認養進目前前綴 ──
+                var cAdopt = 0;
+                try {
+                    if (c === 0 && _pfx && savedSettings.classes && savedSettings.classes.length > 0 && (function(){ var minY = null; for (var mi = 0; mi < savedSettings.classes.length; mi++) { var yv = parseInt(savedSettings.classes[mi].year); if (minY === null || yv < minY) minY = yv; } return parseInt(_sl.get('hw5ren:year')) === minY; })()) {
+                        var allCloud = await window.fsGetAll(firebaseUid, '');
+                        for (var ak in allCloud) {
+                            var marker = null;
+                            if (ak.indexOf('day:') >= 0) marker = 'day:';
+                            else if (ak.indexOf('counsel:') >= 0) marker = 'counsel:';
+                            if (!marker) continue;
+                            var adoptDate = ak.slice(ak.indexOf(marker) + marker.length);
+                            if (!/^\d{4}-\d{2}-\d{2}$/.test(adoptDate)) continue;
+                            var localKey = _pfx + marker + adoptDate;
+                            var already = null;
+                            try { already = await idbGet(localKey); } catch(exAE) {}
+                            if (already) continue;
+                            await idbSet(localKey, allCloud[ak]);
+                            try {
+                                if (marker === 'day:') _sl.set('hw5ren:' + _pfx + adoptDate, allCloud[ak]);
+                                else _sl.set('hw5ren:c:' + _pfx + adoptDate, allCloud[ak]);
+                            } catch(exAS) {}
+                            cAdopt++;
+                        }
+                    }
+                } catch(exAd) {}
+                // ── 一次性污染清除：僅在目前班級為 2027 學年六壬且尚未清過時，刪除本機被誤認養的資料 ──
+                try {
+                    var _pollPfx = '2027_' + '\u516d\u58ec' + ':';
+                    if (_pfx === _pollPfx && !safeGet('hw5ren:pollClean1')) {
+                        var _pAllKeys = await idbKeys();
+                        for (var _pj = 0; _pj < _pAllKeys.length; _pj++) {
+                            var _pk = _pAllKeys[_pj];
+                            if (_pk.indexOf(_pollPfx + 'day:') === 0 || _pk.indexOf(_pollPfx + 'counsel:') === 0) {
+                                try { await idbDelete(_pk); } catch(exPD) {}
+                            }
+                        }
+                        try {
+                            var _plKeysToRemove = [];
+                            for (var _pi2 = 0; _pi2 < _sl.length(); _pi2++) {
+                                var _plk = _sl.key(_pi2);
+                                if (_plk && (_plk.indexOf('hw5ren:' + _pollPfx + 'day:') === 0 || _plk.indexOf('hw5ren:c:' + _pollPfx + 'counsel:') === 0)) {
+                                    _plKeysToRemove.push(_plk);
+                                }
+                            }
+                            for (var _pi3 = 0; _pi3 < _plKeysToRemove.length; _pi3++) { _sl.remove(_plKeysToRemove[_pi3]); }
+                        } catch(exPLS) {}
+                        _sl.set('hw5ren:pollClean1', '1');
+                    }
+                } catch(exPC) {}
+                try { console.log('[雲端還原] cAdopt=', cAdopt); } catch(exLog) {}
                 setDriveStatus('ok');
-                if (c > 0 || cCounsel > 0) {
-                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料、' + cCounsel + ' 天輔導' });
+                if (c > 0 || cCounsel > 0 || cAdopt > 0) {
+                    setStor({ state: 'ok', msg: '✅ 雲端還原 ' + c + ' 天資料、' + cCounsel + ' 天輔導、認養 ' + cAdopt + ' 筆' });
                     await doLoadMonth(curYear, curMonth);
                 } else {
                     setStor({ state: 'ok', msg: '✅ 雲端就緒' });
@@ -6035,6 +6124,23 @@ function App() {
                                 out += 'activeClass：[' + (safeGet('hw5ren:activeClass')||'') + ']\n';
                             } catch(exScan) { out += '雲端掃描失敗：' + exScan + '\n'; }
                         }
+                        if (firebaseUid) {
+                            out += '\n--- 輔導紀錄診斷 ---\n';
+                            try {
+                                var _grSnap = await firebase.firestore().collection('users').doc(firebaseUid).collection('guidanceRecords').get();
+                                out += '不排序直接讀：' + _grSnap.size + ' 筆\n';
+                            } catch(exG1) { out += '不排序直接讀失敗：' + (exG1.code || '') + ' ' + (exG1.message || exG1) + '\n'; }
+                            try {
+                                var _grSnap2 = await firebase.firestore().collection('users').doc(firebaseUid).collection('guidanceRecords').orderBy('timestamp','desc').get();
+                                out += 'orderBy 讀取：' + _grSnap2.size + ' 筆\n';
+                            } catch(exG2) { out += 'orderBy 讀取失敗：' + (exG2.code || '') + ' ' + (exG2.message || exG2) + '\n'; }
+                            out += 'grRecords state：' + grRecords.length + ' 筆\n';
+                            out += 'authed：' + authed + '\n';
+                        }
+                        out += '\n--- 組別診斷 ---\n';
+                        out += 'groups 組數：' + groups.length + '\n';
+                        out += 'ALL_MEMBERS 座號數：' + ALL_MEMBERS.length + '\n';
+                        out += 'activeClass：' + (safeGet('hw5ren:activeClass') || '(空)') + '\n';
                         alert(out);
                         return;
                     } catch(ex) { alert('無法讀取日誌：' + ex); return; }
@@ -6108,6 +6214,12 @@ function App() {
                         const ds = toDateStr(curYear, curMonth, d);
                         return React.createElement(CalendarCell, { key: ds, dateStr: ds, d: d });
                     }))),
+            React.createElement("div", { className: "cal-legend", style: { fontSize: 11, lineHeight: 1.6, color: "#8a97a8", padding: "4px 6px", display: "flex", flexWrap: "wrap", gap: "4px 10px" } },
+                React.createElement("span", null, "\ud83d\udfe2\u2713 \u5168\u6578\u5b8c\u6210"),
+                React.createElement("span", null, "\ud83d\udfe0\u25b2 \u7f3a\u5e2d\u62b5\u514d"),
+                React.createElement("span", null, "\ud83d\udd34\u2717 \u6709\u7f3a\u4ea4"),
+                React.createElement("span", null, "\u26ab\u2717 \u5168\u54e1\u7f3a\u5e2d"),
+                React.createElement("span", null, "\u26aa \u672a\u767b\u8a18")),
             React.createElement("div", { className: "month-summary" },
                 Object.entries(monthDays)
                     .filter(([, entry]) => (entry.rows || []).some(r => r === null || r === void 0 ? void 0 : r.hwName))
@@ -7478,7 +7590,7 @@ function App() {
                 React.createElement("div", { className: "gr-dialog-title" }, isNerv ? (grEditTarget ? "[ EDIT GUIDANCE LOG ]" : "[ ADD GUIDANCE LOG ]") : (grEditTarget ? "編輯輔導紀錄" : "新增輔導紀錄")),
                 React.createElement("div", { className: "gr-label" }, isNerv ? "// SEAT //" : "學生座號"),
                 React.createElement("div", { className: "gr-seats" },
-                    ALL_MEMBERS.map(function(n) {
+                    GR_SEATS.map(function(n) {
                         return React.createElement("button", {
                             key: n,
                             className: "gr-seat" + (grSeats.includes(n) ? " sel" : ""),
@@ -7556,8 +7668,22 @@ function App() {
                         className: "gr-search", placeholder: "搜尋座號、類別、內容…",
                         value: grSearch, onChange: function(e) { setGrSearch(e.target.value); }
                     }),
+                    React.createElement("div", { className: "gr-tabs", style:{marginBottom:10} },
+                        React.createElement("button", {
+                            className: "gr-tab" + (grFilter === '7' ? " active" : ""),
+                            onClick: function() { setGrFilter('7'); }
+                        }, isNerv ? "7D" : "近 7 天"),
+                        React.createElement("button", {
+                            className: "gr-tab" + (grFilter === '30' ? " active" : ""),
+                            onClick: function() { setGrFilter('30'); }
+                        }, isNerv ? "30D" : "近 30 天"),
+                        React.createElement("button", {
+                            className: "gr-tab" + (grFilter === 'all' ? " active" : ""),
+                            onClick: function() { setGrFilter('all'); }
+                        }, isNerv ? "ALL" : "全部")
+                    ),
                     grFilteredRecords().length === 0
-                        ? React.createElement("div", { className: "gr-empty" }, isNerv ? "// NO LOG FOUND //" : "無符合紀錄")
+                        ? React.createElement("div", { className: "gr-empty" }, isNerv ? "// NO LOG FOUND //" : "此時間範圍內無紀錄，可切換上方時間篩選")
                         : grFilteredRecords().map(function(r) {
                             return React.createElement("div", { key: r.id, className: "gr-record-item", style:{position:"relative"} },
                                 React.createElement("div", { style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:6} },
@@ -7580,7 +7706,7 @@ function App() {
                         }, "📋 複製全部紀錄（"+grStuRecords(grStuSel).length+"筆）")
                     ),
                     React.createElement("div", { className: "gr-seats", style:{marginBottom:12} },
-                        ALL_MEMBERS.map(function(n) {
+                        GR_SEATS.map(function(n) {
                             var cnt = grStuRecords(n).length;
                             return React.createElement("button", {
                                 key: n,
@@ -7651,10 +7777,47 @@ function App() {
                     )
                 ),
                 grTab === "date" && React.createElement(React.Fragment, null,
-                    React.createElement("input", {
-                        type: "date", className: "gr-search",
-                        value: grDateSel, onChange: function(e) { setGrDateSel(e.target.value); }
-                    }),
+                    React.createElement("div", { style:{display:"flex",alignItems:"center",gap:6,marginBottom:8} },
+                        React.createElement("button", {
+                            className: "gr-tab", style:{padding:"6px 12px"},
+                            onClick: function() {
+                                var _d = new Date(grDateSel + "T00:00:00");
+                                _d.setDate(_d.getDate() - 1);
+                                setGrDateSel(_d.toISOString().slice(0,10));
+                            }
+                        }, "\u2039"),
+                        React.createElement("input", {
+                            type: "date", className: "gr-search", style:{flex:1,marginBottom:0},
+                            value: grDateSel, onChange: function(e) { setGrDateSel(e.target.value); }
+                        }),
+                        React.createElement("button", {
+                            className: "gr-tab", style:{padding:"6px 12px"},
+                            onClick: function() {
+                                var _d = new Date(grDateSel + "T00:00:00");
+                                _d.setDate(_d.getDate() + 1);
+                                setGrDateSel(_d.toISOString().slice(0,10));
+                            }
+                        }, "\u203a")
+                    ),
+                    (function() {
+                        var _uniqDates = Array.from(new Set(grRecords.map(function(r){ return r.date; }))).sort(function(a,b){ return b.localeCompare(a); }).slice(0, 15);
+                        return _uniqDates.length > 0 && React.createElement("div", { style:{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10} },
+                            React.createElement("span", { style:{fontSize:11,color:"#aab8cc",width:"100%"} }, isNerv ? "// DATES WITH LOGS //" : "有紀錄的日期"),
+                            _uniqDates.map(function(dt) {
+                                return React.createElement("button", {
+                                    key: dt,
+                                    onClick: function() { setGrDateSel(dt); },
+                                    style:{
+                                        padding:"4px 10px", borderRadius:14, border:"1px solid",
+                                        borderColor: grDateSel === dt ? "#7b1fa2" : "#e0e0e0",
+                                        background: grDateSel === dt ? "#f3e5f5" : "#fafafa",
+                                        color: grDateSel === dt ? "#7b1fa2" : "#666",
+                                        cursor:"pointer", fontFamily:"inherit", fontSize:11
+                                    }
+                                }, dt.slice(5).replace("-","/"));
+                            })
+                        );
+                    })(),
                     grDateSel && (grDateRecords(grDateSel).length === 0
                         ? React.createElement("div", { className: "gr-empty" }, isNerv ? "// NO LOG THIS DATE //" : "當日無輔導紀錄")
                         : grDateRecords(grDateSel).map(function(r) {
